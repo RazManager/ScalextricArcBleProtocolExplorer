@@ -98,7 +98,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     var watchInterfacesAddedTask = objectManager.WatchInterfacesAddedAsync(
                         ((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) handler) =>
                             {
+                                Console.WriteLine();
                                 _logger.LogInformation($"{handler.objectPath} added...");
+                                LogDBusObject(handler.objectPath, handler.interfaces);
                             },
                         exception =>
                         {
@@ -109,7 +111,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     var watchInterfacesRemovedTask = objectManager.WatchInterfacesRemovedAsync(
                         ((Tmds.DBus.ObjectPath objectPath, string[] interfaces) handler) =>
                         {
+                            Console.WriteLine();
                             _logger.LogInformation($"{handler.objectPath} removed...");
+                            Console.WriteLine("Interfaces:");
+                            foreach (var iface in handler.interfaces)
+                            {
+                                Console.WriteLine(iface);
+                            }
                         },
                         exception =>
                         {
@@ -117,24 +125,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     );
 
-                    var objectPaths = await objectManager.GetManagedObjectsAsync();
-                    Console.WriteLine($"{objectPaths.Count} objectPaths found.");
-                    foreach (var objectPath in objectPaths)
+                    var dBusObjects = await objectManager.GetManagedObjectsAsync();
+                    Console.WriteLine($"{dBusObjects.Count} objectPaths found.");
+                    foreach (var dBusObject in dBusObjects)
                     {
-                        Console.WriteLine($"objectPath.Key={objectPath.Key}");
-                        foreach (var iface in objectPath.Value)
-                        {
-                            Console.WriteLine($"iface.Key={iface.Key}");
-                            foreach (var item in iface.Value)
-                            {
-                                Console.WriteLine($"item.Key={item.Key} item.Value={item.Value}");
-                            }
-                        }
+                        LogDBusObject(dBusObject.Key, dBusObject.Value);
                     }
 
 
-                    _logger.LogInformation("BluezMonitorService is running...");
-                    await Task.Delay(10000, cancellationToken);
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("BluezMonitorService is running...");
+                        await Task.Delay(10000, cancellationToken);
+                    }
 
                     watchInterfacesAddedTask.Dispose();
                     watchInterfacesRemovedTask.Dispose();
@@ -144,6 +147,36 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 {
                     _logger.LogError(exception.Message);
                     await Task.Delay(10000, cancellationToken);
+                }
+            }
+        }
+
+
+        private void LogDBusObject(Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"objectPath={objectPath}");
+            Console.WriteLine("Interfaces:");
+            foreach (var iface in interfaces)
+            {
+                Console.WriteLine($"interface={iface.Key}");
+                Console.WriteLine("Properties:");
+                foreach (var prop in iface.Value)
+                {
+                    switch (prop.Value)
+                    {
+                        case string[]:
+                            Console.WriteLine($"Values for property={prop.Key}:");
+                            foreach (var item in (string[])prop.Value)
+                            {
+                                Console.WriteLine(item);
+                            }
+                            break;
+
+                        default:
+                            Console.WriteLine($"{prop.Key}={prop.Value}");
+                            break;
+                    }
                 }
             }
         }
