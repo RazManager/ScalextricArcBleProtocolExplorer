@@ -13,7 +13,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly ILogger<BluezMonitorService> _logger;
 
         public const string serviceName = "org.bluez";
-        public const string AdapterInterface = "org.bluez.Adapter1";
+        public const string adapterInterfaceName = "org.bluez.Adapter1";
         public const string DeviceInterface = "org.bluez.Device1";
         public const string GattServiceInterface = "org.bluez.GattService1";
         public const string GattCharacteristicInterface = "org.bluez.GattCharacteristic1";
@@ -93,7 +93,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     }
 
-                    var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(serviceName, "/");
+                    var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(serviceName, Tmds.DBus.ObjectPath.Root);
 
                     var watchInterfacesAddedTask = objectManager.WatchInterfacesAddedAsync(
                         ((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) handler) =>
@@ -125,6 +125,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     );
 
+                    var adapter = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(serviceName, adapterInterfaceName);
+                    await adapter.StartDiscoveryAsync();
+
                     var dBusObjects = await objectManager.GetManagedObjectsAsync();
                     Console.WriteLine($"{dBusObjects.Count} objectPaths found.");
                     foreach (var dBusObject in dBusObjects)
@@ -132,6 +135,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         LogDBusObject(dBusObject.Key, dBusObject.Value);
                     }
 
+                    // Check that org.bluez.Adapter1 exists
+
+                    var interfaces = dBusObjects.SelectMany(x => x.Value);
+                    foreach (var item in interfaces)
+                    {
+                        Console.WriteLine(item.Value);
+                    }
+
+
+                    //var device = Connection.System.CreateProxy<IDevice1>(BluezConstants.DbusService, args.objectPath);
+
+                    // Check if Scalextrixc ARC already found...
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
@@ -154,28 +169,47 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private void LogDBusObject(Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces)
         {
-            Console.WriteLine();
+            Console.WriteLine("===================================================================");
             Console.WriteLine($"objectPath={objectPath}");
-            Console.WriteLine("Interfaces:");
             foreach (var iface in interfaces)
             {
+                Console.WriteLine("----------------------------------------------------------------");
                 Console.WriteLine($"interface={iface.Key}");
-                Console.WriteLine("Properties:");
-                foreach (var prop in iface.Value)
+                if (iface.Value.Any())
                 {
-                    switch (prop.Value)
+                    Console.WriteLine("Properties:");
+                    foreach (var prop in iface.Value)
                     {
-                        case string[]:
-                            Console.WriteLine($"Values for property={prop.Key}:");
-                            foreach (var item in (string[])prop.Value)
-                            {
-                                Console.WriteLine(item);
-                            }
-                            break;
+                        switch (prop.Value)
+                        {
+                            case string[]:
+                                Console.WriteLine($"Values for property={prop.Key}:");
+                                foreach (var item in (string[])prop.Value)
+                                {
+                                    Console.WriteLine(item);
+                                }
+                                break;
 
-                        default:
-                            Console.WriteLine($"{prop.Key}={prop.Value}");
-                            break;
+                            case Dictionary<ushort, object>:
+                                Console.WriteLine($"Values for property={prop.Key}:");
+                                foreach (var item in (Dictionary<ushort, object>)prop.Value)
+                                {
+                                    Console.WriteLine($"{item.Key}={item.Value}");
+                                }
+                                break;
+
+                            case Dictionary<string, object>:
+                                Console.WriteLine($"Values for property={prop.Key}:");
+                                foreach (var item in (Dictionary<string, object>)prop.Value)
+                                {
+                                    Console.WriteLine($"{item.Key}={item.Value}");
+                                }
+                                break;
+
+                            default:
+                                Console.WriteLine($"{prop.Key}={prop.Value}");
+                                break;
+                        }
                     }
                 }
             }
