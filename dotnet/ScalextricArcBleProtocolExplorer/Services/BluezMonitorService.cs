@@ -125,8 +125,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     );
 
-                    var adapter = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(serviceName, adapterInterfaceName);
-                    await adapter.StartDiscoveryAsync();
 
                     var dBusObjects = await objectManager.GetManagedObjectsAsync();
                     Console.WriteLine($"{dBusObjects.Count} objectPaths found.");
@@ -137,11 +135,20 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                     // Check that org.bluez.Adapter1 exists
 
-                    var interfaces = dBusObjects.SelectMany(x => x.Value);
-                    foreach (var item in interfaces)
+                    var objectPathInterfaces = dBusObjects.SelectMany(objectPath => objectPath.Value, (objectPath, iface) => new { objectPath, iface });
+                    foreach (var item in objectPathInterfaces)
                     {
-                        Console.WriteLine(item.Value);
+                        Console.WriteLine(item.iface.Key);
                     }
+
+                    var objectPathInterface = objectPathInterfaces.SingleOrDefault(x => x.iface.Key == adapterInterfaceName);
+                    if (objectPathInterface is not null)
+                    {
+                        Console.WriteLine(objectPathInterface.objectPath.Key);
+                        var adapter = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(serviceName, objectPathInterface.objectPath.Key);
+                        await adapter.StartDiscoveryAsync();
+                    }
+
 
 
                     //var device = Connection.System.CreateProxy<IDevice1>(BluezConstants.DbusService, args.objectPath);
@@ -158,8 +165,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     watchInterfacesRemovedTask.Dispose();
 
                 }
+                catch (ArgumentException exception)
+                {
+                    _logger.LogError(exception.Message);
+                }
                 catch (Exception exception)
                 {
+                    _logger.LogError(exception.GetType().FullName);
                     _logger.LogError(exception.Message);
                     await Task.Delay(10000, cancellationToken);
                 }
