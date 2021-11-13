@@ -5,27 +5,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
-    public class BluezMonitorService : BackgroundService
+    public class BluezMonitorService : IHostedService
     {
+        private class DeviceInterfaceMetadata
+        {
+            public Tmds.DBus.ObjectPath ObjectPath { get; init; } = null!;
+            public string? InterfaceName { get; init; }
+            public string? DeviceName { get; init; }
+        }
+
         private readonly ILogger<BluezMonitorService> _logger;
 
-        public const string serviceName = "org.bluez";
-        public const string adapterInterfaceName = "org.bluez.Adapter1";
-        public const string DeviceInterface = "org.bluez.Device1";
-        public const string GattServiceInterface = "org.bluez.GattService1";
-        public const string GattCharacteristicInterface = "org.bluez.GattCharacteristic1";
-
-        //[DBusInterface("org.freedesktop.DBus.ObjectManager")]
-        //interface IObjectManager : IDBusObject
-
-        //[DBusInterface("org.bluez.AgentManager1")]
-        //interface IAgentManager1 : IDBusObject
-
-        //[DBusInterface("org.bluez.ProfileManager1")]
-        //interface IProfileManager1 : IDBusObject
+        public const string bluezServiceName = "org.bluez";
+        public const string bluezAdapterInterfaceName = "org.bluez.Adapter1";
+        public const string bluezDeviceInterfaceName = "org.bluez.Device1";
+        //public const string GattServiceInterface = "org.bluez.GattService1";
+        //public const string GattCharacteristicInterface = "org.bluez.GattCharacteristic1";
 
         //[DBusInterface("org.bluez.Adapter1")]
         //interface IAdapter1 : IDBusObject
@@ -42,6 +42,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
         //[DBusInterface("org.bluez.NetworkServer1")]
         //interface INetworkServer1 : IDBusObject
 
+        private ConcurrentDictionary<Tmds.DBus.ObjectPath, DeviceInterfaceMetadata> _devices = new ();
+
 
         public BluezMonitorService(ILogger<BluezMonitorService> logger)
         {
@@ -49,14 +51,29 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
+            Console.WriteLine(Environment.OSVersion.Platform);
+            _ = BluezDiscoveryAsync(cancellationToken);
+            return Task.CompletedTask;
+        }
+
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+
+        private async Task BluezDiscoveryAsync(CancellationToken cancellationToken)
+        {
+            Task? watchInterfacesAddedTask = null;
+            Task? watchInterfacesRemovedTask = null;
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    Console.WriteLine(Environment.OSVersion.Platform);
-
                     //var services = await Tmds.DBus.Connection.System.ListServicesAsync();
                     //Console.WriteLine($"Number of services: {services.Length}");
                     //foreach (var service in services)
@@ -71,61 +88,31 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     //    Console.WriteLine(activatableService);
                     //}
 
-                    if (activatableServices.SingleOrDefault(x => x == serviceName) is null)
+                    if (activatableServices.SingleOrDefault(x => x == bluezServiceName) is null)
                     {
-                        _logger.LogError($"{serviceName} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality.");
+                        _logger.LogError($"{bluezServiceName} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality.");
                         return;
                     }
 
-                    var isServiceActive = await Tmds.DBus.Connection.System.IsServiceActiveAsync(serviceName);
+                    var isServiceActive = await Tmds.DBus.Connection.System.IsServiceActiveAsync(bluezServiceName);
                     if (!isServiceActive)
                     {
-                        _logger.LogInformation($"Starting {serviceName}.");
-                        var serviceStartResult = await Tmds.DBus.Connection.System.ActivateServiceAsync(serviceName);
+                        _logger.LogInformation($"Starting {bluezServiceName}.");
+                        var serviceStartResult = await Tmds.DBus.Connection.System.ActivateServiceAsync(bluezServiceName);
                         switch (serviceStartResult)
                         {
                             case Tmds.DBus.ServiceStartResult.Started:
-                                _logger.LogInformation($"{serviceName} started.");
+                                _logger.LogInformation($"{bluezServiceName} started.");
                                 break;
                             case Tmds.DBus.ServiceStartResult.AlreadyRunning:
-                                _logger.LogInformation($"{serviceName} was already running.");
+                                _logger.LogInformation($"{bluezServiceName} was already running.");
                                 break;
                         }
                     }
 
-                    var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(serviceName, Tmds.DBus.ObjectPath.Root);
+                    var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(bluezServiceName, Tmds.DBus.ObjectPath.Root);
 
-                    var watchInterfacesAddedTask = objectManager.WatchInterfacesAddedAsync(
-                        ((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) handler) =>
-                            {
-                                Console.WriteLine();
-                                _logger.LogInformation($"{handler.objectPath} added...");
-                                LogDBusObject(handler.objectPath, handler.interfaces);
-                            },
-                        exception =>
-                        {
-                            _logger.LogError(exception.Message);
-                        }
-                    );
-
-                    var watchInterfacesRemovedTask = objectManager.WatchInterfacesRemovedAsync(
-                        ((Tmds.DBus.ObjectPath objectPath, string[] interfaces) handler) =>
-                        {
-                            Console.WriteLine();
-                            _logger.LogInformation($"{handler.objectPath} removed...");
-                            Console.WriteLine("Interfaces:");
-                            foreach (var iface in handler.interfaces)
-                            {
-                                Console.WriteLine(iface);
-                            }
-                        },
-                        exception =>
-                        {
-                            _logger.LogError(exception.Message);
-                        }
-                    );
-
-
+                    // Find all D-Bus objects
                     var dBusObjects = await objectManager.GetManagedObjectsAsync();
                     Console.WriteLine($"{dBusObjects.Count} objectPaths found.");
                     foreach (var dBusObject in dBusObjects)
@@ -133,41 +120,83 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         LogDBusObject(dBusObject.Key, dBusObject.Value);
                     }
 
-                    // Check that org.bluez.Adapter1 exists
-
+                    // Find all the interfaces for the D-Bus objects
                     var objectPathInterfaces = dBusObjects.SelectMany(objectPath => objectPath.Value, (objectPath, iface) => new { objectPath, iface });
                     foreach (var item in objectPathInterfaces)
                     {
                         Console.WriteLine(item.iface.Key);
                     }
 
-                    var objectPathInterface = objectPathInterfaces.SingleOrDefault(x => x.iface.Key == adapterInterfaceName);
-                    if (objectPathInterface is not null)
+                    var bluezAdapter = objectPathInterfaces.SingleOrDefault(x => x.iface.Key == bluezAdapterInterfaceName);
+                    if (bluezAdapter is null)
                     {
-                        Console.WriteLine(objectPathInterface.objectPath.Key);
-                        var adapter = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(serviceName, objectPathInterface.objectPath.Key);
-                        await adapter.StartDiscoveryAsync();
+                        _logger.LogError($"{bluezAdapterInterfaceName} does not exist.");
                     }
+                    else
+                    {
+                        if (watchInterfacesAddedTask is not null)
+                        {
+                            watchInterfacesAddedTask.Dispose();
+                        }
+                        watchInterfacesAddedTask = objectManager.WatchInterfacesAddedAsync(
+                            InterfaceAdded,
+                            exception =>
+                            {
+                                _logger.LogError(exception.Message);
+                            }
+                        );
 
+                        if (watchInterfacesRemovedTask is not null)
+                        {
+                            watchInterfacesRemovedTask.Dispose();
+                        }
+                        watchInterfacesRemovedTask = objectManager.WatchInterfacesRemovedAsync(
+                            InterfaceRemoved,
+                            exception =>
+                            {
+                                _logger.LogError(exception.Message);
+                            }
+                        );
+
+
+                        // TODO: Check if Scalextrixc ARC already found...
+
+
+                        Console.WriteLine(bluezAdapter.objectPath.Key);
+                        var adapter = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapter.objectPath.Key);
+                        await adapter.StartDiscoveryAsync();
+
+                        while (!cancellationToken.IsCancellationRequested)
+                        {
+                            _logger.LogInformation("BluezMonitorService is running...");
+                            await Task.Delay(10000, cancellationToken);
+                        }
+                    }
 
 
                     //var device = Connection.System.CreateProxy<IDevice1>(BluezConstants.DbusService, args.objectPath);
 
-                    // Check if Scalextrixc ARC already found...
-
-                    while (!cancellationToken.IsCancellationRequested)
+                    if (watchInterfacesAddedTask is not null)
                     {
-                        _logger.LogInformation("BluezMonitorService is running...");
-                        await Task.Delay(10000, cancellationToken);
+                        watchInterfacesAddedTask.Dispose();
                     }
-
-                    watchInterfacesAddedTask.Dispose();
-                    watchInterfacesRemovedTask.Dispose();
-
+                    if (watchInterfacesRemovedTask is not null)
+                    {
+                        watchInterfacesRemovedTask.Dispose();
+                    }
                 }
-                catch (ArgumentException exception)
+                catch (Tmds.DBus.DBusException exception)
                 {
-                    _logger.LogError(exception.Message);
+                    switch (exception.ErrorName)
+                    {
+                        case "org.bluez.Error.NotReady":
+                            _logger.LogError(exception.ErrorName);
+                            break;
+
+                        default:
+                            _logger.LogError(exception.Message);
+                            break;
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -177,6 +206,70 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 }
             }
         }
+
+
+        private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
+        {
+            Console.WriteLine();
+            _logger.LogInformation($"{args.objectPath} added...");
+            foreach (var iface in args.interfaces.Where(x => x.Key == bluezDeviceInterfaceName))
+            {
+                Console.WriteLine($"Checking {iface} {iface.Key} {iface.Value}");
+                if (iface.Value.TryGetValue("Name", out object? value))
+                {
+                    var deviceName = value as string;
+                    if (!string.IsNullOrEmpty(deviceName))
+                    {
+                        var deviceInterfaceMetadata = new DeviceInterfaceMetadata
+                        {
+                            ObjectPath = args.objectPath,
+                            InterfaceName = iface.Key,
+                            DeviceName = deviceName
+                        };
+                        _devices.AddOrUpdate(args.objectPath, deviceInterfaceMetadata, (objPath, metadata) => deviceInterfaceMetadata);
+                        Task.Run(async () => {
+                            _logger.LogInformation($"New device found. Waiting 10 seconds before attempting to connect to it in order for other devices to be found.");
+                            await Task.Delay(TimeSpan.FromSeconds(10));
+                            DevicesChanged();
+                        });
+                    }
+                }
+            }
+            LogDBusObject(args.objectPath, args.interfaces);
+        }
+
+
+        private void InterfaceRemoved((Tmds.DBus.ObjectPath objectPath, string[] interfaces) args)
+        {
+            Console.WriteLine();
+            _logger.LogInformation($"{args.objectPath} removed...");
+            _devices.TryRemove(args.objectPath, out DeviceInterfaceMetadata? value);
+            Console.WriteLine("Interfaces removed:");
+            foreach (var iface in args.interfaces)
+            {
+                Console.WriteLine(iface);
+            }
+            DevicesChanged();
+        }
+
+
+        private void DevicesChanged()
+        {
+            Console.WriteLine();
+            Console.WriteLine($"DevicesChanged. Current device count = {_devices.Count}");
+            foreach (var device in _devices)
+            {
+                Console.WriteLine($"{device.Key}, {device.Value.ObjectPath}, {device.Value.InterfaceName}, {device.Value.DeviceName}");
+            }
+        }
+
+
+        //private async Task ScalextricArcAsync(CancellationToken cancellationToken)
+        //{
+
+        //}
+
+
 
 
         private void LogDBusObject(Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces)
@@ -226,5 +319,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 }
             }
         }
+
     }
 }
