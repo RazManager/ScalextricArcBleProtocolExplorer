@@ -158,18 +158,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         );
 
-
-                        // TODO: Check if Scalextrixc ARC already found...
-
+                        foreach (var dBusObject in dBusObjects)
+                        {
+                            Console.WriteLine($"Already found {bluezAdapter.objectPath.Key}");
+                            InterfaceAdded((dBusObject.Key, dBusObject.Value));
+                            //LogDBusObject(dBusObject.Key, dBusObject.Value);
+                        }
 
                         Console.WriteLine(bluezAdapter.objectPath.Key);
                         var adapter = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapter.objectPath.Key);
-                        await adapter.StartDiscoveryAsync();
-                        _logger.LogInformation("Bluetooth device discovery started.");
-
                         while (!cancellationToken.IsCancellationRequested)
                         {
-                            _logger.LogInformation("BluezMonitorService is running...");
+                            if (_devices.Any())
+                            {
+                                _logger.LogInformation("Bluetooth device discovery not needed, device already found.");
+                                await adapter.StopDiscoveryAsync();
+                            }
+                            else
+                            {
+                                //adapter.SetDiscoveryFilterAsync
+                                _logger.LogInformation("Starting Bluetooth device discovery.");
+                                await adapter.StartDiscoveryAsync();
+                            }
+
+                            //_logger.LogInformation("BluezMonitorService is running...");
                             await Task.Delay(10000, cancellationToken);
                         }
                     }
@@ -210,6 +222,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             Console.WriteLine();
             _logger.LogInformation($"{args.objectPath} added...");
+            foreach (var iface in args.interfaces)
+            {
+                Console.WriteLine(iface.Key);
+            }
             foreach (var iface in args.interfaces.Where(x => x.Key == bluezDeviceInterfaceName))
             {
                 Console.WriteLine($"Checking {iface.Key} {iface.Value}");
@@ -249,24 +265,33 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             Console.WriteLine();
             Console.WriteLine($"DevicesChanged. Current device count = {_devices.Count}");
-            foreach (var device in _devices)
+
+            if (_devices.Any(x => x.Value.Connected))
             {
-                try
+                Console.WriteLine($"At least one device already connected, not trying to connect again...");
+            }
+            else
+            {
+                foreach (var device in _devices)
                 {
-                    Console.WriteLine($"{device.Key}, {device.Value.InterfaceName}, {device.Value.DeviceName}, {device.Value.Connected}");
-                    Console.WriteLine($"CreateProxy...");
-                    var device1 = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
-                    Console.WriteLine($"ConnectAsync before..");
-                    device1.ConnectAsync().Wait();
-                    Console.WriteLine($"ConnectAsync after..");
-                    //device1.g
-                    //device.WaitForPropertyValueAsync( ("Connected", value: true, timeout);
-                    //device.WaitForPropertyValueAsync("ServicesResolved", value: true, timeout);
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(exception.GetType().FullName);
-                    _logger.LogError(exception.Message);
+                    try
+                    {
+                        Console.WriteLine($"{device.Key}, {device.Value.InterfaceName}, {device.Value.DeviceName}, {device.Value.Connected}");
+                        Console.WriteLine($"CreateProxy...");
+                        var device1 = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
+                        Console.WriteLine($"ConnectAsync before..");
+                        device1.ConnectAsync().Wait();
+                        Console.WriteLine($"ConnectAsync after..");
+                        device.Value.Connected = true;
+                        //device1.g
+                        //device.WaitForPropertyValueAsync( ("Connected", value: true, timeout);
+                        //device.WaitForPropertyValueAsync("ServicesResolved", value: true, timeout);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(exception.GetType().FullName);
+                        _logger.LogError(exception.Message);
+                    }
                 }
             }
         }
