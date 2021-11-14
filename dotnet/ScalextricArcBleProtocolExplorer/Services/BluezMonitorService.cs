@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-
+using static bluez.DBus.Adapter1Extensions;
+using static bluez.DBus.Device1Extensions;
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
@@ -172,16 +173,27 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             if (_devices.Any())
                             {
                                 _logger.LogInformation("Bluetooth device discovery not needed, device already found.");
-                                await adapter.StopDiscoveryAsync();
+                                if (await adapter.GetDiscoveringAsync())
+                                {
+                                    _logger.LogInformation("Stopping Bluetooth device discovery.");
+                                    await adapter.StopDiscoveryAsync();
+                                }
                             }
                             else
                             {
-                                //adapter.SetDiscoveryFilterAsync
-                                _logger.LogInformation("Starting Bluetooth device discovery.");
-                                await adapter.StartDiscoveryAsync();
+                                if (await adapter.GetDiscoveringAsync())
+                                {
+                                    _logger.LogInformation("Bluetooth device discovery already started.");
+                                }
+                                else
+                                {
+                                    //adapter.SetDiscoveryFilterAsync
+                                    _logger.LogInformation("Starting Bluetooth device discovery.");
+                                    await adapter.StartDiscoveryAsync();
+                                }
                             }
 
-                            //_logger.LogInformation("BluezMonitorService is running...");
+                            _logger.LogInformation("BluezMonitorService is running...");
                             await Task.Delay(10000, cancellationToken);
                         }
                     }
@@ -194,6 +206,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     {
                         watchInterfacesRemovedTask.Dispose();
                     }
+
+                    _logger.LogInformation("While loop end...");
+                    await Task.Delay(10000, cancellationToken);
                 }
                 catch (Tmds.DBus.DBusException exception)
                 {
@@ -232,8 +247,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (iface.Value.TryGetValue("Name", out object? value))
                 {
                     var deviceName = value as string;
-                    if (!string.IsNullOrEmpty(deviceName) && deviceName == "Scalextric ARC")
+                    if (!string.IsNullOrEmpty(deviceName) && deviceName.Trim() == "Scalextric ARC")
                     {
+                        LogDBusObject(args.objectPath, args.interfaces);
+
                         var deviceInterfaceMetadata = new DeviceInterfaceMetadata
                         {
                             InterfaceName = iface.Key,
@@ -243,8 +260,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         Task.Run(async () => {
                             _logger.LogInformation($"New device found. Waiting 10 seconds before attempting to connect to it in order for other devices to be found.");
                             await Task.Delay(TimeSpan.FromSeconds(10));
-                            DevicesChanged();
-                        });
+                            await DevicesChangedAsync();
+                        }).Wait();
                     }
                 }
             }
@@ -257,11 +274,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Console.WriteLine();
             _logger.LogInformation($"{args.objectPath} removed...");
             _devices.TryRemove(args.objectPath, out DeviceInterfaceMetadata? value);
-            DevicesChanged();
+            _ = DevicesChangedAsync();
         }
 
 
-        private void DevicesChanged()
+        private async Task DevicesChangedAsync()
         {
             Console.WriteLine();
             Console.WriteLine($"DevicesChanged. Current device count = {_devices.Count}");
@@ -278,11 +295,22 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     {
                         Console.WriteLine($"{device.Key}, {device.Value.InterfaceName}, {device.Value.DeviceName}, {device.Value.Connected}");
                         Console.WriteLine($"CreateProxy...");
-                        var device1 = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
-                        Console.WriteLine($"ConnectAsync before..");
-                        device1.ConnectAsync().Wait();
-                        Console.WriteLine($"ConnectAsync after..");
-                        device.Value.Connected = true;
+                        var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
+
+                        if (!await deviceProxy.GetConnectedAsync())
+                        {
+                            Console.WriteLine($"ConnectAsync before..");
+                            await deviceProxy.ConnectAsync();
+                            Console.WriteLine($"ConnectAsync after..");
+                            device.Value.Connected = true;
+
+                            await DeviceConnectedAndServicesResolvedAsync(deviceProxy);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Already connected. Not running ConnectAsync.");
+                        }
+
                         //device1.g
                         //device.WaitForPropertyValueAsync( ("Connected", value: true, timeout);
                         //device.WaitForPropertyValueAsync("ServicesResolved", value: true, timeout);
@@ -294,6 +322,25 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     }
                 }
             }
+        }
+
+
+        private Task DeviceConnectedAndServicesResolvedAsync(bluez.DBus.IDevice1 device)
+        {
+            var tcs = new TaskCompletionSource();
+
+            var t = device.WatchPropertiesAsync(propertyChanges =>
+            {
+                var connected = propertyChanges.Get<string>("Connected");
+                var servicesResolved = propertyChanges.Get<string>("ServicesResolved");
+
+                Console.WriteLine($"connected={connected}");
+                Console.WriteLine($"servicesResolved={servicesResolved}");
+                //tcs.SetResult();
+                //t.Dispose
+            });
+
+            return tcs.Task;
         }
 
 
