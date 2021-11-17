@@ -75,19 +75,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 try
                 {
-                    //var services = await Tmds.DBus.Connection.System.ListServicesAsync();
-                    //Console.WriteLine($"Number of services: {services.Length}");
-                    //foreach (var service in services)
-                    //{
-                    //    Console.WriteLine(service);
-                    //}
+                    var services = await Tmds.DBus.Connection.System.ListServicesAsync();
+                    Console.WriteLine($"Number of services: {services.Length}");
+                    foreach (var service in services)
+                    {
+                        Console.WriteLine(service);
+                    }
 
                     var activatableServices = await Tmds.DBus.Connection.System.ListActivatableServicesAsync();
-                    //Console.WriteLine($"Number of activatable services: {activatableServices.Length}");
-                    //foreach (var activatableService in activatableServices)
-                    //{
-                    //    Console.WriteLine(activatableService);
-                    //}
+                    Console.WriteLine($"Number of activatable services: {activatableServices.Length}");
+                    foreach (var activatableService in activatableServices)
+                    {
+                        Console.WriteLine(activatableService);
+                    }
 
                     if (activatableServices.SingleOrDefault(x => x == bluezServiceName) is null)
                     {
@@ -161,12 +161,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         foreach (var dBusObject in dBusObjects)
                         {
-                            Console.WriteLine($"Already found {bluezAdapter.objectPath.Key}");
+                            Console.WriteLine($"{bluezAdapter.objectPath.Key} already discovered.");
                             InterfaceAdded((dBusObject.Key, dBusObject.Value));
                             //LogDBusObject(dBusObject.Key, dBusObject.Value);
                         }
 
-                        Console.WriteLine(bluezAdapter.objectPath.Key);
+                        Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezAdapter.objectPath.Key}");
                         var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapter.objectPath.Key);
                         while (!cancellationToken.IsCancellationRequested)
                         {
@@ -236,7 +236,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
             Console.WriteLine();
-            _logger.LogInformation($"{args.objectPath} added...");
+            _logger.LogInformation($"{args.objectPath} added with the following interfaces...");
             foreach (var iface in args.interfaces)
             {
                 Console.WriteLine(iface.Key);
@@ -303,19 +303,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
                         Console.WriteLine($"CreateProxy after...");
 
-                        //if (!await deviceProxy.GetConnectedAsync())
-                        //{
-                        //    Console.WriteLine($"ConnectAsync before..");
-                        //    await deviceProxy.ConnectAsync();
-                        //    Console.WriteLine($"ConnectAsync after..");
+                        if (!deviceProxy.GetConnectedAsync().Result)
+                        {
+                            Console.WriteLine($"ConnectAsync before..");
+                            deviceProxy.ConnectAsync().Wait();
+                            Console.WriteLine($"ConnectAsync after..");
                             device.Value.Connected = true;
 
                         //    await DeviceConnectedAndServicesResolvedAsync(deviceProxy);
-                        //}
-                        //else
-                        //{
-                        //    Console.WriteLine($"Already connected. Not running ConnectAsync.");
-                        //}
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Already connected. Not running ConnectAsync.");
+                        }
 
                         //device1.g
                         //device.WaitForPropertyValueAsync( ("Connected", value: true, timeout);
@@ -343,7 +343,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 Console.WriteLine($"connected={connected}");
                 Console.WriteLine($"servicesResolved={servicesResolved}");
                 //tcs.SetResult();
-                //t.Dispose
+                //t.Dispose();
             });
 
             return tcs.Task;
