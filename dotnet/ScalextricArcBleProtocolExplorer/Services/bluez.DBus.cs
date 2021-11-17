@@ -669,6 +669,20 @@ namespace bluez.DBus
                 _ServicesResolved = (value);
             }
         }
+
+        private bool _WakeAllowed = default(bool);
+        public bool WakeAllowed
+        {
+            get
+            {
+                return _WakeAllowed;
+            }
+
+            set
+            {
+                _WakeAllowed = (value);
+            }
+        }
     }
 
     static class Device1Extensions
@@ -688,17 +702,15 @@ namespace bluez.DBus
         public static Task<bool> GetConnectedAsync(this IDevice1 o) => o.GetAsync<bool>("Connected");
         public static Task<string[]> GetUUIDsAsync(this IDevice1 o) => o.GetAsync<string[]>("UUIDs");
         public static Task<string> GetModaliasAsync(this IDevice1 o) => o.GetAsync<string>("Modalias");
-        public static Task<IAdapter1> GetAdapterAsync(this IDevice1 o) => o.GetAsync<IAdapter1>("Adapter");
+        public static Task<ObjectPath> GetAdapterAsync(this IDevice1 o) => o.GetAsync<ObjectPath>("Adapter");
         public static Task<IDictionary<ushort, object>> GetManufacturerDataAsync(this IDevice1 o) => o.GetAsync<IDictionary<ushort, object>>("ManufacturerData");
         public static Task<IDictionary<string, object>> GetServiceDataAsync(this IDevice1 o) => o.GetAsync<IDictionary<string, object>>("ServiceData");
         public static Task<short> GetTxPowerAsync(this IDevice1 o) => o.GetAsync<short>("TxPower");
         public static Task<bool> GetServicesResolvedAsync(this IDevice1 o) => o.GetAsync<bool>("ServicesResolved");
+        public static Task<bool> GetWakeAllowedAsync(this IDevice1 o) => o.GetAsync<bool>("WakeAllowed");
         public static Task SetAliasAsync(this IDevice1 o, string val) => o.SetAsync("Alias", val);
         public static Task SetTrustedAsync(this IDevice1 o, bool val) => o.SetAsync("Trusted", val);
         public static Task SetBlockedAsync(this IDevice1 o, bool val) => o.SetAsync("Blocked", val);
+        public static Task SetWakeAllowedAsync(this IDevice1 o, bool val) => o.SetAsync("WakeAllowed", val);
     }
-
-
-
-
 }
