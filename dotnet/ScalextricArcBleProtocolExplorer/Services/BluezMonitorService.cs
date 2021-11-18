@@ -152,8 +152,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     //    Console.WriteLine(item.iface.Key);
                     //}
 
-                    var bluezAdapterObjectPath = _bluezObjectPathInterfaces.Values.SingleOrDefault(x => x.Any(i => i == bluezAdapterInterfaceName));
-                    if (bluezAdapterObjectPath is null)
+                    var bluezAdapterObjectPath = _bluezObjectPathInterfaces.SingleOrDefault(x => x.Value.Any(i => i == bluezAdapterInterfaceName));
+                    if (string.IsNullOrEmpty(bluezAdapterObjectPath.Key.ToString()))
                     {
                         _logger.LogError($"{bluezAdapterInterfaceName} does not exist.");
                     }
@@ -190,8 +190,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             //LogDBusObject(dBusObject.Key, dBusObject.Value);
                         }
 
-                        Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezServiceName} {bluezAdapterObjectPath}");
-                        var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapterObjectPath);
+                        Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezServiceName} {bluezAdapterObjectPath.Key}");
+                        var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapterObjectPath.Key);
 
                         while (!cancellationToken.IsCancellationRequested)
                         {
