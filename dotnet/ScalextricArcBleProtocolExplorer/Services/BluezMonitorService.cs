@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
+using static bluez.DBus.GattService1Extensions;
+
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
@@ -20,13 +22,22 @@ namespace ScalextricArcBleProtocolExplorer.Services
             public bool Connected { get; set; } = false;
         }
 
+        private class BluezObjectPath
+        {
+            public Tmds.DBus.ObjectPath ObjectPath { get; set; }
+            public List<string> BluezInterfaces { get; set; } = new();
+        }
+
         private readonly ILogger<BluezMonitorService> _logger;
 
         public const string bluezServiceName = "org.bluez";
         public const string bluezAdapterInterfaceName = "org.bluez.Adapter1";
         public const string bluezDeviceInterfaceName = "org.bluez.Device1";
-        //public const string GattServiceInterface = "org.bluez.GattService1";
+        public const string bluezGattServiceInterface = "org.bluez.GattService1";
         //public const string GattCharacteristicInterface = "org.bluez.GattCharacteristic1";
+
+        private Tmds.DBus.ObjectPath bluezAdapterObjectPath;
+
 
         //[DBusInterface("org.bluez.Adapter1")]
         //interface IAdapter1 : IDBusObject
@@ -44,6 +55,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         //interface INetworkServer1 : IDBusObject
 
         private ConcurrentDictionary<Tmds.DBus.ObjectPath, DeviceInterfaceMetadata> _devices = new ();
+        private ConcurrentDictionary<Tmds.DBus.ObjectPath, string> _bluezObjectPaths = new();
 
 
         public BluezMonitorService(ILogger<BluezMonitorService> logger)
@@ -73,6 +85,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             while (!cancellationToken.IsCancellationRequested)
             {
+                _devices = new();
+                _bluezObjectPaths = new();
+
                 try
                 {
                     //var services = await Tmds.DBus.Connection.System.ListServicesAsync();
@@ -116,20 +131,29 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     // Find all D-Bus objects
                     var dBusObjects = await objectManager.GetManagedObjectsAsync();
                     //Console.WriteLine($"{dBusObjects.Count} objectPaths found.");
-                    //foreach (var dBusObject in dBusObjects)
-                    //{
-                    //    LogDBusObject(dBusObject.Key, dBusObject.Value);
-                    //}
+                    foreach (var dBusObject in dBusObjects)
+                    {
+                        //if (dBusObject.Key.ToString().StartsWith("/org/bluez"))
+                        //{
+                            var interfaceName = dBusObject.Value.Keys.SingleOrDefault(x => x.StartsWith(bluezServiceName));
+                            if (!string.IsNullOrEmpty(interfaceName))
+                            {
+                                _bluezObjectPaths.TryAdd(dBusObject.Key, interfaceName);
+                            }
+                        //}
+
+                        //LogDBusObject(dBusObject.Key, dBusObject.Value);
+                    }
 
                     // Find all the interfaces for the D-Bus objects
-                    var objectPathInterfaces = dBusObjects.SelectMany(objectPath => objectPath.Value, (objectPath, iface) => new { objectPath, iface });
+                    //var objectPathInterfaces = dBusObjects.SelectMany(objectPath => objectPath.Value, (objectPath, iface) => new { objectPath, iface });
                     //foreach (var item in objectPathInterfaces)
                     //{
                     //    Console.WriteLine(item.iface.Key);
                     //}
 
-                    var bluezAdapter = objectPathInterfaces.SingleOrDefault(x => x.iface.Key == bluezAdapterInterfaceName);
-                    if (bluezAdapter is null)
+                    var bluezAdapterObjectPath = _bluezObjectPaths.Values.SingleOrDefault(x => x == bluezAdapterInterfaceName);
+                    if (bluezAdapterObjectPath is null)
                     {
                         _logger.LogError($"{bluezAdapterInterfaceName} does not exist.");
                     }
@@ -161,13 +185,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         foreach (var dBusObject in dBusObjects)
                         {
-                            Console.WriteLine($"{bluezAdapter.objectPath.Key} already discovered.");
+                            //Console.WriteLine($"{bluezAdapter.objectPath.Key} already discovered.");
                             InterfaceAdded((dBusObject.Key, dBusObject.Value));
                             //LogDBusObject(dBusObject.Key, dBusObject.Value);
                         }
 
-                        Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezServiceName} {bluezAdapter.objectPath.Key}");
-                        var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapter.objectPath.Key);
+                        Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezServiceName} {bluezAdapterObjectPath}");
+                        var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapterObjectPath);
+
                         while (!cancellationToken.IsCancellationRequested)
                         {
                             if (_devices.Any())
@@ -245,6 +270,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 Console.WriteLine(iface.Key);
             }
 
+
+            var interfaceName = args.interfaces.Keys.SingleOrDefault(x => x.StartsWith(bluezServiceName));
+            if (!string.IsNullOrEmpty(interfaceName))
+            {
+                _bluezObjectPaths.TryAdd(args.objectPath, interfaceName);
+            }
+
             foreach (var iface in args.interfaces.Where(x => x.Key == bluezDeviceInterfaceName))
             {
                 Console.WriteLine($"Checking {iface.Key} {iface.Value}");
@@ -282,7 +314,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             Console.WriteLine();
             _logger.LogInformation($"{args.objectPath} removed...");
-            _devices.TryRemove(args.objectPath, out DeviceInterfaceMetadata? value);
+            _devices.TryRemove(args.objectPath, out DeviceInterfaceMetadata? metadata);
+            _bluezObjectPaths.TryRemove(args.objectPath, out string? interfaceName);
             _ = DevicesChangedAsync();
         }
 
@@ -291,10 +324,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             foreach (var device in _devices)
             {
-                if (_devices.Any(x => x.Value.Connected))
-                {
-                    _logger.LogWarning($"At least one Scalextric ARC already connected, not trying to connect again...");
-                }
+                //if (_devices.Any(x => x.Value.Connected))
+                //{
+                //    _logger.LogWarning($"At least one Scalextric ARC already connected, not trying to connect again...");
+                //}
 
                 try
                 {
@@ -309,13 +342,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     }
                     else
                     {
-                        for (int connectionAttempt = 1; connectionAttempt <= 5; connectionAttempt++)
+                        _logger.LogInformation("Connecting to Scalextric ARC.");
+                        for (int i = 1; i <= 5; i++)
                         {
                             try
                             {
-                                Console.WriteLine($"ConnectAsync before {connectionAttempt}..");
+                                Console.WriteLine($"ConnectAsync before {i}..");
                                 await deviceProxy.ConnectAsync();
-                                Console.WriteLine($"ConnectAsync after {connectionAttempt}..");
+                                Console.WriteLine($"ConnectAsync after {i}..");
                                 device.Value.Connected = true;
                                 break;
                             }
@@ -331,6 +365,41 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     }
 
+                    if (! await deviceProxy.GetServicesResolvedAsync())
+                    {
+                        _logger.LogInformation("Waiting for Scalextric ARC services to be resolved.");
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            if (await deviceProxy.GetServicesResolvedAsync())
+                            {
+                                break;
+                            }
+
+                            await Task.Delay(TimeSpan.FromSeconds(5));
+                        }
+
+                        if (!await deviceProxy.GetServicesResolvedAsync())
+                        {
+                            throw new Exception("Scalextric ARC services could not be resolved");
+                        }
+                    }
+
+                    Console.WriteLine("Bluez objects and interfaces");
+                    foreach (var item in _bluezObjectPaths)
+                    {
+                        Console.WriteLine($"{item.Key} {item.Value}");
+                    }
+
+                    foreach (var item in _bluezObjectPaths.Where(x => x.Value == bluezGattServiceInterface))
+                    {
+                        Console.WriteLine();
+                        var gattServiceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
+                        Console.WriteLine(gattServiceProxy.ObjectPath);
+                        Console.WriteLine($"UUID={gattServiceProxy.GetUUIDAsync().Result}");
+                        Console.WriteLine($"Device={gattServiceProxy.GetDeviceAsync().Result}");
+                        Console.WriteLine($"Primary={gattServiceProxy.GetPrimaryAsync().Result}");
+                        Console.WriteLine($"Includes={string.Join(", ", gattServiceProxy.GetIncludesAsync().Result)}");
+                    }
 
 
                     //var servicesUUID = await deviceProxy.GetUUIDsAsync();
@@ -341,10 +410,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     //{
                     //    Console.WriteLine("Device doesn't have the Device Information Service. Try pairing first?");
                     //    return;
-                    //}
+                    //};
 
-                    //Console.WriteLine("Retrieving Device Information service...");
-                    //var service = await deviceProxy.GetServiceDataAsync();
+                    //var gProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>()
+
+                    //var
+
+                    /// Console.WriteLine("Retrieving Device Information service...");
+                    //var service = await deviceProxy.ser .GetServiceDataAsync();
                     //Console.WriteLine("Device Information service retrieved...");
                     //foreach (var item in service)
                     //{
@@ -372,7 +445,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             var tcs = new TaskCompletionSource();
 
-            var t = device.WatchPropertiesAsync(propertyChanges =>
+            Task<IDisposable> t;
+
+            t = device.WatchPropertiesAsync(propertyChanges =>
             {
                 var connected = propertyChanges.Get<string>("Connected");
                 var servicesResolved = propertyChanges.Get<string>("ServicesResolved");
@@ -380,19 +455,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 Console.WriteLine($"connected={connected}");
                 Console.WriteLine($"servicesResolved={servicesResolved}");
                 //tcs.SetResult();
-                //t.Dispose();
             });
+            t.Dispose();
 
             return tcs.Task;
         }
-
-
-        //private async Task ScalextricArcAsync(CancellationToken cancellationToken)
-        //{
-
-        //}
-
-
 
 
         private void LogDBusObject(Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces)
