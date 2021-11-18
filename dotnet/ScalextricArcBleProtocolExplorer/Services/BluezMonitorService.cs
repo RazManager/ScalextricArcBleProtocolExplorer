@@ -75,12 +75,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 try
                 {
-                    var services = await Tmds.DBus.Connection.System.ListServicesAsync();
-                    Console.WriteLine($"Number of services: {services.Length}");
-                    foreach (var service in services)
-                    {
-                        Console.WriteLine(service);
-                    }
+                    //var services = await Tmds.DBus.Connection.System.ListServicesAsync();
+                    //Console.WriteLine($"Number of services: {services.Length}");
+                    //foreach (var service in services)
+                    //{
+                    //    Console.WriteLine(service);
+                    //}
 
                     var activatableServices = await Tmds.DBus.Connection.System.ListActivatableServicesAsync();
                     Console.WriteLine($"Number of activatable services: {activatableServices.Length}");
@@ -166,39 +166,38 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             //LogDBusObject(dBusObject.Key, dBusObject.Value);
                         }
 
-                        //Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezAdapter.objectPath.Key}");
-                        //var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapter.objectPath.Key);
+                        Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezServiceName} {bluezAdapter.objectPath.Key}");
+                        var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapter.objectPath.Key);
                         while (!cancellationToken.IsCancellationRequested)
                         {
-                            // if (_devices.Any())
-                            // {
-                            //     _logger.LogInformation("Bluetooth device discovery not needed, device already found.");
-                            //     if (await bluezAdapterProxy.GetDiscoveringAsync())
-                            //     {
-                            //         _logger.LogInformation("Stopping Bluetooth device discovery.");
-                            //         await bluezAdapterProxy.StopDiscoveryAsync();
-                            //     }
-                            // }
-                            // else
-                            // {
-                            //     if (await bluezAdapterProxy.GetDiscoveringAsync())
-                            //     {
-                            //         _logger.LogInformation("Bluetooth device discovery already started.");
-                            //     }
-                            //     else
-                            //     {
-                            //         //adapter.SetDiscoveryFilterAsync
-                            //         _logger.LogInformation("Starting Bluetooth device discovery.");
-                            //         await bluezAdapterProxy.StartDiscoveryAsync();
-                            //     }
-                            // }
+                            if (_devices.Any())
+                            {
+                                _logger.LogInformation("Bluetooth device discovery not needed, device already found.");
+                                if (await bluezAdapterProxy.GetDiscoveringAsync())
+                                {
+                                    _logger.LogInformation("Stopping Bluetooth device discovery.");
+                                    await bluezAdapterProxy.StopDiscoveryAsync();
+                                }
+                            }
+                            else
+                            {
+                                if (await bluezAdapterProxy.GetDiscoveringAsync())
+                                {
+                                    _logger.LogInformation("Bluetooth device discovery already started.");
+                                }
+                                else
+                                {
+                                    //adapter.SetDiscoveryFilterAsync
+                                    _logger.LogInformation("Starting Bluetooth device discovery.");
+                                    await bluezAdapterProxy.StartDiscoveryAsync();
+                                }
+                            }
 
                             _logger.LogInformation("BluezMonitorService is running...");
 
+                            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
 
-                            await Task.Delay(10000, cancellationToken);
-
-                            await DevicesChangedAsync();
+                            //await DevicesChangedAsync();
                         }
                     }
 
@@ -212,7 +211,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     }
 
                     _logger.LogWarning("While loop end...");
-                    await Task.Delay(10000, cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
                 }
                 catch (Tmds.DBus.DBusException exception)
                 {
@@ -253,7 +252,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 {
                     var deviceName = value as string;
                     if (!string.IsNullOrEmpty(deviceName) && deviceName.Trim() == "Scalextric ARC")
-                    //if (!string.IsNullOrEmpty(deviceName) && deviceName.Trim() == "Kitchen BT")
                     {
                         LogDBusObject(args.objectPath, args.interfaces);
 
@@ -263,25 +261,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             DeviceName = deviceName
                         };
                         _devices.AddOrUpdate(args.objectPath, deviceInterfaceMetadata, (objPath, metadata) => deviceInterfaceMetadata);
-                        //DevicesChangedAsync().Wait();
 
-                        //Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezServiceName}, {args.objectPath}) ...");
-                        //var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, args.objectPath);
-                        //Console.WriteLine($"CreateProxy after...");
-
-                        //Console.WriteLine($"ConnectAsync before..");
-                        //var p = await deviceProxy.GetPairedAsync();
-                        //deviceProxy.ConnectAsync().Wait();
-                        //deviceProxy.PairAsync().Wait();
-                        //Console.WriteLine($"ConnectAsync after..");
-
-
-
-                        // Task.Run(async () => {
-                        //     _logger.LogInformation($"New device found. Waiting 10 seconds before attempting to connect to it in order for other devices to be found.");
-                        //     await Task.Delay(TimeSpan.FromSeconds(10));
-                        //     await DevicesChangedAsync();
-                        // }).Wait();
+                        _ = Task.Run(async () =>
+                        {
+                            _logger.LogInformation($"Scalextric ARC found. Waiting 10 seconds before attempting to connect to it in order for other devices to be found.");
+                            await Task.Delay(TimeSpan.FromSeconds(10));
+                            await DevicesChangedAsync();
+                        });
                     }
                 }
             }
@@ -297,7 +283,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Console.WriteLine();
             _logger.LogInformation($"{args.objectPath} removed...");
             _devices.TryRemove(args.objectPath, out DeviceInterfaceMetadata? value);
-            //DevicesChangedAsync().Wait();
+            _ = DevicesChangedAsync();
         }
 
 
@@ -308,7 +294,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             if (_devices.Any(x => x.Value.Connected))
             {
-                Console.WriteLine($"At least one device already connected, not trying to connect again...");
+                _logger.LogWarning($"At least one Scalextric ARC already connected, not trying to connect again...");
             }
             else
             {
@@ -321,36 +307,34 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
                         Console.WriteLine($"CreateProxy after...");
 
-
-                        //if (!deviceProxy.GetConnectedAsync().Result)
-                        //{
+                        if (await deviceProxy.GetConnectedAsync())
+                        {
+                            _logger.LogInformation("Scalextric ARC already connected.");
+                        }
+                        else
+                        {
                             Console.WriteLine($"ConnectAsync before..");
-                            Console.WriteLine($"Trusted={await deviceProxy.GetTrustedAsync()}");
-                            Console.WriteLine($"Paired={await deviceProxy.GetPairedAsync()}");
-                            Console.WriteLine($"Connected={await deviceProxy.GetConnectedAsync()}");
+                            await deviceProxy.ConnectAsync();
+                            Console.WriteLine($"ConnectAsync after..");
+                            device.Value.Connected = true;
 
-                            await deviceProxy.SetTrustedAsync(true);
-                            Console.WriteLine($"SetTrustedAsync true after..");
-                            //await deviceProxy.PairAsync();
-                            //Console.WriteLine($"PairAsync after..");
-
-                            var servicesUUID = await deviceProxy.GetUUIDsAsync();
-                            Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
+                            //var servicesUUID = await deviceProxy.GetUUIDsAsync();
+                            //Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
  
-                            var deviceInfoServiceFound = servicesUUID.Any(uuid => String.Equals(uuid, "0000180a-0000-1000-8000-00805f9b34fb", StringComparison.OrdinalIgnoreCase));
-                            if (!deviceInfoServiceFound)
-                            {
-                                Console.WriteLine("Device doesn't have the Device Information Service. Try pairing first?");
-                                return;
-                            }
+                            //var deviceInfoServiceFound = servicesUUID.Any(uuid => String.Equals(uuid, "0000180a-0000-1000-8000-00805f9b34fb", StringComparison.OrdinalIgnoreCase));
+                            //if (!deviceInfoServiceFound)
+                            //{
+                            //    Console.WriteLine("Device doesn't have the Device Information Service. Try pairing first?");
+                            //    return;
+                            //}
 
-                            Console.WriteLine("Retrieving Device Information service...");
-                            var service = await deviceProxy.GetServiceDataAsync();
-                            Console.WriteLine("Device Information service retrieved...");
-                            foreach (var item in service)
-                            {
-                                Console.WriteLine($"{item.Key}={item.Value}");
-                            }
+                            //Console.WriteLine("Retrieving Device Information service...");
+                            //var service = await deviceProxy.GetServiceDataAsync();
+                            //Console.WriteLine("Device Information service retrieved...");
+                            //foreach (var item in service)
+                            //{
+                            //    Console.WriteLine($"{item.Key}={item.Value}");
+                            //}
 
 
 
@@ -362,22 +346,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             Console.WriteLine("OK...");
 
-                            //var p = await deviceProxy.GetPairedAsync();
-                            //await deviceProxy.ConnectAsync();
-                            await deviceProxy.ConnectAsync();
-                            Console.WriteLine($"ConnectAsync after..");
-                            device.Value.Connected = true;
 
                         //    await DeviceConnectedAndServicesResolvedAsync(deviceProxy);
-                        //}
-                        //else
-                        //{
-                        //    Console.WriteLine($"Already connected. Not running ConnectAsync.");
-                        //}
-
-                        //device1.g
-                        //device.WaitForPropertyValueAsync( ("Connected", value: true, timeout);
-                        //device.WaitForPropertyValueAsync("ServicesResolved", value: true, timeout);
+                        }
                     }
                     catch (Exception exception)
                     {
