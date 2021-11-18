@@ -55,7 +55,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         //interface INetworkServer1 : IDBusObject
 
         private ConcurrentDictionary<Tmds.DBus.ObjectPath, DeviceInterfaceMetadata> _devices = new ();
-        private ConcurrentDictionary<Tmds.DBus.ObjectPath, string> _bluezObjectPaths = new();
+        private ConcurrentDictionary<Tmds.DBus.ObjectPath, IEnumerable<string>> _bluezObjectPathInterfaces = new();
 
 
         public BluezMonitorService(ILogger<BluezMonitorService> logger)
@@ -86,7 +86,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 _devices = new();
-                _bluezObjectPaths = new();
+                _bluezObjectPathInterfaces = new();
 
                 try
                 {
@@ -135,10 +135,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     {
                         //if (dBusObject.Key.ToString().StartsWith("/org/bluez"))
                         //{
-                            var interfaceName = dBusObject.Value.Keys.SingleOrDefault(x => x.StartsWith(bluezServiceName));
-                            if (!string.IsNullOrEmpty(interfaceName))
+                            var interfaceNames = dBusObject.Value.Keys.Where(x => x.StartsWith(bluezServiceName));
+                            if (interfaceNames.Any())
                             {
-                                _bluezObjectPaths.TryAdd(dBusObject.Key, interfaceName);
+                                _bluezObjectPathInterfaces.TryAdd(dBusObject.Key, interfaceNames);
                             }
                         //}
 
@@ -152,7 +152,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     //    Console.WriteLine(item.iface.Key);
                     //}
 
-                    var bluezAdapterObjectPath = _bluezObjectPaths.Values.SingleOrDefault(x => x == bluezAdapterInterfaceName);
+                    var bluezAdapterObjectPath = _bluezObjectPathInterfaces.Values.SingleOrDefault(x => x.Any(i => i == bluezAdapterInterfaceName));
                     if (bluezAdapterObjectPath is null)
                     {
                         _logger.LogError($"{bluezAdapterInterfaceName} does not exist.");
@@ -270,11 +270,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 Console.WriteLine(iface.Key);
             }
 
-
-            var interfaceName = args.interfaces.Keys.SingleOrDefault(x => x.StartsWith(bluezServiceName));
-            if (!string.IsNullOrEmpty(interfaceName))
+            var interfaceNames = args.interfaces.Keys.Where(x => x.StartsWith(bluezServiceName));
+            if (interfaceNames.Any())
             {
-                _bluezObjectPaths.TryAdd(args.objectPath, interfaceName);
+                _bluezObjectPathInterfaces.TryAdd(args.objectPath, interfaceNames);
             }
 
             foreach (var iface in args.interfaces.Where(x => x.Key == bluezDeviceInterfaceName))
@@ -315,7 +314,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Console.WriteLine();
             _logger.LogInformation($"{args.objectPath} removed...");
             _devices.TryRemove(args.objectPath, out DeviceInterfaceMetadata? metadata);
-            _bluezObjectPaths.TryRemove(args.objectPath, out string? interfaceName);
+            _bluezObjectPathInterfaces.TryRemove(args.objectPath, out IEnumerable<string>? interfaceNames);
             _ = DevicesChangedAsync();
         }
 
@@ -385,12 +384,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     }
 
                     Console.WriteLine("Bluez objects and interfaces");
-                    foreach (var item in _bluezObjectPaths)
+                    foreach (var item in _bluezObjectPathInterfaces)
                     {
                         Console.WriteLine($"{item.Key} {item.Value}");
                     }
 
-                    foreach (var item in _bluezObjectPaths.Where(x => x.Value == bluezGattServiceInterface))
+                    foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i == bluezGattServiceInterface)))
                     {
                         Console.WriteLine();
                         var gattServiceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
