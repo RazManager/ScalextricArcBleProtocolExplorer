@@ -197,7 +197,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
 
-                            //await DevicesChangedAsync();
+                            await DevicesChangedAsync();
                         }
                     }
 
@@ -264,7 +264,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         _ = Task.Run(async () =>
                         {
-                            _logger.LogInformation($"Scalextric ARC found. Waiting 10 seconds before attempting to connect to it in order for other devices to be found.");
+                            _logger.LogInformation($"Scalextric ARC found. Waiting 10 seconds before trying to connect to it in order for other devices to be found.");
                             await Task.Delay(TimeSpan.FromSeconds(10));
                             await DevicesChangedAsync();
                         });
@@ -289,72 +289,80 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private async Task DevicesChangedAsync()
         {
-            Console.WriteLine();
-            Console.WriteLine($"DevicesChanged. Current device count = {_devices.Count}");
-
-            if (_devices.Any(x => x.Value.Connected))
+            foreach (var device in _devices)
             {
-                _logger.LogWarning($"At least one Scalextric ARC already connected, not trying to connect again...");
-            }
-            else
-            {
-                foreach (var device in _devices)
+                if (_devices.Any(x => x.Value.Connected))
                 {
-                    try
+                    _logger.LogWarning($"At least one Scalextric ARC already connected, not trying to connect again...");
+                }
+
+                try
+                {
+                    Console.WriteLine($"{device.Key}, {device.Value.InterfaceName}, {device.Value.DeviceName}, {device.Value.Connected}");
+                    Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezServiceName}, {device.Key}) ...");
+                    var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
+                    Console.WriteLine($"CreateProxy after...");
+
+                    if (await deviceProxy.GetConnectedAsync())
                     {
-                        Console.WriteLine($"{device.Key}, {device.Value.InterfaceName}, {device.Value.DeviceName}, {device.Value.Connected}");
-                        Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezServiceName}, {device.Key}) ...");
-                        var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, device.Key);
-                        Console.WriteLine($"CreateProxy after...");
-
-                        if (await deviceProxy.GetConnectedAsync())
+                        _logger.LogInformation("Scalextric ARC already connected.");
+                    }
+                    else
+                    {
+                        for (int connectionAttempt = 1; connectionAttempt <= 5; connectionAttempt++)
                         {
-                            _logger.LogInformation("Scalextric ARC already connected.");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"ConnectAsync before..");
-                            await deviceProxy.ConnectAsync();
-                            Console.WriteLine($"ConnectAsync after..");
-                            device.Value.Connected = true;
-
-                            //var servicesUUID = await deviceProxy.GetUUIDsAsync();
-                            //Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
- 
-                            //var deviceInfoServiceFound = servicesUUID.Any(uuid => String.Equals(uuid, "0000180a-0000-1000-8000-00805f9b34fb", StringComparison.OrdinalIgnoreCase));
-                            //if (!deviceInfoServiceFound)
-                            //{
-                            //    Console.WriteLine("Device doesn't have the Device Information Service. Try pairing first?");
-                            //    return;
-                            //}
-
-                            //Console.WriteLine("Retrieving Device Information service...");
-                            //var service = await deviceProxy.GetServiceDataAsync();
-                            //Console.WriteLine("Device Information service retrieved...");
-                            //foreach (var item in service)
-                            //{
-                            //    Console.WriteLine($"{item.Key}={item.Value}");
-                            //}
-
-
-
-
-
-                            //var modelNameCharacteristic = await service.GetCharacteristicAsync(GattConstants.ModelNameCharacteristicUUID);
-                            //var manufacturerCharacteristic = await service.GetCharacteristicAsync(GattConstants.ManufacturerNameCharacteristicUUID);
-
-
-                            Console.WriteLine("OK...");
-
-
-                        //    await DeviceConnectedAndServicesResolvedAsync(deviceProxy);
+                            try
+                            {
+                                Console.WriteLine($"ConnectAsync before {connectionAttempt}..");
+                                await deviceProxy.ConnectAsync();
+                                Console.WriteLine($"ConnectAsync after {connectionAttempt}..");
+                                device.Value.Connected = true;
+                                break;
+                            }
+                            catch (Tmds.DBus.DBusException exception)
+                            {
+                                Console.WriteLine($"ConnectAsync exception: {exception.ErrorName}, {exception.ErrorMessage}");
+                                await Task.Delay(TimeSpan.FromSeconds(5));
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
                         }
                     }
-                    catch (Exception exception)
-                    {
-                        _logger.LogError(exception.GetType().FullName);
-                        _logger.LogError(exception.Message);
-                    }
+
+
+
+                    //var servicesUUID = await deviceProxy.GetUUIDsAsync();
+                    //Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
+
+                    //var deviceInfoServiceFound = servicesUUID.Any(uuid => String.Equals(uuid, "0000180a-0000-1000-8000-00805f9b34fb", StringComparison.OrdinalIgnoreCase));
+                    //if (!deviceInfoServiceFound)
+                    //{
+                    //    Console.WriteLine("Device doesn't have the Device Information Service. Try pairing first?");
+                    //    return;
+                    //}
+
+                    //Console.WriteLine("Retrieving Device Information service...");
+                    //var service = await deviceProxy.GetServiceDataAsync();
+                    //Console.WriteLine("Device Information service retrieved...");
+                    //foreach (var item in service)
+                    //{
+                    //    Console.WriteLine($"{item.Key}={item.Value}");
+                    //}
+
+
+                    //var modelNameCharacteristic = await service.GetCharacteristicAsync(GattConstants.ModelNameCharacteristicUUID);
+                    //var manufacturerCharacteristic = await service.GetCharacteristicAsync(GattConstants.ManufacturerNameCharacteristicUUID);
+
+                    Console.WriteLine("OK...");
+
+                    //    await DeviceConnectedAndServicesResolvedAsync(deviceProxy);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception.GetType().FullName);
+                    _logger.LogError(exception.Message);
                 }
             }
         }
