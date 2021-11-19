@@ -117,7 +117,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         Console.WriteLine(objectPathKp.Key);
                         foreach (var bluezInterfaceMetadata in objectPathKp.Value)
                         {
-                            Console.WriteLine($"{bluezInterfaceMetadata.InterfaceName} {bluezInterfaceMetadata.DeviceName}");
+                            Console.WriteLine($"    {bluezInterfaceMetadata.InterfaceName} {bluezInterfaceMetadata.DeviceName}");
                         }
                     }
 
@@ -247,16 +247,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
             Console.WriteLine();
 
-            var interfaceNames = args.interfaces.Keys.Where(x => x.StartsWith(bluezServiceName));
-            if (interfaceNames.Any())
+            if (args.interfaces.Keys.Any(x => x.StartsWith(bluezServiceName)))
             {
                 var bluezInterfaceMetadatas = new List<BluezInterfaceMetadata>();
                 foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezServiceName)))
                 {
+                    var name = item.Value.SingleOrDefault(x => x.Key == "Name");
+                    Console.WriteLine(name.Key);
+                    Console.WriteLine(name.Value);
+
                     bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
                     {
                         InterfaceName = item.Key,
-                        DeviceName = item.Value.SingleOrDefault(x => x.Key == "Name").Value.ToString()
+                        DeviceName = item.Value.SingleOrDefault(x => x.Key == "Name").Value?.ToString()
                     });
                 }
 
