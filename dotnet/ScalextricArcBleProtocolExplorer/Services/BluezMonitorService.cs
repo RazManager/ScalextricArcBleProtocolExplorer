@@ -250,11 +250,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
             var interfaceNames = args.interfaces.Keys.Where(x => x.StartsWith(bluezServiceName));
             if (interfaceNames.Any())
             {
-                _bluezObjectPathInterfaces.TryAdd(args.objectPath, args.interfaces.Select(iface => new BluezInterfaceMetadata
+                var bluezInterfaceMetadatas = new List<BluezInterfaceMetadata>();
+                foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezServiceName)))
                 {
-                    InterfaceName = iface.Key,
-                    DeviceName = iface.Value.SingleOrDefault(x => x.Key == "Name").Value.ToString()
-                })); ;
+                    bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
+                    {
+                        InterfaceName = item.Key,
+                        DeviceName = item.Value.SingleOrDefault(x => x.Key == "Name").Value.ToString()
+                    });
+                }
+
+                _bluezObjectPathInterfaces.TryAdd(args.objectPath, bluezInterfaceMetadatas);
             }
         }
 
