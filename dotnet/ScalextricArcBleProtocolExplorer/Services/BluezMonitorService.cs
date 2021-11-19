@@ -394,6 +394,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             else
                             {
                                 var b = readTask.Result;
+                                Console.WriteLine($"Length={b.Length}");
                                 if (b.Length > 0)
                                 {
                                     var valueASCII = System.Text.Encoding.ASCII.GetString(b);
@@ -401,9 +402,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                     Console.WriteLine($"BvalueASCII={valueASCII}");
                                     Console.WriteLine($"BvalueUTF8={valueUTF8}");
                                 }
+                                readTask.Dispose();
                             }
-                            readTask.Dispose();
-                            timeoutTask.Dispose();
+
+                            if (timeoutTask.Status == TaskStatus.RanToCompletion || timeoutTask.Status == TaskStatus.Faulted || timeoutTask.Status == TaskStatus.Canceled)
+                            {
+                                timeoutTask.Dispose();
+                            }
                         }
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)))
