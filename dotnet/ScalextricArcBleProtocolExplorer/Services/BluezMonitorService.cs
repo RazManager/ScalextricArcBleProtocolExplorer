@@ -381,6 +381,29 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             //Console.WriteLine($"WriteAcquired={properties.WriteAcquired}");
                             //Console.WriteLine($"NotifyAcquired={properties.NotifyAcquired}");
                             //Console.WriteLine($"Notifying={properties.Notifying}");
+
+                            var options = new Dictionary<string, object>();
+                            var readTask = proxy.ReadValueAsync(options);
+                            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(10));
+
+                            await Task.WhenAny(new Task[] { readTask, timeoutTask });
+                            if (!readTask.IsCompleted)
+                            {
+                                Console.WriteLine("Timed out waiting to read characteristic value.");
+                            }
+                            else
+                            {
+                                var b = readTask.Result;
+                                if (b.Length > 0)
+                                {
+                                    var valueASCII = System.Text.Encoding.ASCII.GetString(b);
+                                    var valueUTF8 = System.Text.Encoding.UTF8.GetString(b);
+                                    Console.WriteLine($"BvalueASCII={valueASCII}");
+                                    Console.WriteLine($"BvalueUTF8={valueUTF8}");
+                                }
+                            }
+                            readTask.Dispose();
+                            timeoutTask.Dispose();
                         }
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)))
