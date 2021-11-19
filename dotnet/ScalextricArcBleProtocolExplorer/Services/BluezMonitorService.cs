@@ -19,7 +19,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public const string bluezAdapterInterfaceName = "org.bluez.Adapter1";
         public const string bluezDeviceInterfaceName = "org.bluez.Device1";
         public const string bluezGattServiceInterface = "org.bluez.GattService1";
-        //public const string GattCharacteristicInterface = "org.bluez.GattCharacteristic1";
+        public const string bluezGattCharacteristicInterface = "org.bluez.GattCharacteristic1";
 
         private class BluezInterfaceMetadata
         {
@@ -347,14 +347,33 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             Console.WriteLine();
                             Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
                             Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
-                            var gattServiceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
+                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
                             Console.WriteLine("After...");
-                            Console.WriteLine($"IGattService1: {gattServiceProxy.ObjectPath}");
-                            Console.WriteLine($"UUID={gattServiceProxy.GetUUIDAsync().Result}");
-                            Console.WriteLine($"Device={gattServiceProxy.GetDeviceAsync().Result}");
-                            Console.WriteLine($"Primary={gattServiceProxy.GetPrimaryAsync().Result}");
-                            Console.WriteLine($"Includes={string.Join(", ", gattServiceProxy.GetIncludesAsync().Result)}");
+                            var gattService1Properties = await proxy.GetAllAsync();
+                            Console.WriteLine("After GetAllAsync...");
+                            Console.WriteLine($"UUID={gattService1Properties.UUID}");
+                            Console.WriteLine($"Device={gattService1Properties.Device}");
+                            Console.WriteLine($"Primary={gattService1Properties.Primary}");
+                            Console.WriteLine($"Includes={gattService1Properties.Includes}");
                         }
+
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattCharacteristicInterface)))
+                        {
+                            Console.WriteLine();
+                            Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
+                            Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
+                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezServiceName, item.Key);
+                            Console.WriteLine("After...");
+                            var gattCharacteristic1Properties = await proxy.GetAllAsync();
+                            Console.WriteLine("After GetAllAsync...");
+                            //Console.WriteLine($"IGattService1: {gattServiceProxy.ObjectPath}");
+                            //Console.WriteLine($"UUID={gattServiceProxy.GetUUIDAsync().Result}");
+                            //Console.WriteLine($"Device={gattServiceProxy.GetDeviceAsync().Result}");
+                            //Console.WriteLine($"Primary={gattServiceProxy.GetPrimaryAsync().Result}");
+                            //Console.WriteLine($"Includes={string.Join(", ", gattServiceProxy.GetIncludesAsync().Result)}");
+                        }
+
+
 
                         //var servicesUUID = await deviceProxy.GetUUIDsAsync();
                         //Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
