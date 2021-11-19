@@ -189,7 +189,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
                             {
-                                _logger.LogInformation($"{scalextricArcObjectPathKps.Count()} Scalextrix ARC powerbases found. No new connections will be attempted until there's only 1 available.");
+                                _logger.LogInformation($"{scalextricArcObjectPathKps.Count()} Scalextric ARC powerbases found. No new connections will be attempted until there's only 1 available.");
                             }
                             else
                             {
