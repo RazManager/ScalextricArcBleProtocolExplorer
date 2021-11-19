@@ -368,46 +368,21 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             var properties = await proxy.GetAllAsync();
                             //Console.WriteLine("After GetAllAsync...");
                             Console.WriteLine($"UUID={properties.UUID}");
-
-                            if (properties.Value.Length > 0)
-                            {
-                                var valueASCII = System.Text.Encoding.ASCII.GetString(properties.Value);
-                                var valueUTF8 = System.Text.Encoding.UTF8.GetString(properties.Value);
-                                Console.WriteLine($"valueASCII={valueASCII}");
-                                Console.WriteLine($"valueUTF8={valueUTF8}");
-                            }
-
+                            Console.WriteLine($"Service={properties.Service}");
                             Console.WriteLine($"Flags={string.Join(", ", properties.Flags)}");
                             //Console.WriteLine($"WriteAcquired={properties.WriteAcquired}");
                             //Console.WriteLine($"NotifyAcquired={properties.NotifyAcquired}");
                             //Console.WriteLine($"Notifying={properties.Notifying}");
 
-                            var options = new Dictionary<string, object>();
-                            var readTask = proxy.ReadValueAsync(options);
-                            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(10));
-
-                            await Task.WhenAny(new Task[] { readTask, timeoutTask });
-                            if (!readTask.IsCompleted)
+                            if (properties.Flags.Contains("read"))
                             {
-                                Console.WriteLine("Timed out waiting to read characteristic value.");
-                            }
-                            else
-                            {
-                                var b = readTask.Result;
-                                Console.WriteLine($"Length={b.Length}");
-                                if (b.Length > 0)
+                                var value = await proxy.ReadValueAsync(new Dictionary<string, object>());
+                                Console.WriteLine($"Length={value.Length}");
+                                if (value.Length > 0)
                                 {
-                                    var valueASCII = System.Text.Encoding.ASCII.GetString(b);
-                                    var valueUTF8 = System.Text.Encoding.UTF8.GetString(b);
-                                    Console.WriteLine($"BvalueASCII={valueASCII}");
-                                    Console.WriteLine($"BvalueUTF8={valueUTF8}");
+                                    var valueUTF8 = System.Text.Encoding.UTF8.GetString(value);
+                                    Console.WriteLine($"valueUTF8={valueUTF8}");
                                 }
-                                readTask.Dispose();
-                            }
-
-                            if (timeoutTask.Status == TaskStatus.RanToCompletion || timeoutTask.Status == TaskStatus.Faulted || timeoutTask.Status == TaskStatus.Canceled)
-                            {
-                                timeoutTask.Dispose();
                             }
                         }
 
