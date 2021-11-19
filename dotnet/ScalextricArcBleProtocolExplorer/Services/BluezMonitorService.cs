@@ -344,33 +344,40 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattServiceInterface)))
                         {
-                            Console.WriteLine();
+                            //Console.WriteLine();
                             Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
-                            Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
-                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
-                            Console.WriteLine("After...");
-                            var gattService1Properties = await proxy.GetAllAsync();
-                            Console.WriteLine("After GetAllAsync...");
-                            Console.WriteLine($"UUID={gattService1Properties.UUID}");
-                            Console.WriteLine($"Device={gattService1Properties.Device}");
-                            Console.WriteLine($"Primary={gattService1Properties.Primary}");
-                            Console.WriteLine($"Includes={gattService1Properties.Includes}");
+                            //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
+                            //var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
+                            //Console.WriteLine("After...");
+                            //var gattService1Properties = await proxy.GetAllAsync();
+                            //Console.WriteLine("After GetAllAsync...");
+                            //Console.WriteLine($"UUID={gattService1Properties.UUID}");
+                            //Console.WriteLine($"Device={gattService1Properties.Device}");
+                            //Console.WriteLine($"Primary={gattService1Properties.Primary}");
+                            //Console.WriteLine($"Includes={gattService1Properties.Includes}");
                         }
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattCharacteristicInterface)))
                         {
                             Console.WriteLine();
                             Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
-                            Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
+                            //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
                             var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezServiceName, item.Key);
-                            Console.WriteLine("After...");
+                            //Console.WriteLine("After...");
                             var gattCharacteristic1Properties = await proxy.GetAllAsync();
-                            Console.WriteLine("After GetAllAsync...");
-                            //Console.WriteLine($"IGattService1: {gattServiceProxy.ObjectPath}");
-                            //Console.WriteLine($"UUID={gattServiceProxy.GetUUIDAsync().Result}");
-                            //Console.WriteLine($"Device={gattServiceProxy.GetDeviceAsync().Result}");
-                            //Console.WriteLine($"Primary={gattServiceProxy.GetPrimaryAsync().Result}");
-                            //Console.WriteLine($"Includes={string.Join(", ", gattServiceProxy.GetIncludesAsync().Result)}");
+                            //Console.WriteLine("After GetAllAsync...");
+                            Console.WriteLine($"UUID={gattCharacteristic1Properties.UUID}");
+
+                            var valueASCII = System.Text.Encoding.ASCII.GetString(gattCharacteristic1Properties.Value);
+                            var valueUTF8 = System.Text.Encoding.UTF8.GetString(gattCharacteristic1Properties.Value);
+                            Console.WriteLine($"valueASCII={valueASCII}");
+                            Console.WriteLine($"valueUTF8={valueUTF8}");
+
+                            Console.WriteLine($"Flags={string.Join(", ", gattCharacteristic1Properties.Flags)}");
+                            Console.WriteLine($"WriteAcquired={gattCharacteristic1Properties.WriteAcquired}");
+                            Console.WriteLine($"NotifyAcquired={gattCharacteristic1Properties.NotifyAcquired}");
+                            Console.WriteLine($"Notifying={gattCharacteristic1Properties.Notifying}");
+
                         }
 
 
