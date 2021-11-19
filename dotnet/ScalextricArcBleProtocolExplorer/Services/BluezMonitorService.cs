@@ -157,8 +157,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName.Trim() == "Scalextric ARC"));
-                        //x.Key == bluezDeviceInterfaceName
+                        var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezDeviceInterfaceName && !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName.Trim() == "Scalextric ARC"));
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
@@ -193,7 +192,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                             else
                             {
-                                //await DevicesChangedAsync(scalextricArcObjectPathKps.First().Key);
+                                await DevicesChangedAsync(scalextricArcObjectPathKps.First().Key);
                             }
                         }
 
@@ -245,21 +244,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 Console.WriteLine(iface.Key);
             }
-            Console.WriteLine();
 
             if (args.interfaces.Keys.Any(x => x.StartsWith(bluezServiceName)))
             {
                 var bluezInterfaceMetadatas = new List<BluezInterfaceMetadata>();
                 foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezServiceName)))
                 {
-                    var name = item.Value.SingleOrDefault(x => x.Key == "Name");
-                    Console.WriteLine(name.Key);
-                    Console.WriteLine(name.Value);
-
                     bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
                     {
                         InterfaceName = item.Key,
-                        DeviceName = item.Value.SingleOrDefault(x => x.Key == "Name").Value?.ToString()
+                        DeviceName = item.Value.SingleOrDefault(x => x.Key == "Name").Value?.ToString()?.Trim()
                     });
                 }
 
@@ -299,9 +293,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         {
                             try
                             {
-                                Console.WriteLine($"ConnectAsync before {i}..");
+                                Console.WriteLine($"ConnectAsync before {i} attempt(s).");
                                 await deviceProxy.ConnectAsync();
-                                Console.WriteLine($"ConnectAsync after {i}..");
+                                Console.WriteLine($"ConnectAsync after {i} attempt(s).");
                                 success = true;
                                 break;
                             }
@@ -345,14 +339,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         Console.WriteLine("Bluez objects and interfaces");
                         foreach (var item in _bluezObjectPathInterfaces)
                         {
-                            Console.WriteLine($"{item.Key} {string.Join(", ", item.Value)}");
+                            Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
                         }
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattServiceInterface)))
                         {
                             Console.WriteLine();
+                            Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
+                            Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
                             var gattServiceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
-                            Console.WriteLine(gattServiceProxy.ObjectPath);
+                            Console.WriteLine("After...");
+                            Console.WriteLine($"IGattService1: {gattServiceProxy.ObjectPath}");
                             Console.WriteLine($"UUID={gattServiceProxy.GetUUIDAsync().Result}");
                             Console.WriteLine($"Device={gattServiceProxy.GetDeviceAsync().Result}");
                             Console.WriteLine($"Primary={gattServiceProxy.GetPrimaryAsync().Result}");
