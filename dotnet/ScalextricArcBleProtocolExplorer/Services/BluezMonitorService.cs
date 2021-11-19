@@ -343,9 +343,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
                         }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattServiceInterface)))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattServiceInterface)).OrderBy(x => x.Key))
                         {
-                            //Console.WriteLine();
+                            Console.WriteLine();
                             Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
                             //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
                             var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
@@ -356,9 +356,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             //Console.WriteLine($"Device={gattService1Properties.Device}");
                             //Console.WriteLine($"Primary={gattService1Properties.Primary}");
                             //Console.WriteLine($"Includes={gattService1Properties.Includes}");
+                            Console.WriteLine($"Includes:");
+                            foreach (var include in properties.Includes)
+                            {
+                                Console.WriteLine(include);
+                            }
                         }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattCharacteristicInterface)))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
                             Console.WriteLine();
                             Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
@@ -386,7 +391,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)).OrderBy(x => x.Key))
                         {
                             Console.WriteLine();
                             Console.WriteLine($"GattDescriptor: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
@@ -396,6 +401,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             var properties = await proxy.GetAllAsync();
                             //Console.WriteLine("After GetAllAsync...");
                             Console.WriteLine($"UUID={properties.UUID}");
+                            Console.WriteLine($"Characteristic={properties.Characteristic}");
 
                             if (properties.Value.Length > 0)
                             {
@@ -404,9 +410,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 Console.WriteLine($"valueASCII={valueASCII}");
                                 Console.WriteLine($"valueUTF8={valueUTF8}");
                             }
-                            //Console.WriteLine($"WriteAcquired={gattCharacteristic1Properties.WriteAcquired}");
-                            //Console.WriteLine($"NotifyAcquired={gattCharacteristic1Properties.NotifyAcquired}");
-                            //Console.WriteLine($"Notifying={gattCharacteristic1Properties.Notifying}");
                         }
 
                         //var servicesUUID = await deviceProxy.GetUUIDsAsync();
