@@ -25,7 +25,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private class BluezInterfaceMetadata
         {
             public string BluezInterface { get; init; } = null!;
-            public Guid UUID { get; init; }
+            public Guid? UUID { get; init; }
             public string? DeviceName { get; init; }
         }
 
@@ -33,9 +33,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private Tmds.DBus.ObjectPath? scalextricArcObjectPath = null;
         private bluez.DBus.IDevice1? scalextricArcProxy = null;
 
-        public readonly Guid throttleProfile1Uuid = new Guid("0000ff02-0000-1000-8000-00805f9b34fb");
-        private bluez.DBus.IGattCharacteristic1? throttleProfile1Characteristic = null;
-        private Task? throttleProfile1CharacteristicWatchPropertiesTask = null;
+        public readonly Guid throttleInformationUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? throttleInformationCharacteristic = null;
+        private Task? throttleInformationCharacteristicWatchPropertiesTask = null;
 
 
         private readonly ILogger<BluezMonitorService> _logger;
@@ -261,17 +261,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         LogDBusObject(args.objectPath, args.interfaces);
                     }
 
-                    var uuid = item.Value.SingleOrDefault(x => x.Key == "UUID").Value;
-                    if (uuid is null || string.IsNullOrEmpty(uuid.ToString()))
+                    Guid? uuid = null;
+                    var uuidStr = item.Value.SingleOrDefault(x => x.Key == "UUID").Value;
+                    if (uuidStr is not null)
                     {
-                        _logger.LogWarning($"UUID not found for interface {item.Key}");
+                        uuid = new Guid(uuidStr.ToString()!);
                     }
                     else
                     {
                         bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
                         {
                             BluezInterface = item.Key,
-                            UUID = new Guid(uuid.ToString()!),
+                            UUID = uuid,
                             DeviceName = item.Value.SingleOrDefault(x => item.Key == bluezDeviceInterface && x.Key == "Name").Value?.ToString()?.Trim()
                         });
                     }
@@ -300,8 +301,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezService}, {objectPath}) ...");
                     var scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
                     Console.WriteLine($"CreateProxy after...");
-
-                    _logger.LogInformation($"RSSI={await scalextricArcProxy.GetRSSIAsync()}");
 
                     if (await scalextricArcProxy.GetConnectedAsync())
                     {
@@ -365,25 +364,25 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                         }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattServiceInterface)).OrderBy(x => x.Key))
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
-                            //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
-                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezService, item.Key);
-                            //Console.WriteLine("After...");
-                            var properties = await proxy.GetAllAsync();
-                            //Console.WriteLine("After GetAllAsync...");
-                            Console.WriteLine($"UUID={properties.UUID}");
-                            //Console.WriteLine($"Device={gattService1Properties.Device}");
-                            //Console.WriteLine($"Primary={gattService1Properties.Primary}");
-                            //Console.WriteLine($"Includes={gattService1Properties.Includes}");
-                            Console.WriteLine($"Includes:");
-                            foreach (var include in properties.Includes)
-                            {
-                                Console.WriteLine(include);
-                            }
-                        }
+                        //foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattServiceInterface)).OrderBy(x => x.Key))
+                        //{
+                        //    Console.WriteLine();
+                        //    Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
+                        //    //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
+                        //    var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezService, item.Key);
+                        //    //Console.WriteLine("After...");
+                        //    var properties = await proxy.GetAllAsync();
+                        //    //Console.WriteLine("After GetAllAsync...");
+                        //    Console.WriteLine($"UUID={properties.UUID}");
+                        //    //Console.WriteLine($"Device={gattService1Properties.Device}");
+                        //    //Console.WriteLine($"Primary={gattService1Properties.Primary}");
+                        //    //Console.WriteLine($"Includes={gattService1Properties.Includes}");
+                        //    Console.WriteLine($"Includes:");
+                        //    foreach (var include in properties.Includes)
+                        //    {
+                        //        Console.WriteLine(include);
+                        //    }
+                        //}
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
@@ -412,20 +411,23 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 }
                             }
 
-                            var throttleProfile1Uuid = new Guid("0000ff02-0000-1000-8000-00805f9b34fb");
-                            if (new Guid(properties.UUID) == throttleProfile1Uuid)
+                            if (new Guid(properties.UUID) == throttleInformationUuid)
                             {
                                 Console.WriteLine("StartNotifyAsync before");
                                 await proxy.StartNotifyAsync();
                                 Console.WriteLine("StartNotifyAsync after");
 
-                                //throttleProfile1Characteristic = proxy;
                                 var throttleProfile1CharacteristicWatchPropertiesTask = proxy.WatchPropertiesAsync(propertyChanges =>
                                 {
                                     Console.WriteLine("propertyChanges.Changed:");
                                     foreach (var item in propertyChanges.Changed)
                                     {
                                         Console.WriteLine($"{item.Key}={item.Value}");
+                                        if (item.Key == "Value")
+                                        {
+                                            var value = (byte[])item.Value;
+                                            Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
+                                        }
                                     }
                                     Console.WriteLine("propertyChanges.Invalidated:");
                                     foreach (var item in propertyChanges.Invalidated)
