@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
-using static bluez.DBus.GattService1Extensions;
+using static bluez.DBus.GattCharacteristic1Extensions;
 
 
 namespace ScalextricArcBleProtocolExplorer.Services
@@ -33,16 +33,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private Tmds.DBus.ObjectPath? scalextricArcObjectPath = null;
         private bluez.DBus.IDevice1? scalextricArcProxy = null;
 
-        public readonly Guid throttleInformationUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
-        private bluez.DBus.IGattCharacteristic1? throttleInformationCharacteristic = null;
-        private Task? throttleInformationCharacteristicWatchPropertiesTask = null;
+        private readonly Guid throttleInformationUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? throttleInformationProxy = null;
+        private Task? throttleInformationWatchTask = null;
 
-
+        private readonly ScalextricArcState _scalextricArcState;
         private readonly ILogger<BluezMonitorService> _logger;
 
 
-        public BluezMonitorService(ILogger<BluezMonitorService> logger)
+        public BluezMonitorService(ScalextricArcState scalextricArcState,
+                                  ILogger<BluezMonitorService> logger)
         {
+            _scalextricArcState = scalextricArcState;
             _logger = logger;
         }
 
@@ -68,6 +70,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 _bluezObjectPathInterfaces = new();
+                scalextricArcObjectPath = null;
+                scalextricArcProxy = null;
+                throttleInformationWatchTask = null;
 
                 try
                 {
@@ -167,10 +172,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
-                            if (scalextricArcObjectPath is not null)
+                            if (throttleInformationWatchTask is not null)
                             {
-                                // Disconnect...
+                                throttleInformationWatchTask.Dispose();
+                                throttleInformationWatchTask = null;
                             }
+
+                            if (throttleInformationProxy is not null)
+                            {
+                                if (await throttleInformationProxy.GetNotifyingAsync())
+                                {
+                                    await throttleInformationProxy.StopNotifyAsync();
+                                }
+                                throttleInformationProxy = null;
+                            }
+
+                            if (scalextricArcProxy is not null)
+                            {
+                                if (await scalextricArcProxy.GetConnectedAsync())
+                                {
+                                    await scalextricArcProxy.DisconnectAsync();
+                                }
+                            }
+
+                            scalextricArcObjectPath = null;
 
                             if (await bluezAdapterProxy.GetDiscoveringAsync())
                             {
@@ -198,7 +223,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                             else
                             {
-                                await DevicesChangedAsync(scalextricArcObjectPathKps.First().Key);
+                                await ScalextricArcChangedAsync(scalextricArcObjectPathKps.First().Key);
                             }
                         }
 
@@ -215,15 +240,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     {
                         watchInterfacesRemovedTask.Dispose();
                     }
-
-                    _logger.LogWarning("While loop end...");
-                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
                 }
                 catch (Tmds.DBus.DBusException exception)
                 {
                     switch (exception.ErrorName)
                     {
                         case "org.bluez.Error.NotReady":
+                            _logger.LogError(exception.ErrorName);
+                            break;
+
+                        case "org.bluez.Error.Failed":
                             _logger.LogError(exception.ErrorName);
                             break;
 
@@ -236,8 +262,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 {
                     _logger.LogError(exception.GetType().FullName);
                     _logger.LogError(exception.Message);
-                    await Task.Delay(10000, cancellationToken);
                 }
+
+                await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
             }
         }
 
@@ -245,7 +272,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
             Console.WriteLine();
-            _logger.LogInformation($"{args.objectPath} added with the following interfaces...");
+            Console.WriteLine($"{args.objectPath} added with the following interfaces...");
             foreach (var iface in args.interfaces)
             {
                 Console.WriteLine(iface.Key);
@@ -267,16 +294,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     {
                         uuid = new Guid(uuidStr.ToString()!);
                     }
-                    else
+                    bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
                     {
-                        bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
-                        {
-                            BluezInterface = item.Key,
-                            UUID = uuid,
-                            DeviceName = item.Value.SingleOrDefault(x => item.Key == bluezDeviceInterface && x.Key == "Name").Value?.ToString()?.Trim()
-                        });
-                    }
-
+                        BluezInterface = item.Key,
+                        UUID = uuid,
+                        DeviceName = item.Value.SingleOrDefault(x => item.Key == bluezDeviceInterface && x.Key == "Name").Value?.ToString()?.Trim()
+                    });
                 }
 
                 _bluezObjectPathInterfaces.TryAdd(args.objectPath, bluezInterfaceMetadatas);
@@ -287,19 +310,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private void InterfaceRemoved((Tmds.DBus.ObjectPath objectPath, string[] interfaces) args)
         {
             Console.WriteLine();
-            _logger.LogInformation($"{args.objectPath} removed...");
+            Console.WriteLine($"{args.objectPath} removed...");
             _bluezObjectPathInterfaces.TryRemove(args.objectPath, out IEnumerable<BluezInterfaceMetadata>? bluezInterfaceMetadatas);
         }
 
 
-        private async Task DevicesChangedAsync(Tmds.DBus.ObjectPath objectPath)
+        private async Task ScalextricArcChangedAsync(Tmds.DBus.ObjectPath objectPath)
         {
             if (scalextricArcObjectPath is null)
             {
                 try
                 {
                     Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezService}, {objectPath}) ...");
-                    var scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
+                    scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
                     Console.WriteLine($"CreateProxy after...");
 
                     if (await scalextricArcProxy.GetConnectedAsync())
@@ -334,6 +357,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         if (success)
                         {
                             scalextricArcObjectPath = objectPath;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Could not connect to Scalextric ARC.");
                         }
                     }
 
@@ -384,7 +411,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         //    }
                         //}
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
                             Console.WriteLine();
                             Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
@@ -413,11 +440,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (new Guid(properties.UUID) == throttleInformationUuid)
                             {
+                                throttleInformationProxy = proxy;
                                 Console.WriteLine("StartNotifyAsync before");
-                                await proxy.StartNotifyAsync();
+                                await throttleInformationProxy.StartNotifyAsync();
                                 Console.WriteLine("StartNotifyAsync after");
 
-                                var throttleProfile1CharacteristicWatchPropertiesTask = proxy.WatchPropertiesAsync(propertyChanges =>
+                                throttleInformationWatchTask = proxy.WatchPropertiesAsync(propertyChanges =>
                                 {
                                     Console.WriteLine("propertyChanges.Changed:");
                                     foreach (var item in propertyChanges.Changed)
@@ -458,38 +486,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         //        Console.WriteLine($"valueUTF8={valueUTF8}");
                         //    }
                         //}
-
-
-                        //var servicesUUID = await deviceProxy.GetUUIDsAsync();
-                        //Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
-
-                        //var deviceInfoServiceFound = servicesUUID.Any(uuid => String.Equals(uuid, "0000180a-0000-1000-8000-00805f9b34fb", StringComparison.OrdinalIgnoreCase));
-                        //if (!deviceInfoServiceFound)
-                        //{
-                        //    Console.WriteLine("Device doesn't have the Device Information Service. Try pairing first?");
-                        //    return;
-                        //};
-
-                        //var gProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>()
-
-                        //var
-
-                        /// Console.WriteLine("Retrieving Device Information service...");
-                        //var service = await deviceProxy.ser .GetServiceDataAsync();
-                        //Console.WriteLine("Device Information service retrieved...");
-                        //foreach (var item in service)
-                        //{
-                        //    Console.WriteLine($"{item.Key}={item.Value}");
-                        //}
-
-
-                        //var modelNameCharacteristic = await service.GetCharacteristicAsync(GattConstants.ModelNameCharacteristicUUID);
-                        //var manufacturerCharacteristic = await service.GetCharacteristicAsync(GattConstants.ManufacturerNameCharacteristicUUID);
                     }
 
                     Console.WriteLine("OK...");
-
-                    //    await DeviceConnectedAndServicesResolvedAsync(deviceProxy);
                 }
                 catch (Exception exception)
                 {
@@ -500,24 +499,47 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        private Task DeviceConnectedAndServicesResolvedAsync(bluez.DBus.IDevice1 device)
+        public void throttleInformationWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
         {
-            var tcs = new TaskCompletionSource();
-
-            Task<IDisposable> t;
-
-            t = device.WatchPropertiesAsync(propertyChanges =>
+            Console.WriteLine("throttleInformationWatchProperties propertyChanges.Changed:");
+            foreach (var item in propertyChanges.Changed)
             {
-                var connected = propertyChanges.Get<string>("Connected");
-                var servicesResolved = propertyChanges.Get<string>("ServicesResolved");
+                if (item.Key == "Value")
+                {
+                    var value = (byte[])item.Value;
+                    Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
 
-                Console.WriteLine($"connected={connected}");
-                Console.WriteLine($"servicesResolved={servicesResolved}");
-                //tcs.SetResult();
-            });
-            t.Dispose();
+                    _scalextricArcState.SetThrottleState
+                    (
+                        value[0],
+                        (byte)(value[1] & 0b111111),
+                        (value[1] & 0b1000000) > 0,
+                        (value[1] & 0b10000000) > 0,
+                        (byte)(value[2] & 0b111111),
+                        (value[2] & 0b1000000) > 0,
+                        (value[2] & 0b10000000) > 0,
+                        (byte)(value[3] & 0b111111),
+                        (value[3] & 0b1000000) > 0,
+                        (value[3] & 0b10000000) > 0,
+                        (byte)(value[4] & 0b111111),
+                        (value[4] & 0b1000000) > 0,
+                        (value[4] & 0b10000000) > 0,
+                        (byte)(value[5] & 0b111111),
+                        (value[5] & 0b1000000) > 0,
+                        (value[5] & 0b10000000) > 0,
+                        (byte)(value[6] & 0b111111),
+                        (value[6] & 0b1000000) > 0,
+                        (value[6] & 0b10000000) > 0,
+                        (uint)(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)
+                    );
 
-            return tcs.Task;
+                }
+            }
+            //Console.WriteLine("propertyChanges.Invalidated:");
+            //foreach (var item in propertyChanges.Invalidated)
+            //{
+            //    Console.WriteLine(item);
+            //}
         }
 
 

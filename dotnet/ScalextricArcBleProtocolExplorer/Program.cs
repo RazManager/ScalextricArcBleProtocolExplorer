@@ -11,11 +11,10 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(8080);
 });
 
-//builder.Services.AddHostedService
 
-// Add services to the container.
-//builder.Services.AddRazorPages();
-
+builder.Services.AddSingleton(serviceProvider =>
+    new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState()
+);
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
 
 
