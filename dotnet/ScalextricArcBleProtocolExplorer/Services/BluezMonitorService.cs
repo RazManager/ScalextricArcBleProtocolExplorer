@@ -15,25 +15,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class BluezMonitorService : IHostedService
     {
-        public const string bluezServiceName = "org.bluez";
-        public const string bluezAdapterInterfaceName = "org.bluez.Adapter1";
-        public const string bluezDeviceInterfaceName = "org.bluez.Device1";
+        public const string bluezService = "org.bluez";
+        public const string bluezAdapterInterface = "org.bluez.Adapter1";
+        public const string bluezDeviceInterface = "org.bluez.Device1";
         public const string bluezGattServiceInterface = "org.bluez.GattService1";
         public const string bluezGattCharacteristicInterface = "org.bluez.GattCharacteristic1";
-        public const string bluezGattDescriptorInterface = "org.bluez.GattDescriptor1";
+        //public const string bluezGattDescriptorInterface = "org.bluez.GattDescriptor1";
 
         private class BluezInterfaceMetadata
         {
-            public string InterfaceName { get; init; } = null!;
+            public string BluezInterface { get; init; } = null!;
+            public Guid UUID { get; init; }
             public string? DeviceName { get; init; }
         }
 
         private ConcurrentDictionary<Tmds.DBus.ObjectPath, IEnumerable<BluezInterfaceMetadata>> _bluezObjectPathInterfaces = new();
+        private Tmds.DBus.ObjectPath? scalextricArcObjectPath = null;
+        private bluez.DBus.IDevice1? scalextricArcProxy = null;
+
+        public readonly Guid throttleProfile1Uuid = new Guid("0000ff02-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? throttleProfile1Characteristic = null;
+        private Task? throttleProfile1CharacteristicWatchPropertiesTask = null;
+
 
         private readonly ILogger<BluezMonitorService> _logger;
-
-        //private Tmds.DBus.ObjectPath? bluezAdapterObjectPath = null;
-        private Tmds.DBus.ObjectPath? scalextricArcObjectPath = null;
 
 
         public BluezMonitorService(ILogger<BluezMonitorService> logger)
@@ -82,30 +87,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         Console.WriteLine(activatableService);
                     }
 
-                    if (activatableServices.SingleOrDefault(x => x == bluezServiceName) is null)
+                    if (activatableServices.SingleOrDefault(x => x == bluezService) is null)
                     {
-                        _logger.LogError($"{bluezServiceName} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        _logger.LogError($"{bluezService} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
                         return;
                     }
 
-                    var isServiceActive = await Tmds.DBus.Connection.System.IsServiceActiveAsync(bluezServiceName);
+                    var isServiceActive = await Tmds.DBus.Connection.System.IsServiceActiveAsync(bluezService);
                     if (!isServiceActive)
                     {
-                        _logger.LogInformation($"Starting {bluezServiceName}.");
-                        var serviceStartResult = await Tmds.DBus.Connection.System.ActivateServiceAsync(bluezServiceName);
+                        _logger.LogInformation($"Starting {bluezService}.");
+                        var serviceStartResult = await Tmds.DBus.Connection.System.ActivateServiceAsync(bluezService);
                         switch (serviceStartResult)
                         {
                             case Tmds.DBus.ServiceStartResult.Started:
-                                _logger.LogInformation($"{bluezServiceName} started.");
+                                _logger.LogInformation($"{bluezService} started.");
                                 break;
                             case Tmds.DBus.ServiceStartResult.AlreadyRunning:
-                                _logger.LogInformation($"{bluezServiceName} was already running.");
+                                _logger.LogInformation($"{bluezService} was already running.");
                                 break;
                         }
                     }
 
                     // Find all D-Bus objects and their interfaces
-                    var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(bluezServiceName, Tmds.DBus.ObjectPath.Root);
+                    var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(bluezService, Tmds.DBus.ObjectPath.Root);
                     var dBusObjects = await objectManager.GetManagedObjectsAsync();
                     foreach (var dBusObject in dBusObjects)
                     {
@@ -118,14 +123,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         Console.WriteLine(objectPathKp.Key);
                         foreach (var bluezInterfaceMetadata in objectPathKp.Value)
                         {
-                            Console.WriteLine($"    {bluezInterfaceMetadata.InterfaceName} {bluezInterfaceMetadata.DeviceName}");
+                            Console.WriteLine($"    {bluezInterfaceMetadata.BluezInterface} {bluezInterfaceMetadata.DeviceName}");
                         }
                     }
 
-                    var bluezAdapterObjectPathKp = _bluezObjectPathInterfaces.SingleOrDefault(x => x.Value.Any(i => i.InterfaceName == bluezAdapterInterfaceName));
+                    var bluezAdapterObjectPathKp = _bluezObjectPathInterfaces.SingleOrDefault(x => x.Value.Any(i => i.BluezInterface == bluezAdapterInterface));
                     if (string.IsNullOrEmpty(bluezAdapterObjectPathKp.Key.ToString()))
                     {
-                        _logger.LogError($"{bluezAdapterInterfaceName} does not exist. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        _logger.LogError($"{bluezAdapterInterface} does not exist. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
                         return;
                     }
 
@@ -153,12 +158,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     );
 
-                    Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezServiceName} {bluezAdapterObjectPathKp.Key}");
-                    var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezServiceName, bluezAdapterObjectPathKp.Key);
+                    Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezService} {bluezAdapterObjectPathKp.Key}");
+                    var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezService, bluezAdapterObjectPathKp.Key);
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezDeviceInterfaceName && !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName.Trim() == "Scalextric ARC"));
+                        var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezDeviceInterface && !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName.Trim() == "Scalextric ARC"));
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
@@ -246,16 +251,31 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 Console.WriteLine(iface.Key);
             }
 
-            if (args.interfaces.Keys.Any(x => x.StartsWith(bluezServiceName)))
+            if (args.interfaces.Keys.Any(x => x.StartsWith(bluezService)))
             {
                 var bluezInterfaceMetadatas = new List<BluezInterfaceMetadata>();
-                foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezServiceName)))
+                foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezService)))
                 {
-                    bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
+                    if (item.Key == bluezDeviceInterface)
                     {
-                        InterfaceName = item.Key,
-                        DeviceName = item.Value.SingleOrDefault(x => x.Key == "Name").Value?.ToString()?.Trim()
-                    });
+                        LogDBusObject(args.objectPath, args.interfaces);
+                    }
+
+                    var uuid = item.Value.SingleOrDefault(x => x.Key == "UUID").Value;
+                    if (uuid is null || string.IsNullOrEmpty(uuid.ToString()))
+                    {
+                        _logger.LogWarning($"UUID not found for interface {item.Key}");
+                    }
+                    else
+                    {
+                        bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
+                        {
+                            BluezInterface = item.Key,
+                            UUID = new Guid(uuid.ToString()!),
+                            DeviceName = item.Value.SingleOrDefault(x => item.Key == bluezDeviceInterface && x.Key == "Name").Value?.ToString()?.Trim()
+                        });
+                    }
+
                 }
 
                 _bluezObjectPathInterfaces.TryAdd(args.objectPath, bluezInterfaceMetadatas);
@@ -277,11 +297,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 try
                 {
-                    Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezServiceName}, {objectPath}) ...");
-                    var deviceProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezServiceName, objectPath);
+                    Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezService}, {objectPath}) ...");
+                    var scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
                     Console.WriteLine($"CreateProxy after...");
 
-                    if (await deviceProxy.GetConnectedAsync())
+                    _logger.LogInformation($"RSSI={await scalextricArcProxy.GetRSSIAsync()}");
+
+                    if (await scalextricArcProxy.GetConnectedAsync())
                     {
                         _logger.LogInformation("Scalextric ARC already connected.");
                         scalextricArcObjectPath = objectPath;
@@ -295,7 +317,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             try
                             {
                                 Console.WriteLine($"ConnectAsync before {i} attempt(s).");
-                                await deviceProxy.ConnectAsync();
+                                await scalextricArcProxy.ConnectAsync();
                                 Console.WriteLine($"ConnectAsync after {i} attempt(s).");
                                 success = true;
                                 break;
@@ -318,12 +340,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                     if (scalextricArcObjectPath != null)
                     {
-                        if (!await deviceProxy.GetServicesResolvedAsync())
+                        if (!await scalextricArcProxy.GetServicesResolvedAsync())
                         {
                             _logger.LogInformation("Waiting for Scalextric ARC services to be resolved.");
                             for (int i = 1; i <= 5; i++)
                             {
-                                if (await deviceProxy.GetServicesResolvedAsync())
+                                if (await scalextricArcProxy.GetServicesResolvedAsync())
                                 {
                                     break;
                                 }
@@ -331,7 +353,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 await Task.Delay(TimeSpan.FromSeconds(5));
                             }
 
-                            if (!await deviceProxy.GetServicesResolvedAsync())
+                            if (!await scalextricArcProxy.GetServicesResolvedAsync())
                             {
                                 throw new Exception("Scalextric ARC services could not be resolved");
                             }
@@ -340,15 +362,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         Console.WriteLine("Bluez objects and interfaces");
                         foreach (var item in _bluezObjectPathInterfaces)
                         {
-                            Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
+                            Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                         }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattServiceInterface)).OrderBy(x => x.Key))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattServiceInterface)).OrderBy(x => x.Key))
                         {
                             Console.WriteLine();
-                            Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
+                            Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                             //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
-                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezServiceName, item.Key);
+                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezService, item.Key);
                             //Console.WriteLine("After...");
                             var properties = await proxy.GetAllAsync();
                             //Console.WriteLine("After GetAllAsync...");
@@ -363,12 +385,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
                             Console.WriteLine();
-                            Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
+                            Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                             //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
-                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezServiceName, item.Key);
+                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezService, item.Key);
                             //Console.WriteLine("After...");
                             var properties = await proxy.GetAllAsync();
                             //Console.WriteLine("After GetAllAsync...");
@@ -389,28 +411,52 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                     Console.WriteLine($"valueUTF8={valueUTF8}");
                                 }
                             }
-                        }
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)).OrderBy(x => x.Key))
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine($"GattDescriptor: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
-                            //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
-                            var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattDescriptor1>(bluezServiceName, item.Key);
-                            //Console.WriteLine("After...");
-                            var properties = await proxy.GetAllAsync();
-                            //Console.WriteLine("After GetAllAsync...");
-                            Console.WriteLine($"UUID={properties.UUID}");
-                            Console.WriteLine($"Characteristic={properties.Characteristic}");
-
-                            if (properties.Value.Length > 0)
+                            var throttleProfile1Uuid = new Guid("0000ff02-0000-1000-8000-00805f9b34fb");
+                            if (new Guid(properties.UUID) == throttleProfile1Uuid)
                             {
-                                var valueASCII = System.Text.Encoding.ASCII.GetString(properties.Value);
-                                var valueUTF8 = System.Text.Encoding.UTF8.GetString(properties.Value);
-                                Console.WriteLine($"valueASCII={valueASCII}");
-                                Console.WriteLine($"valueUTF8={valueUTF8}");
+                                Console.WriteLine("StartNotifyAsync before");
+                                await proxy.StartNotifyAsync();
+                                Console.WriteLine("StartNotifyAsync after");
+
+                                //throttleProfile1Characteristic = proxy;
+                                var throttleProfile1CharacteristicWatchPropertiesTask = proxy.WatchPropertiesAsync(propertyChanges =>
+                                {
+                                    Console.WriteLine("propertyChanges.Changed:");
+                                    foreach (var item in propertyChanges.Changed)
+                                    {
+                                        Console.WriteLine($"{item.Key}={item.Value}");
+                                    }
+                                    Console.WriteLine("propertyChanges.Invalidated:");
+                                    foreach (var item in propertyChanges.Invalidated)
+                                    {
+                                        Console.WriteLine(item);
+                                    }
+                                });
                             }
                         }
+
+                        //foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)).OrderBy(x => x.Key))
+                        //{
+                        //    Console.WriteLine();
+                        //    Console.WriteLine($"GattDescriptor: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
+                        //    //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
+                        //    var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattDescriptor1>(bluezServiceName, item.Key);
+                        //    //Console.WriteLine("After...");
+                        //    var properties = await proxy.GetAllAsync();
+                        //    //Console.WriteLine("After GetAllAsync...");
+                        //    Console.WriteLine($"UUID={properties.UUID}");
+                        //    Console.WriteLine($"Characteristic={properties.Characteristic}");
+
+                        //    if (properties.Value.Length > 0)
+                        //    {
+                        //        var valueASCII = System.Text.Encoding.ASCII.GetString(properties.Value);
+                        //        var valueUTF8 = System.Text.Encoding.UTF8.GetString(properties.Value);
+                        //        Console.WriteLine($"valueASCII={valueASCII}");
+                        //        Console.WriteLine($"valueUTF8={valueUTF8}");
+                        //    }
+                        //}
+
 
                         //var servicesUUID = await deviceProxy.GetUUIDsAsync();
                         //Console.WriteLine($"Device offers {servicesUUID.Length} service(s).");
