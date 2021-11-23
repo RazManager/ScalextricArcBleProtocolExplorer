@@ -37,7 +37,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly Guid hardwareRevisionCharacteristicUuid = new Guid("00002a27-0000-1000-8000-00805f9b34fb");
         private readonly Guid firmwareRevisionCharacteristicUuid = new Guid("00002a26-0000-1000-8000-00805f9b34fb");
         private readonly Guid softwareRevisionCharacteristicUuid = new Guid("00002a28-0000-1000-8000-00805f9b34fb");
-        private readonly Guid nordicDfuRevisionCharacteristicUuid = new Guid("00001534-1212-efde-1523-785feabcd123");
 
         private readonly Guid throttleCharacteristicUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
         private bluez.DBus.IGattCharacteristic1? throttleCharacteristicProxy = null;
@@ -46,8 +45,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly Guid slotCharacteristicUuid = new Guid("00003b0b-0000-1000-8000-00805f9b34fb");
         private bluez.DBus.IGattCharacteristic1? slotCharacteristicProxy = null;
         private Task? slotCharacteristicWatchTask = null;
-
-
 
         private readonly ScalextricArcState _scalextricArcState;
         private readonly ILogger<BluezMonitorService> _logger;
@@ -448,7 +445,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         string? hardwareRevision = null;
                         string? firmwareRevision = null;
                         string? softwareRevision = null;
-                        string? nordicDfuRevision = null;
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
                             Console.WriteLine();
@@ -494,10 +490,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                     {
                                         softwareRevision = valueUTF8;
                                     }
-                                    else if (new Guid(properties.UUID) == nordicDfuRevisionCharacteristicUuid)
-                                    {
-                                        nordicDfuRevision = valueUTF8;
-                                    }
                                 }
                             }
 
@@ -520,14 +512,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         }
 
-                        _scalextricArcState.DeviceState.SetDeviceState
+                        _scalextricArcState.DeviceState.Set
                         (
                             manufacturerName,
                             modelNumber,
                             hardwareRevision,
                             firmwareRevision,
-                            softwareRevision,
-                            nordicDfuRevision
+                            softwareRevision
                         );
 
                         //foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)).OrderBy(x => x.Key))
@@ -573,7 +564,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
                     Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
 
-                    _scalextricArcState.ThrottleState.SetThrottleState
+                    _scalextricArcState.ThrottleState.Set
                     (
                         value[0],
                         value[12],
@@ -630,7 +621,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     var value = (byte[])item.Value;
                     Console.WriteLine($"PS={value[0]}, ID={value[1]}");
 
-                    _scalextricArcState.SlotStates[value[1]].SetSlotState
+                    _scalextricArcState.SlotStates[value[1] - 1].Set
                     (
                         value[0],
                         value[1],

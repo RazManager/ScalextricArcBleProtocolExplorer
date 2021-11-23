@@ -1,0 +1,35 @@
+<mat-sidenav-container>
+    <mat-sidenav
+        [mode]="sidenavMode"
+        [(opened)]="sidenavOpened">
+        <div fxLayout="column">
+            <mat-toolbar color="accent">
+                <mat-toolbar-row>
+                    <a href="/" class="sidenav-toolbar-logo">Scalextric ARC BLE Explorer</a>
+                </mat-toolbar-row>
+            </mat-toolbar>
+   
+            <mat-nav-list>
+                <mat-list-item (click)="navigate(['/device'])">
+                    Device information
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/slot'])">
+                    Slot
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/throttle'])">
+                    Trottle
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/system'])">
+                    System information
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/log'])">
+                    Connection log
+                </mat-list-item>
+            </mat-nav-list>
+        </div>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <mat-spinner *ngIf="busy"></mat-spinner>
+        <router-outlet></router-outlet>
+    </mat-sidenav-content>
+</mat-sidenav-container>

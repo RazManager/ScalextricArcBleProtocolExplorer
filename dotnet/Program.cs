@@ -15,6 +15,9 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddSingleton(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState()
 );
+
+builder.Services.AddScoped<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService, ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>();
+
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
 
 builder.Services.AddControllers();

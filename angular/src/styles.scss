@@ -1,0 +1,41 @@
+html, body, mat-sidenav-container {
+    height: 100%;
+}
+
+
+body {
+    margin: 0;
+}
+
+
+mat-spinner.mat-progress-spinner {
+    position: fixed;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 999;
+}
+
+
+.sidenav-toolbar-logo {
+    text-decoration: none;
+    color: inherit;
+}
+
+
+.view-container {
+    height: 100%;
+}
+
+
+.section-container {
+    margin: 1em;
+}
+
+
+.overflow {
+    overflow: auto;
+}
+
