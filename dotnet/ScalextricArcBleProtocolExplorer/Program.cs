@@ -17,17 +17,35 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
 
+builder.Services.AddControllers();
+
+builder.Services.AddCors();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseCors(builder =>
+            builder.WithOrigins("http://localhost:4200")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader());
+                   //.AllowCredentials());
+    
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
-app.UseStaticFiles();
+
+app.UseFileServer();
 
 app.UseRouting();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
 
 app.Run();

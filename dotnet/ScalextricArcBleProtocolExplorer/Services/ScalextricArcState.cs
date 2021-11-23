@@ -5,8 +5,38 @@ namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class ScalextricArcState
     {
+        public DeviceState DeviceState { get; init; } = new();
         public ThrottleState ThrottleState { get; init; } = new();
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
+    }
+
+
+    public class DeviceState
+    {
+        public string? ManufacturerName { get; set; }
+        public string? ModelNumber { get; set; }
+        public string? HardwareRevision { get; set; }
+        public string? FirmwareRevision { get; set; }
+        public string? SoftwareRevision { get; set; }
+        public string? NordicDfuRevision { get; set; }
+
+        public void SetDeviceState
+        (
+            string? manufacturerName,
+            string? modelNumber,
+            string? hardwareRevision,
+            string? firmwareRevision,
+            string? softwareRevision,
+            string? nordicDfuRevision
+        )
+        {
+            ManufacturerName = manufacturerName;
+            ModelNumber = modelNumber;
+            HardwareRevision = hardwareRevision;
+            FirmwareRevision = firmwareRevision;
+            SoftwareRevision = softwareRevision;
+            NordicDfuRevision = nordicDfuRevision;
+        }
     }
 
 
@@ -51,7 +81,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private DateTimeOffset? ThrottleTimeStampServicePrevious { get; set; }
         private DateTimeOffset? ThrottleTimeStampServiceLast { get; set; }
 
-        public uint? ThrottleTimestampDuration
+        public uint? ThrottleTimestampInterval
         {
             get
             {
@@ -63,7 +93,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public int? ThrottleTimestampServiceDuration
+        public int? ThrottleTimestampServiceInterval
         {
             get
             {
@@ -148,6 +178,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             ThrottleValueLaneChangeButton6 = throttleValueLaneChangeButton6;
             ThrottleValueLaneChangeButtonDoubleTapped6 = throttleValueLaneChangeButtonDoubleTapped6;
             ThrottleCtrlVersion6 = throttleCtrlVersion6;
+            ThrottleTimestampPrevious = ThrottleTimestamp;
             ThrottleTimestamp = throttleTimestamp;
 
             ThrottleTimeStampServicePrevious = ThrottleTimeStampServiceLast;
@@ -156,20 +187,87 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
-
     public class SlotState
     {
-        private byte? SlotPacketSequence { get; set; }
-        private byte? SlotCarId { get; set; }
-        private uint? SlotTimestampTrack1 { get; set; }
-        private uint? SlotTimestampTrack2 { get; set; }
-        private uint? SlotTimestampPitlane1 { get; set; }
-        private uint? SlotTimestampPitlane2 { get; set; }
+        public byte? SlotPacketSequence { get; set; }
+        public byte? SlotCarId { get; set; }
+        public uint? SlotTimestampTrack1 { get; set; }
+        private uint? SlotTimestampTrack1Previous { get; set; }
+        public uint? SlotTimestampTrack2 { get; set; }
+        private uint? SlotTimestampTrack2Previous { get; set; }
+        public uint? SlotTimestampPitlane1 { get; set; }
+        private uint? SlotTimestampPitlane1Previous { get; set; }
+        public uint? SlotTimestampPitlane2 { get; set; }
+        private uint? SlotTimestampPitlane2Previous { get; set; }
+
+        public uint? SlotTimestampTrack1Interval
+        {
+            get
+            {
+                if (SlotTimestampTrack1.HasValue && SlotTimestampTrack1Previous.HasValue)
+                {
+                    return SlotTimestampTrack1.Value - SlotTimestampTrack1Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? SlotTimestampTrack2Interval
+        {
+            get
+            {
+                if (SlotTimestampTrack2.HasValue && SlotTimestampTrack2Previous.HasValue)
+                {
+                    return SlotTimestampTrack2.Value - SlotTimestampTrack2Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? SlotTimestampPitlane1Interval
+        {
+            get
+            {
+                if (SlotTimestampPitlane1.HasValue && SlotTimestampPitlane1Previous.HasValue)
+                {
+                    return SlotTimestampPitlane1.Value - SlotTimestampPitlane1Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? SlotTimestampPitlane2Interval
+        {
+            get
+            {
+                if (SlotTimestampPitlane2.HasValue && SlotTimestampPitlane2Previous.HasValue)
+                {
+                    return SlotTimestampPitlane2.Value - SlotTimestampPitlane2Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public void SetSlotState
+        (
+            byte slotPacketSequence,
+            byte slotCarId,
+            uint slotTimestampTrack1,
+            uint slotTimestampTrack2,
+            uint slotTimestampPitlane1,
+            uint slotTimestampPitlane2
+        )
+        {
+            SlotPacketSequence = slotPacketSequence;
+            SlotCarId = slotCarId;
+            SlotTimestampTrack1Previous = SlotTimestampTrack1;
+            SlotTimestampTrack1 = slotTimestampTrack1;
+            SlotTimestampTrack2Previous = SlotTimestampTrack2;
+            SlotTimestampTrack2 = slotTimestampTrack2;
+            SlotTimestampPitlane1Previous = SlotTimestampPitlane1;
+            SlotTimestampPitlane1 = slotTimestampPitlane1;
+            SlotTimestampPitlane2Previous = SlotTimestampPitlane2;
+            SlotTimestampPitlane2 = slotTimestampPitlane2;
+        }
     }
-
 }
-
-
-
-
-
