@@ -33,9 +33,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private Tmds.DBus.ObjectPath? scalextricArcObjectPath = null;
         private bluez.DBus.IDevice1? scalextricArcProxy = null;
 
-        private readonly Guid throttleInformationUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
-        private bluez.DBus.IGattCharacteristic1? throttleInformationProxy = null;
-        private Task? throttleInformationWatchTask = null;
+        private readonly Guid throttleCharacteristicUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? throttleCharacteristicProxy = null;
+        private Task? throttleCharacteristicWatchTask = null;
+
+        private readonly Guid slotCharacteristicUuid = new Guid("00003b0b-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? slotCharacteristicProxy = null;
+        private Task? slotCharacteristicWatchTask = null;
+
+
 
         private readonly ScalextricArcState _scalextricArcState;
         private readonly ILogger<BluezMonitorService> _logger;
@@ -72,7 +78,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 _bluezObjectPathInterfaces = new();
                 scalextricArcObjectPath = null;
                 scalextricArcProxy = null;
-                throttleInformationWatchTask = null;
+                throttleCharacteristicWatchTask = null;
+                slotCharacteristicWatchTask = null;
 
                 try
                 {
@@ -172,19 +179,34 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
-                            if (throttleInformationWatchTask is not null)
+                            if (throttleCharacteristicWatchTask is not null)
                             {
-                                throttleInformationWatchTask.Dispose();
-                                throttleInformationWatchTask = null;
+                                throttleCharacteristicWatchTask.Dispose();
+                                throttleCharacteristicWatchTask = null;
                             }
 
-                            if (throttleInformationProxy is not null)
+                            if (throttleCharacteristicProxy is not null)
                             {
-                                if (await throttleInformationProxy.GetNotifyingAsync())
+                                if (await throttleCharacteristicProxy.GetNotifyingAsync())
                                 {
-                                    await throttleInformationProxy.StopNotifyAsync();
+                                    await throttleCharacteristicProxy.StopNotifyAsync();
                                 }
-                                throttleInformationProxy = null;
+                                throttleCharacteristicProxy = null;
+                            }
+
+                            if (slotCharacteristicWatchTask is not null)
+                            {
+                                slotCharacteristicWatchTask.Dispose();
+                                slotCharacteristicWatchTask = null;
+                            }
+
+                            if (slotCharacteristicProxy is not null)
+                            {
+                                if (await slotCharacteristicProxy.GetNotifyingAsync())
+                                {
+                                    await slotCharacteristicProxy.StopNotifyAsync();
+                                }
+                                slotCharacteristicProxy = null;
                             }
 
                             if (scalextricArcProxy is not null)
@@ -438,29 +460,32 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 }
                             }
 
-                            if (new Guid(properties.UUID) == throttleInformationUuid)
+                            if (new Guid(properties.UUID) == throttleCharacteristicUuid)
                             {
-                                throttleInformationProxy = proxy;
+                                throttleCharacteristicProxy = proxy;
                                 Console.WriteLine("StartNotifyAsync before");
-                                await throttleInformationProxy.StartNotifyAsync();
+                                await throttleCharacteristicProxy.StartNotifyAsync();
                                 Console.WriteLine("StartNotifyAsync after");
 
-                                throttleInformationWatchTask = proxy.WatchPropertiesAsync(propertyChanges =>
+                                throttleCharacteristicWatchTask = throttleCharacteristicProxy.WatchPropertiesAsync(throttleInformationWatchProperties);
+                            }
+
+                            if (new Guid(properties.UUID) == slotCharacteristicUuid)
+                            {
+                                slotCharacteristicProxy = proxy;
+                                Console.WriteLine("StartNotifyAsync before");
+                                await slotCharacteristicProxy.StartNotifyAsync();
+                                Console.WriteLine("StartNotifyAsync after");
+
+                                slotCharacteristicWatchTask = slotCharacteristicProxy.WatchPropertiesAsync(propertyChanges =>
                                 {
-                                    Console.WriteLine("propertyChanges.Changed:");
                                     foreach (var item in propertyChanges.Changed)
                                     {
-                                        Console.WriteLine($"{item.Key}={item.Value}");
                                         if (item.Key == "Value")
                                         {
                                             var value = (byte[])item.Value;
-                                            Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
+                                            Console.WriteLine($"PS={value[0]}, ID={value[1]}");
                                         }
-                                    }
-                                    Console.WriteLine("propertyChanges.Invalidated:");
-                                    foreach (var item in propertyChanges.Invalidated)
-                                    {
-                                        Console.WriteLine(item);
                                     }
                                 });
                             }
@@ -508,31 +533,46 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 {
                     var value = (byte[])item.Value;
                     Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
+                    Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
 
-                    _scalextricArcState.SetThrottleState
+                    _scalextricArcState.ThrottleState.SetThrottleState
                     (
                         value[0],
+                        value[12],
+                        value[13],
+                        (value[11] & 0b1) > 0,
                         (byte)(value[1] & 0b111111),
                         (value[1] & 0b1000000) > 0,
                         (value[1] & 0b10000000) > 0,
+                        (value[11] & 0b100) > 0,
+                        value[14],
                         (byte)(value[2] & 0b111111),
                         (value[2] & 0b1000000) > 0,
                         (value[2] & 0b10000000) > 0,
+                        (value[11] & 0b1000) > 0,
+                        value[15],
                         (byte)(value[3] & 0b111111),
                         (value[3] & 0b1000000) > 0,
                         (value[3] & 0b10000000) > 0,
+                        (value[11] & 0b10000) > 0,
+                        value[16],
                         (byte)(value[4] & 0b111111),
                         (value[4] & 0b1000000) > 0,
                         (value[4] & 0b10000000) > 0,
+                        (value[11] & 0b100000) > 0,
+                        value[17],
                         (byte)(value[5] & 0b111111),
                         (value[5] & 0b1000000) > 0,
                         (value[5] & 0b10000000) > 0,
+                        (value[11] & 0b1000000) > 0,
+                        value[17],
                         (byte)(value[6] & 0b111111),
                         (value[6] & 0b1000000) > 0,
                         (value[6] & 0b10000000) > 0,
+                        (value[11] & 0b10000000) > 0,
+                        value[19],
                         (uint)(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)
                     );
-
                 }
             }
             //Console.WriteLine("propertyChanges.Invalidated:");
