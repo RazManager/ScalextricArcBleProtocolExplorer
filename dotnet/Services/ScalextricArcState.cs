@@ -84,9 +84,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public uint? Timestamp { get; set; }
         private uint? TimestampPrevious { get; set; }
         private DateTimeOffset? TimeStampServicePrevious { get; set; }
-        private DateTimeOffset? TimeStampServiceLast { get; set; }
+        private DateTimeOffset? TimeStampService { get; set; }
 
-        public uint? ThrottleTimestampInterval
+        public uint? TimestampInterval
         {
             get
             {
@@ -98,13 +98,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public int? ThrottleTimestampServiceInterval
+        public int? TimestampServiceInterval
         {
             get
             {
-                if (TimeStampServiceLast.HasValue && TimeStampServicePrevious.HasValue)
+                if (TimeStampService.HasValue && TimeStampServicePrevious.HasValue)
                 {
-                    return (int)(TimeStampServiceLast.Value - TimeStampServicePrevious.Value).TotalMilliseconds;
+                    return (int)(TimeStampService.Value - TimeStampServicePrevious.Value).TotalMilliseconds;
                 }
                 return null;
             }
@@ -185,9 +185,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             CtrlVersion6 = ctrlVersion6;
             TimestampPrevious = Timestamp;
             Timestamp = timestamp;
-
-            TimeStampServicePrevious = TimeStampServiceLast;
-            TimeStampServiceLast = DateTimeOffset.UtcNow;
+            TimeStampServicePrevious = TimeStampService;
+            TimeStampService = DateTimeOffset.UtcNow;
         }
     }
 

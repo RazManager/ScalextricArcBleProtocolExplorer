@@ -22,9 +22,9 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
 
 
         [HttpGet]
-        public SystemResult Get()
+        public SystemDto Get()
         {
-            var result = new SystemResult
+            var result = new SystemDto
             {
                 HardwareModel = _cpuInfoService.CpuInfo.Model,
 
@@ -46,7 +46,7 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
     }
 
 
-    public class SystemResult
+    public class SystemDto
     {
         public string? HardwareModel { get; set; }
 

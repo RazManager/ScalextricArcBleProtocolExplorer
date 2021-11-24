@@ -1,0 +1,205 @@
+<div class="view-container">
+    <common-toolbar
+        header="Device information"
+        (menuClick)="menu()">
+    </common-toolbar>
+
+    <div class="overflow">
+        <div class="section-container">
+            <mat-card>
+                <mat-card-content>
+                    <div gdColumns="max-content max-content"
+                         gdRows="1fr"
+                         gdGap="1em">
+                        <div gdColumns="max-content max-content max-content max-content max-content max-content max-content"
+                             gdRows="max-content 1fr max-content max-content max-content max-content max-content"
+                             gdGap="1em">                            
+                            <div>
+                                ID
+                            </div>
+                            <div>
+                                1
+                            </div>
+                            <div>
+                                2
+                            </div>
+                            <div>
+                                3
+                            </div>
+                            <div>
+                                4
+                            </div>
+                            <div>
+                                5
+                            </div>
+                            <div>
+                                6
+                            </div>
+
+                            <div>
+                            </div>
+                            <div>
+                                11
+                            </div>
+                            <div>
+                                22
+                            </div>
+                            <div>
+                                33
+                            </div>
+                            <div>
+                                44
+                            </div>
+                            <div>
+                                55
+                            </div>
+                            <div>
+                                66
+                            </div>
+
+                            <div>
+                                Value
+                            </div>
+                            <div>
+                                {{dto.value1}}
+                            </div>
+                            <div>
+                                {{dto.value2}}
+                            </div>
+                            <div>
+                                {{dto.value3}}
+                            </div>
+                            <div>
+                                {{dto.value4}}
+                            </div>
+                            <div>
+                                {{dto.value5}}
+                            </div>
+                            <div>
+                                {{dto.value6}}
+                            </div>
+
+                            <div>
+                                Brake button
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.brakeButton1" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.brakeButton2" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.brakeButton3" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.brakeButton4" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.brakeButton5" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.brakeButton6" disabled>
+                            </div>
+
+                            <div>
+                                Lane change button
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButton1" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButton2" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButton3" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButton4" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButton5" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButton6" disabled>
+                            </div>
+
+                            <div>
+                                Lange change button double-tapped
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped1" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped2" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped3" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped4" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped5" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped6" disabled>
+                            </div>
+
+                            <div>
+                                Controller version
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.ctrlVersion1" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.ctrlVersion2" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.ctrlVersion3" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.ctrlVersion4" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.ctrlVersion5" disabled>
+                            </div>
+                            <div>
+                                <mat-checkbox [checked]="dto.ctrlVersion6" disabled>
+                            </div>  
+                        </div>
+                        <div>
+                            <div style="margin-bottom: 1em">
+                                <div class="mat-caption">Packet sequence</div>
+                                <div>{{dto.packetSequence}}</div>
+                            </div>
+                    
+                            <div style="margin-bottom: 1em;">
+                                <div class="mat-caption">Timestamp (ms)</div>
+                                <div>{{dto.timestamp}}</div>
+                            </div>
+                    
+                            <div style="margin-bottom: 1em">
+                                <div class="mat-caption">Timestamp interval (ms)</div>
+                                <div>{{dto.timestampInterval}}</div>
+                            </div>
+    
+                            <div style="margin-bottom: 1em">
+                                <mat-checkbox [checked]="dto.isDigital" disabled>Digital</mat-checkbox>
+                            </div>
+    
+                            <div style="margin-bottom: 1em">
+                                <div class="mat-caption">Pic version</div>
+                                <div>{{dto.picVersion}}</div>
+                            </div>
+    
+                            <div style="margin-bottom: 1em">
+                                <div class="mat-caption">Base version</div>
+                                <div>{{dto.baseVersion}}</div>
+                            </div>    
+                        </div>
+                    </div>       
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

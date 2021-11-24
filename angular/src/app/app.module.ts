@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 
 import { MatCardModule } from '@angular/material/card'; 
+import { MatCheckboxModule } from '@angular/material/checkbox'; 
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -17,6 +18,10 @@ import { CommonToolbarComponent } from 'src/lib/components/common-toolbar/common
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './views/api.service';
+import { DeviceResolver } from './views/device/device-resolver.service';
+import { DeviceComponent } from './views/device/device.component';
+import { ThrottleResolver } from './views/throttle/throttle-resolver.service';
+import { ThrottleComponent } from './views/throttle/throttle.component';
 import { SystemResolver } from './views/system/system-resolver.service';
 import { SystemComponent } from './views/system/system.component';
 
@@ -25,6 +30,8 @@ import { SystemComponent } from './views/system/system.component';
     declarations: [
         AppComponent,
         CommonToolbarComponent,
+        DeviceComponent,
+        ThrottleComponent,
         SystemComponent
     ],
     imports: [
@@ -32,6 +39,7 @@ import { SystemComponent } from './views/system/system.component';
         BrowserAnimationsModule,
         HttpClientModule,
         MatCardModule,
+        MatCheckboxModule,
         MatIconModule,
         MatListModule,
         MatProgressSpinnerModule,
@@ -44,6 +52,8 @@ import { SystemComponent } from './views/system/system.component';
         CommonMenuService,
         CommonBusyService,
         ApiService,
+        DeviceResolver,
+        ThrottleResolver,
         SystemResolver
     ],
     bootstrap: [AppComponent]
