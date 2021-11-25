@@ -1,6 +1,6 @@
 <div class="view-container">
     <common-toolbar
-        header="Device information"
+        header="Throttle"
         (menuClick)="menu()">
     </common-toolbar>
 
@@ -10,36 +10,36 @@
                 <mat-card-content>
                     <div gdColumns="max-content max-content"
                          gdRows="1fr"
-                         gdGap="1em">
+                         gdGap="2em">
                         <div gdColumns="max-content max-content max-content max-content max-content max-content max-content"
                              gdRows="max-content 1fr max-content max-content max-content max-content max-content"
                              gdGap="1em">                            
-                            <div>
+                            <div class="mat-caption">
                                 ID
                             </div>
-                            <div>
+                            <div style="text-align: center;">
                                 1
                             </div>
-                            <div>
+                            <div style="text-align: center;">
                                 2
                             </div>
-                            <div>
+                            <div style="text-align: center;">
                                 3
                             </div>
-                            <div>
+                            <div style="text-align: center;">
                                 4
                             </div>
-                            <div>
+                            <div style="text-align: center;">
                                 5
                             </div>
-                            <div>
+                            <div style="text-align: center;">
                                 6
                             </div>
 
-                            <div>
+                            <div class="mat-caption">
                             </div>
                             <div>
-                                11
+                                <mat-slider vertical disabled min="0" max="255" [value]="dto.value1"></mat-slider>
                             </div>
                             <div>
                                 22
@@ -57,7 +57,7 @@
                                 66
                             </div>
 
-                            <div>
+                            <div class="mat-caption">
                                 Value
                             </div>
                             <div>
@@ -79,92 +79,92 @@
                                 {{dto.value6}}
                             </div>
 
-                            <div>
+                            <div class="mat-caption">
                                 Brake button
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.brakeButton1" disabled>
+                                <mat-checkbox [checked]="dto.brakeButton1" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.brakeButton2" disabled>
+                                <mat-checkbox [checked]="dto.brakeButton2" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.brakeButton3" disabled>
+                                <mat-checkbox [checked]="dto.brakeButton3" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.brakeButton4" disabled>
+                                <mat-checkbox [checked]="dto.brakeButton4" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.brakeButton5" disabled>
+                                <mat-checkbox [checked]="dto.brakeButton5" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.brakeButton6" disabled>
+                                <mat-checkbox [checked]="dto.brakeButton6" disabled></mat-checkbox>
                             </div>
 
-                            <div>
+                            <div class="mat-caption">
                                 Lane change button
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton1" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButton1" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton2" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButton2" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton3" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButton3" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton4" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButton4" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton5" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButton5" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton6" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButton6" disabled></mat-checkbox>
                             </div>
 
-                            <div>
+                            <div class="mat-caption">
                                 Lange change button double-tapped
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped1" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped1" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped2" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped2" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped3" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped3" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped4" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped4" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped5" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped5" disabled></mat-checkbox>
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped6" disabled>
+                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped6" disabled></mat-checkbox>
                             </div>
 
-                            <div>
+                            <div class="mat-caption">
                                 Controller version
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.ctrlVersion1" disabled>
+                                {{dto.ctrlVersion1}}
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.ctrlVersion2" disabled>
+                                {{dto.ctrlVersion2}}
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.ctrlVersion3" disabled>
+                                {{dto.ctrlVersion3}}
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.ctrlVersion4" disabled>
+                                {{dto.ctrlVersion4}}
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.ctrlVersion5" disabled>
+                                {{dto.ctrlVersion5}}
                             </div>
                             <div>
-                                <mat-checkbox [checked]="dto.ctrlVersion6" disabled>
+                                {{dto.ctrlVersion6}}
                             </div>  
                         </div>
                         <div>

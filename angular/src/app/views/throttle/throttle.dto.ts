@@ -24,8 +24,8 @@ export class ThrottleDto {
 
     public value4!: number | null;
     public brakeButton4!: boolean;
-    public laneChangeButton4!: boolean | null;
-    public laneChangeButtonDoubleTapped4!: boolean | null;
+    public laneChangeButton4!: boolean;
+    public laneChangeButtonDoubleTapped4!: boolean;
     public ctrlVersion4!: number | null;
 
     public value5!: number | null;
@@ -38,6 +38,7 @@ export class ThrottleDto {
     public brakeButton6!: boolean;
     public laneChangeButton6!: boolean;
     public laneChangeButtonDoubleTapped6!: boolean;
+    public ctrlVersion6!: number | null;
 
     public timestamp!: number | null;
     public timestampInterval!: number | null;

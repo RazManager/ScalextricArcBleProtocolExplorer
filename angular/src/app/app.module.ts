@@ -9,8 +9,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { CommonBusyService } from 'src/lib/common/common-busy.service';
 import { CommonMenuService } from 'src/lib/components/common-menu/common-menu.service';
@@ -44,8 +46,10 @@ import { SystemComponent } from './views/system/system.component';
         MatListModule,
         MatProgressSpinnerModule,
         MatSidenavModule,
+        MatSliderModule,
         MatSnackBarModule,
         MatToolbarModule,
+        FlexLayoutModule,
         AppRoutingModule
     ],
     providers: [

@@ -10,6 +10,13 @@ import { SystemComponent } from './views/system/system.component';
 
 const routes: Routes = [
     {
+        path: 'system',
+        component: SystemComponent,
+        resolve: {
+            result: SystemResolver
+        }
+    },
+    {
         path: 'device',
         component: DeviceComponent,
         resolve: {
@@ -21,13 +28,6 @@ const routes: Routes = [
         component: ThrottleComponent,
         resolve: {
             result: ThrottleResolver
-        }
-    },
-    {
-        path: 'system',
-        component: SystemComponent,
-        resolve: {
-            result: SystemResolver
         }
     }
 ];
