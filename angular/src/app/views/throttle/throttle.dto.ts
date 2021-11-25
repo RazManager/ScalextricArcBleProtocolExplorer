@@ -2,7 +2,7 @@ export class ThrottleDto {
     public packetSequence!: number | null;
     public picVersion!: number | null;
     public baseVersion!: number | null;
-    public isDigital!: boolean;
+    public isDigital!: boolean | null;
 
     public value1!: number | null;
     public brakeButton1!: boolean;

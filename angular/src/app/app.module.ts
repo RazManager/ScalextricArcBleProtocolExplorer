@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card'; 
 import { MatCheckboxModule } from '@angular/material/checkbox'; 
 import { MatIconModule } from '@angular/material/icon';
@@ -40,6 +41,7 @@ import { SystemComponent } from './views/system/system.component';
         BrowserModule,
         BrowserAnimationsModule,
         HttpClientModule,
+        MatButtonModule,
         MatCardModule,
         MatCheckboxModule,
         MatIconModule,

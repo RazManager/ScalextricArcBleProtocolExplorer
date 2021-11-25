@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -13,7 +15,10 @@ builder.WebHost.ConfigureKestrel(options =>
 
 
 builder.Services.AddSingleton(serviceProvider =>
-    new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState()
+    new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState
+    (
+        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleHub>>()
+    )
 );
 
 builder.Services.AddScoped<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService, ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>();
@@ -21,6 +26,11 @@ builder.Services.AddScoped<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICp
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
 
 builder.Services.AddControllers();
+
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options => {
+        options.PayloadSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 builder.Services.AddCors();
 
@@ -35,12 +45,26 @@ if (app.Environment.IsDevelopment())
     app.UseCors(builder =>
             builder.WithOrigins("http://localhost:4200")
                    .AllowAnyMethod()
-                   .AllowAnyHeader());
-                   //.AllowCredentials());
+                   .AllowAnyHeader()
+                   .AllowCredentials());
     
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.Use(async (context, next) =>
+{
+    await next();
+    if (context.Response.StatusCode == StatusCodes.Status404NotFound &&
+        context.Request.Method == "GET" &&
+        context.Request.Path.HasValue &&
+        !context.Request.Path.Value.Contains("/api") &&
+        !context.Request.Path.Value.Contains("."))
+    {
+        context.Request.Path = new PathString("/");
+        await next();
+    }
+});
 
 app.UseFileServer();
 
@@ -49,6 +73,7 @@ app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle");
 });
 
 app.Run();

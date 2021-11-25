@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.SignalR;
+using System;
 
 
 namespace ScalextricArcBleProtocolExplorer.Services
@@ -6,11 +7,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
     public class ScalextricArcState
     {
         public DeviceState DeviceState { get; init; } = new();
-        public ThrottleState ThrottleState { get; init; } = new();
+        public ThrottleState ThrottleState { get; init; }
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
 
-        public ScalextricArcState()
+        public ScalextricArcState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
         {
+            ThrottleState = new ThrottleState(throttleHubContext);
+
             for (int i = 0; i < SlotStates.Length; i++)
             {
                 SlotStates[i] = new SlotState();
@@ -47,6 +50,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
     public class ThrottleState
     {
+        private readonly IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> _throttleHubContext;
+
+        public ThrottleState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
+        {
+            _throttleHubContext = throttleHubContext;
+        }
+
+
         public byte? PacketSequence { get; set; }
         public byte? PicVersion { get; set; }
         public byte? BaseVersion { get; set; }
@@ -109,6 +120,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 return null;
             }
         }
+
 
         public void Set
         (
@@ -187,6 +199,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Timestamp = timestamp;
             TimeStampServicePrevious = TimeStampService;
             TimeStampService = DateTimeOffset.UtcNow;
+
+            _throttleHubContext.Clients.All.ChangedState(this).Wait();
         }
     }
 

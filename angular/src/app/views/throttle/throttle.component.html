@@ -1,205 +1,110 @@
 <div class="view-container">
-    <common-toolbar
-        header="Throttle"
-        (menuClick)="menu()">
-    </common-toolbar>
+    <mat-toolbar class="mat-elevation-z4" color="primary">
+        <mat-toolbar-row>
+            <button *ngIf="menuShow" mat-icon-button type="button" (click)="menuToggle()">
+                <mat-icon>menu</mat-icon>
+            </button>
+            Throttle
+        </mat-toolbar-row>   
+    </mat-toolbar>
 
-    <div class="overflow">
-        <div class="section-container">
-            <mat-card>
-                <mat-card-content>
-                    <div gdColumns="max-content max-content"
-                         gdRows="1fr"
-                         gdGap="2em">
-                        <div gdColumns="max-content max-content max-content max-content max-content max-content max-content"
-                             gdRows="max-content 1fr max-content max-content max-content max-content max-content"
-                             gdGap="1em">                            
-                            <div class="mat-caption">
-                                ID
-                            </div>
-                            <div style="text-align: center;">
-                                1
-                            </div>
-                            <div style="text-align: center;">
-                                2
-                            </div>
-                            <div style="text-align: center;">
-                                3
-                            </div>
-                            <div style="text-align: center;">
-                                4
-                            </div>
-                            <div style="text-align: center;">
-                                5
-                            </div>
-                            <div style="text-align: center;">
-                                6
-                            </div>
+    <mat-card class="section-container">
+        <mat-card-content>
+            <div gdColumns="max-content max-content"
+                    gdRows="1fr"
+                    gdGap="2em" >
+                <div gdColumns="max-content max-content max-content max-content max-content max-content max-content"
+                        gdRows="max-content 1fr max-content max-content max-content max-content max-content"
+                        gdGap="1em"
+                        style="justify-items: center;">                     
+                    <div class="mat-caption" style="justify-self: start;">ID</div>
+                    <div class="mat-caption">1</div>
+                    <div class="mat-caption">2</div>
+                    <div class="mat-caption">3</div>
+                    <div class="mat-caption">4</div>
+                    <div class="mat-caption">5</div>
+                    <div class="mat-caption">6</div>
 
-                            <div class="mat-caption">
-                            </div>
-                            <div>
-                                <mat-slider vertical disabled min="0" max="255" [value]="dto.value1"></mat-slider>
-                            </div>
-                            <div>
-                                22
-                            </div>
-                            <div>
-                                33
-                            </div>
-                            <div>
-                                44
-                            </div>
-                            <div>
-                                55
-                            </div>
-                            <div>
-                                66
-                            </div>
+                    <div></div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value1"></mat-slider></div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value2"></mat-slider></div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value3"></mat-slider></div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value4"></mat-slider></div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value5"></mat-slider></div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value6"></mat-slider></div>
 
-                            <div class="mat-caption">
-                                Value
-                            </div>
-                            <div>
-                                {{dto.value1}}
-                            </div>
-                            <div>
-                                {{dto.value2}}
-                            </div>
-                            <div>
-                                {{dto.value3}}
-                            </div>
-                            <div>
-                                {{dto.value4}}
-                            </div>
-                            <div>
-                                {{dto.value5}}
-                            </div>
-                            <div>
-                                {{dto.value6}}
-                            </div>
+                    <div class="mat-caption" style="justify-self: start;">Value</div>
+                    <div>{{dto.value1}}</div>
+                    <div>{{dto.value2}}</div>
+                    <div>{{dto.value3}}</div>
+                    <div>{{dto.value4}}</div>
+                    <div>{{dto.value5}}</div>
+                    <div>{{dto.value6}}</div>
 
-                            <div class="mat-caption">
-                                Brake button
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.brakeButton1" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.brakeButton2" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.brakeButton3" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.brakeButton4" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.brakeButton5" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.brakeButton6" disabled></mat-checkbox>
-                            </div>
+                    <div class="mat-caption" style="justify-self: start;">Brake button</div>
+                    <div><mat-checkbox [checked]="dto.brakeButton1" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.brakeButton2" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.brakeButton3" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.brakeButton4" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.brakeButton5" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.brakeButton6" disabled></mat-checkbox></div>
 
-                            <div class="mat-caption">
-                                Lane change button
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton1" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton2" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton3" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton4" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton5" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButton6" disabled></mat-checkbox>
-                            </div>
+                    <div class="mat-caption" style="justify-self: start;">Lane change button</div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButton1" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButton2" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButton3" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButton4" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButton5" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButton6" disabled></mat-checkbox></div>
 
-                            <div class="mat-caption">
-                                Lange change button double-tapped
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped1" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped2" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped3" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped4" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped5" disabled></mat-checkbox>
-                            </div>
-                            <div>
-                                <mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped6" disabled></mat-checkbox>
-                            </div>
+                    <div class="mat-caption" style="justify-self: start;">Lange change button double-tapped</div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped1" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped2" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped3" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped4" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped5" disabled></mat-checkbox></div>
+                    <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped6" disabled></mat-checkbox></div>
 
-                            <div class="mat-caption">
-                                Controller version
-                            </div>
-                            <div>
-                                {{dto.ctrlVersion1}}
-                            </div>
-                            <div>
-                                {{dto.ctrlVersion2}}
-                            </div>
-                            <div>
-                                {{dto.ctrlVersion3}}
-                            </div>
-                            <div>
-                                {{dto.ctrlVersion4}}
-                            </div>
-                            <div>
-                                {{dto.ctrlVersion5}}
-                            </div>
-                            <div>
-                                {{dto.ctrlVersion6}}
-                            </div>  
-                        </div>
-                        <div>
-                            <div style="margin-bottom: 1em">
-                                <div class="mat-caption">Packet sequence</div>
-                                <div>{{dto.packetSequence}}</div>
-                            </div>
-                    
-                            <div style="margin-bottom: 1em;">
-                                <div class="mat-caption">Timestamp (ms)</div>
-                                <div>{{dto.timestamp}}</div>
-                            </div>
-                    
-                            <div style="margin-bottom: 1em">
-                                <div class="mat-caption">Timestamp interval (ms)</div>
-                                <div>{{dto.timestampInterval}}</div>
-                            </div>
-    
-                            <div style="margin-bottom: 1em">
-                                <mat-checkbox [checked]="dto.isDigital" disabled>Digital</mat-checkbox>
-                            </div>
-    
-                            <div style="margin-bottom: 1em">
-                                <div class="mat-caption">Pic version</div>
-                                <div>{{dto.picVersion}}</div>
-                            </div>
-    
-                            <div style="margin-bottom: 1em">
-                                <div class="mat-caption">Base version</div>
-                                <div>{{dto.baseVersion}}</div>
-                            </div>    
-                        </div>
-                    </div>       
-                </mat-card-content>
-            </mat-card>
-        </div>
-    </div>
+                    <div class="mat-caption" style="justify-self: start;">Controller version</div>
+                    <div>{{dto.ctrlVersion1}}</div>
+                    <div>{{dto.ctrlVersion2}}</div>
+                    <div>{{dto.ctrlVersion3}}</div>
+                    <div>{{dto.ctrlVersion4}}</div>
+                    <div>{{dto.ctrlVersion5}}</div>
+                    <div>{{dto.ctrlVersion6}}</div>  
+                </div>
+                <div>
+                    <div style="margin-bottom: 1em">
+                        <div class="mat-caption">Packet sequence</div>
+                        <div>{{dto.packetSequence}}</div>
+                    </div>
+            
+                    <div style="margin-bottom: 1em;">
+                        <div class="mat-caption">Timestamp (ms)</div>
+                        <div>{{dto.timestamp}}</div>
+                    </div>
+            
+                    <div style="margin-bottom: 1em">
+                        <div class="mat-caption">Timestamp interval (ms)</div>
+                        <div>{{dto.timestampInterval}}</div>
+                    </div>
+
+                    <div style="margin-bottom: 1em">
+                        <div class="mat-caption">Mode</div>
+                        <span *ngIf="dto.isDigital === true">Digital</span><span *ngIf="dto.isDigital === false">Analog</span>
+                    </div>
+
+                    <div style="margin-bottom: 1em">
+                        <div class="mat-caption">Pic version</div>
+                        <div>{{dto.picVersion}}</div>
+                    </div>
+
+                    <div style="margin-bottom: 1em">
+                        <div class="mat-caption">Base version</div>
+                        <div>{{dto.baseVersion}}</div>
+                    </div>    
+                </div>
+            </div>       
+        </mat-card-content>
+    </mat-card>
 </div>

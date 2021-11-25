@@ -563,6 +563,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     var value = (byte[])item.Value;
                     Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
                     Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
+                    Console.WriteLine($"ctrlVersion1={value[14]}, ctrlVersion2={value[15]}, ctrlVersion3={value[16]}, ctrlVersion4={value[17]}, ctrlVersion5={value[18]}, ctrlVersion6={value[19]}");
+                    Console.WriteLine($"timestamp1={value[7]}, timestamp2={value[8]}, timestamp3={value[9]}, timestamp14={value[10]}, timestamp={(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)}");
 
                     _scalextricArcState.ThrottleState.Set
                     (
@@ -594,7 +596,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         (value[5] & 0b1000000) > 0,
                         (value[5] & 0b10000000) > 0,
                         (value[11] & 0b1000000) > 0,
-                        value[17],
+                        value[18],
                         (byte)(value[6] & 0b111111),
                         (value[6] & 0b1000000) > 0,
                         (value[6] & 0b10000000) > 0,
