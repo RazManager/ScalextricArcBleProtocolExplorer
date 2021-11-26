@@ -4,7 +4,7 @@
             <button *ngIf="menuShow" mat-icon-button type="button" (click)="menuToggle()">
                 <mat-icon>menu</mat-icon>
             </button>
-            Throttle
+            lot
         </mat-toolbar-row>   
     </mat-toolbar>
 
@@ -26,11 +26,7 @@
                     <div class="mat-caption">6</div>
 
                     <div></div>
-                    <div>
-                        <svg>
-                            <rect width="1em" [attr.height]="dto.value1" style="fill:blue"></rect>
-                        </svg>    
-                    </div>
+                    <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value1"></mat-slider></div>
                     <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value2"></mat-slider></div>
                     <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value3"></mat-slider></div>
                     <div><mat-slider vertical disabled min="0" max="63" [value]="dto.value4"></mat-slider></div>

@@ -561,10 +561,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
-                    Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
-                    Console.WriteLine($"ctrlVersion1={value[14]}, ctrlVersion2={value[15]}, ctrlVersion3={value[16]}, ctrlVersion4={value[17]}, ctrlVersion5={value[18]}, ctrlVersion6={value[19]}");
-                    Console.WriteLine($"timestamp1={value[7]}, timestamp2={value[8]}, timestamp3={value[9]}, timestamp14={value[10]}, timestamp={(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)}");
+                    //Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
+                    //Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
+                    //Console.WriteLine($"timestamp1={value[7]}, timestamp2={value[8]}, timestamp3={value[9]}, timestamp14={value[10]}, timestamp={(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)}");
 
                     _scalextricArcState.ThrottleState.Set
                     (
@@ -602,7 +601,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         (value[6] & 0b10000000) > 0,
                         (value[11] & 0b10000000) > 0,
                         value[19],
-                        (uint)(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)
+                        (uint)(value[7] + value[8] * 256 + value[9] * 65536 + value[10] * 16777216)
                     );
                 }
             }
@@ -621,16 +620,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    Console.WriteLine($"PS={value[0]}, ID={value[1]}");
+                    Console.WriteLine($"PS={value[0]}, ID={value[1]}, {(uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216)}, {(uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216)}, {(uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216)}, {(uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)}");
 
                     _scalextricArcState.SlotStates[value[1] - 1].Set
                     (
                         value[0],
                         value[1],
-                        (uint)(value[2] + value[3] * 2 ^ 8 + value[4] * 2 ^ 16 + value[5] * 2 ^ 24),
-                        (uint)(value[6] + value[7] * 2 ^ 8 + value[8] * 2 ^ 16 + value[9] * 2 ^ 24),
-                        (uint)(value[10] + value[11] * 2 ^ 8 + value[12] * 2 ^ 16 + value[13] * 2 ^ 24),
-                        (uint)(value[14] + value[15] * 2 ^ 8 + value[16] * 2 ^ 16 + value[17] * 2 ^ 24)
+                        (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
+                        (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
+                        (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
+                        (uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)
                     );
                 }
             }

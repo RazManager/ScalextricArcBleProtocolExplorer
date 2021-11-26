@@ -10,13 +10,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public ThrottleState ThrottleState { get; init; }
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
 
-        public ScalextricArcState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
+        public ScalextricArcState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
+                                  IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext)
         {
             ThrottleState = new ThrottleState(throttleHubContext);
 
-            for (int i = 0; i < SlotStates.Length; i++)
+            for (byte i = 0; i < SlotStates.Length; i++)
             {
-                SlotStates[i] = new SlotState();
+                SlotStates[i] = new SlotState(slotHubContext) { CarId = (byte)(i + 1)};
             }
         }
     }
@@ -50,11 +51,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
     public class ThrottleState
     {
-        private readonly IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> _throttleHubContext;
+        private readonly IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> _hubContext;
 
-        public ThrottleState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
+        public ThrottleState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> hubContext)
         {
-            _throttleHubContext = throttleHubContext;
+            _hubContext = hubContext;
         }
 
 
@@ -109,7 +110,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public int? TimestampServiceInterval
+        public int? TimestampServerInterval
         {
             get
             {
@@ -195,20 +196,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
             LaneChangeButton6 = laneChangeButton6;
             LaneChangeButtonDoubleTapped6 = laneChangeButtonDoubleTapped6;
             CtrlVersion6 = ctrlVersion6;
+
+            Console.WriteLine("${timestamp} {Timestamp} {timestamp - Timestamp}");
+
             TimestampPrevious = Timestamp;
             Timestamp = timestamp;
             TimeStampServicePrevious = TimeStampService;
             TimeStampService = DateTimeOffset.UtcNow;
 
-            _throttleHubContext.Clients.All.ChangedState(this).Wait();
+            _hubContext.Clients.All.ChangedState(this);
         }
     }
 
 
     public class SlotState
     {
+        private readonly IHubContext<Hubs.SlotHub, Hubs.ISlotHub> _hubContext;
+
+        public SlotState(IHubContext<Hubs.SlotHub, Hubs.ISlotHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
         public byte? PacketSequence { get; set; }
-        public byte? CarId { get; set; }
+        public byte CarId { get; set; }
         public uint? TimestampTrack1 { get; set; }
         private uint? TimestampTrack1Previous { get; set; }
         public uint? TimestampTrack2 { get; set; }
@@ -277,7 +288,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         )
         {
             PacketSequence = packetSequence;
-            CarId = carId;
+            //CarId = carId;
             TimestampTrack1Previous = TimestampTrack1;
             TimestampTrack1 = timestampTrack1;
             TimestampTrack2Previous = TimestampTrack2;
@@ -286,6 +297,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             TimestampPitlane1 = timestampPitlane1;
             TimestampPitlane2Previous = TimestampPitlane2;
             TimestampPitlane2 = timestampPitlane2;
+
+            _hubContext.Clients.All.ChangedState(this);
         }
     }
 }

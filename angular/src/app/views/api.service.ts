@@ -8,6 +8,7 @@ import { CommonBusyService } from '../../lib/common/common-busy.service';
 
 import { DeviceDto } from './device/device.dto';
 import { ThrottleDto } from './throttle/throttle.dto';
+import { SlotDto } from './slot/slot.dto';
 import { SystemDto } from './system/system.dto';
 
 
@@ -30,6 +31,14 @@ export class ApiService extends CommonBaseService {
     public getThrottle(): Observable<ThrottleDto> {
         this.busyService.begin(this);
         return this.httpClient.get<ThrottleDto>(`${this.serviceUrl}/throttle`)
+                              .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
+                                    finalize(() => this.busyService.end(this)));
+    }
+
+
+    public getSlots(): Observable<SlotDto[]> {
+        this.busyService.begin(this);
+        return this.httpClient.get<SlotDto[]>(`${this.serviceUrl}/slots`)
                               .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));
     }

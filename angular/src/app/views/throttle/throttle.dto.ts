@@ -42,4 +42,5 @@ export class ThrottleDto {
 
     public timestamp!: number | null;
     public timestampInterval!: number | null;
+    public timestampServerInterval!: number | null;
 }
