@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
 import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
+import { ApiErrorResponse } from 'src/lib/common/common-base.service';
 
 import { ApiService } from '../api.service';
 import { CommandService } from './command.service';
@@ -29,6 +30,12 @@ export class CommandComponent
     }
 
     public write(): void {
-        this.apiService.postCommand(this.commandService.dto);
+        this.apiService.postCommand(this.commandService.dto)
+        .subscribe({
+            next: () => {
+                this.snackBarOpen("Command written.");
+             },
+            error: (err: ApiErrorResponse) => this.onError(err)
+        });
     }
 }

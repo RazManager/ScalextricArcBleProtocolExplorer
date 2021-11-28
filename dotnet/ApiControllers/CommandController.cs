@@ -27,7 +27,7 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
 
 
         [HttpPost]
-        public Task PostAsync([FromBody][Required] CommandState dto)
+        public Task PostAsync([FromBody][Required] CommandDto dto)
         {
             return _scalextricArcState.CommandState.SetAsync
             (

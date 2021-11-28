@@ -255,7 +255,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                         else
                         {
-                            Console.WriteLine("Bluetooth device discovery not needed, device already found.");
+                            //Console.WriteLine("Bluetooth device discovery not needed, device already found.");
                             if (await bluezAdapterProxy.GetDiscoveringAsync())
                             {
                                 _logger.LogInformation("Stopping Bluetooth device discovery.");
@@ -273,7 +273,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         }
 
-                        _logger.LogInformation("BluezMonitorService is running...");
+                        //_logger.LogInformation("BluezMonitorService is running...");
 
                         await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
                     }

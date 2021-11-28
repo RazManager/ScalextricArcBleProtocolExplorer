@@ -62,28 +62,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
-    public class CommandState
+    public enum CommandType
     {
-        private readonly IHubContext<Hubs.CommandHub, Hubs.ICommandHub> _hubContext;
-        private readonly Channel<CommandState> _commandStateChannel;
+        NoPowerTimerStopped = 0,
+        NoPowerTimerTicking = 1,
+        PowerOnRaceTrigger = 2,
+        PowerOnRacing = 3,
+        PowerOnTimerHalt = 4,
+        NoPowerRebootPic18 = 5
+    }
 
-        public CommandState(IHubContext<Hubs.CommandHub, Hubs.ICommandHub> hubContext,
-                            Channel<CommandState> commandStateChannel)
-        {
-            _hubContext = hubContext;
-            _commandStateChannel = commandStateChannel;
-        }
 
-        public enum CommandType
-        {
-            NoPowerTimerStopped = 0,
-            NoPowerTimerTicking = 1,
-            PowerOnRaceTrigger = 2,
-            PowerOnRacing = 3,
-            PowerOnTimerHalt = 4,
-            NoPowerRebootPic18 = 5
-        }
-
+    public class CommandDto
+    {
         public CommandType Command { get; set; }
         public byte PowerMultiplier1 { get; set; }
         public bool Ghost1 { get; set; }
@@ -115,6 +106,20 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte Rumble6 { get; set; }
         public byte Brake6 { get; set; }
         public bool Kers6 { get; set; }
+    }
+
+
+    public class CommandState : CommandDto
+    {
+        private readonly IHubContext<Hubs.CommandHub, Hubs.ICommandHub> _hubContext;
+        private readonly Channel<CommandState> _commandStateChannel;
+
+        public CommandState(IHubContext<Hubs.CommandHub, Hubs.ICommandHub> hubContext,
+                            Channel<CommandState> commandStateChannel)
+        {
+            _hubContext = hubContext;
+            _commandStateChannel = commandStateChannel;
+        }
 
         public async Task SetAsync
         (
@@ -192,8 +197,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
             await _hubContext.Clients.All.ChangedState(this);
         }
     }
-
-
 
 
     public class DeviceInformation
@@ -464,7 +467,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             LaneChangeButtonDoubleTapped6 = laneChangeButtonDoubleTapped6;
             CtrlVersion6 = ctrlVersion6;
 
-            Console.WriteLine($"{timestamp} {Timestamp} {timestamp - Timestamp}");
+            //Console.WriteLine($"{timestamp} {Timestamp} {timestamp - Timestamp}");
 
             TimestampPrevious = Timestamp;
             Timestamp = timestamp;
