@@ -681,7 +681,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    Console.WriteLine($"PS={value[0]}, ID={value[1]}, {(uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216)}, {(uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216)}, {(uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216)}, {(uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)}");
+                    //Console.WriteLine($"PS={value[0]}, ID={value[1]}, {(uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216)}, {(uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216)}, {(uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216)}, {(uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)}");
 
                     _scalextricArcState.SlotStates[value[1] - 1].Set
                     (

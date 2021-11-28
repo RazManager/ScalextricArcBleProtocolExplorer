@@ -1,4 +1,24 @@
 <mat-card class="section-container">
     <mat-card-content>
+        <div gdColumns="max-content max-content max-content max-content max-content max-content max-content"
+                gdGap="1em">
+            <div class="mat-caption">ID</div>
+            <div class="mat-caption">Packet sequence</div>
+            <div class="mat-caption">Start/Finish 1 (ms)</div>
+            <div class="mat-caption">Start/Finish 2 (ms)</div>
+            <div class="mat-caption">Pitlane 1 (ms)</div>
+            <div class="mat-caption">Pitlane 2 (ms)</div>
+            <div class="mat-caption">Laptime (ms)</div>
+
+            <ng-container *ngFor="let slot of dto">
+                <div style="justify-self: center;">{{slot.carId}}</div>
+                <div style="justify-self: right;">{{slot.packetSequence}}</div>
+                <div style="justify-self: right;">{{slot.timestampStartFinish1}}</div>
+                <div style="justify-self: right;">{{slot.timestampStartFinish2}}</div>
+                <div style="justify-self: right;">{{slot.timestampPitlane1}}</div>
+                <div style="justify-self: right;">{{slot.timestampPitlane2}}</div>
+                <div style="justify-self: right;">{{slot.laptime}}</div>
+            </ng-container>
+        </div>
     </mat-card-content>
 </mat-card>

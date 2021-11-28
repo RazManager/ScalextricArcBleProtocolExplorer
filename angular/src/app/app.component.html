@@ -45,17 +45,14 @@
                         </button>
                         {{toolbarService.header}}   
                     </div>
-
-                    <div>
-                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerStopped' || commandService.dto.command === 'PowerOnRaceTrigger' || commandService.dto.command === 'NoPowerRebootPic18')">timer_off</mat-icon>
-                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerTicking' || commandService.dto.command === 'PowerOnRacing' || commandService.dto.command === 'PowerOnTimerHalt')">timer</mat-icon>    
-                    </div>
-
                     <div>
                         <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerStopped' || commandService.dto.command === 'NoPowerTimerTicking' || commandService.dto.command === 'NoPowerRebootPic18')">power_off</mat-icon>
                         <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'PowerOnRaceTrigger' || commandService.dto.command === 'PowerOnRacing' || commandService.dto.command === 'PowerOnTimerHalt')">power</mat-icon>   
                     </div>
-
+                    <div>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerStopped' || commandService.dto.command === 'PowerOnRaceTrigger' || commandService.dto.command === 'NoPowerRebootPic18')">timer_off</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerTicking' || commandService.dto.command === 'PowerOnRacing' || commandService.dto.command === 'PowerOnTimerHalt')">timer</mat-icon>    
+                    </div>
                     <div>
                         <mat-icon *ngIf="!!connection && connection.state === 'Disabled'">bluetooth_disabled</mat-icon>
                         <mat-icon *ngIf="!!connection && connection.state === 'Enabled'">bluetooth</mat-icon>

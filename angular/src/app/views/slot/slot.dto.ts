@@ -1,10 +1,10 @@
 export class SlotDto {
     public packetSequence!: number | null;
     public carId!: number;
-    public baseVersion!: number | null;
-    public isDigital!: boolean | null;
-    public TimestampTrack1!: number | null;
-    public TimestampTrack2!: number | null;
-    public TimestampPitlane1!: number | null;
-    public TimestampPitlane2!: number | null;
+    public timestampStartFinish1!: number | null;
+    public timestampStartFinish2!: number | null;
+    public timestampPitlane1!: number | null;
+    public timestampPitlane2!: number | null;
+    public laptime!: number | null;
 }
+

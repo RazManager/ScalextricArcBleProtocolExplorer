@@ -3,6 +3,7 @@ using System;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
+
 namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class ScalextricArcState
@@ -236,62 +237,80 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public byte? PacketSequence { get; set; }
         public byte CarId { get; set; }
-        public uint? TimestampTrack1 { get; set; }
-        private uint? TimestampTrack1Previous { get; set; }
-        public uint? TimestampTrack2 { get; set; }
-        private uint? TimestampTrack2Previous { get; set; }
+        public uint? TimestampStartFinish1 { get; set; }
+        private uint? TimestampStartFinish1Previous { get; set; }
+        public uint? TimestampStartFinish2 { get; set; }
+        private uint? TimestampStartFinish2Previous { get; set; }
         public uint? TimestampPitlane1 { get; set; }
-        private uint? TimestampPitlane1Previous { get; set; }
+        //private uint? TimestampPitlane1Previous { get; set; }
         public uint? TimestampPitlane2 { get; set; }
-        private uint? TimestampPitlane2Previous { get; set; }
+        //private uint? TimestampPitlane2Previous { get; set; }
 
-        public uint? TimestampTrack1Interval
+        public uint? TimestampStartFinish1Interval
         {
             get
             {
-                if (TimestampTrack1.HasValue && TimestampTrack1Previous.HasValue)
+                if (TimestampStartFinish1.HasValue && TimestampStartFinish1Previous.HasValue)
                 {
-                    return TimestampTrack1.Value - TimestampTrack1Previous.Value;
+                    return TimestampStartFinish1.Value - TimestampStartFinish1Previous.Value;
                 }
                 return null;
             }
         }
 
-        public uint? TimestampTrack2Interval
+        public uint? TimestampStartFinish2Interval
         {
             get
             {
-                if (TimestampTrack2.HasValue && TimestampTrack2Previous.HasValue)
+                if (TimestampStartFinish2.HasValue && TimestampStartFinish2Previous.HasValue)
                 {
-                    return TimestampTrack2.Value - TimestampTrack2Previous.Value;
+                    return TimestampStartFinish2.Value - TimestampStartFinish2Previous.Value;
                 }
                 return null;
             }
         }
 
-        public uint? TimestampPitlane1Interval
+        public uint? Laptime
         {
             get
             {
-                if (TimestampPitlane1.HasValue && TimestampPitlane1Previous.HasValue)
+                uint? last = null;
+                if (TimestampStartFinish1.HasValue && TimestampStartFinish2.HasValue)
                 {
-                    return TimestampPitlane1.Value - TimestampPitlane1Previous.Value;
+                    last = Math.Max(TimestampStartFinish1.Value, TimestampStartFinish2.Value);
                 }
+                else if (TimestampStartFinish1.HasValue)
+                {
+                    last = TimestampStartFinish1.Value;
+                }
+                else if (TimestampStartFinish2.HasValue)
+                {
+                    last = TimestampStartFinish2.Value;
+                }
+
+                uint? previous = null;
+                if (TimestampStartFinish1Previous.HasValue && TimestampStartFinish2Previous.HasValue)
+                {
+                    previous = Math.Max(TimestampStartFinish1Previous.Value, TimestampStartFinish2Previous.Value);
+                }
+                else if (TimestampStartFinish1Previous.HasValue)
+                {
+                    previous = TimestampStartFinish1Previous.Value;
+                }
+                else if (TimestampStartFinish2Previous.HasValue)
+                {
+                    previous = TimestampStartFinish2Previous.Value;
+                }
+
+                if (last.HasValue && previous.HasValue)
+                {
+                    return last.Value - previous.Value;
+                }
+
                 return null;
             }
         }
 
-        public uint? TimestampPitlane2Interval
-        {
-            get
-            {
-                if (TimestampPitlane2.HasValue && TimestampPitlane2Previous.HasValue)
-                {
-                    return TimestampPitlane2.Value - TimestampPitlane2Previous.Value;
-                }
-                return null;
-            }
-        }
 
         public void Set
         (
@@ -305,13 +324,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             PacketSequence = packetSequence;
             //CarId = carId;
-            TimestampTrack1Previous = TimestampTrack1;
-            TimestampTrack1 = timestampTrack1;
-            TimestampTrack2Previous = TimestampTrack2;
-            TimestampTrack2 = timestampTrack2;
-            TimestampPitlane1Previous = TimestampPitlane1;
+            TimestampStartFinish1Previous = TimestampStartFinish1;
+            TimestampStartFinish1 = timestampTrack1;
+            TimestampStartFinish2Previous = TimestampStartFinish2;
+            TimestampStartFinish2 = timestampTrack2;
+            //TimestampPitlane1Previous = TimestampPitlane1;
             TimestampPitlane1 = timestampPitlane1;
-            TimestampPitlane2Previous = TimestampPitlane2;
+            //TimestampPitlane2Previous = TimestampPitlane2;
             TimestampPitlane2 = timestampPitlane2;
 
             _hubContext.Clients.All.ChangedState(this);
@@ -477,6 +496,4 @@ namespace ScalextricArcBleProtocolExplorer.Services
             _hubContext.Clients.All.ChangedState(this);
         }
     }
-
-
 }
