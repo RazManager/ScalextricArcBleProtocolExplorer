@@ -11,8 +11,8 @@ namespace bluez.DBus
     interface IObjectManager : IDBusObject
     {
         Task<IDictionary<ObjectPath, IDictionary<string, IDictionary<string, object>>>> GetManagedObjectsAsync();
-        Task<IDisposable> WatchInterfacesAddedAsync(Action<(ObjectPath @object, IDictionary<string, IDictionary<string, object>> interfaces)> handler, Action<Exception> onError = null);
-        Task<IDisposable> WatchInterfacesRemovedAsync(Action<(ObjectPath @object, string[] interfaces)> handler, Action<Exception> onError = null);
+        Task<IDisposable> WatchInterfacesAddedAsync(Action<(ObjectPath @object, IDictionary<string, IDictionary<string, object>> interfaces)> handler, Action<Exception>? onError = null);
+        Task<IDisposable> WatchInterfacesRemovedAsync(Action<(ObjectPath @object, string[] interfaces)> handler, Action<Exception>? onError = null);
     }
 
     [DBusInterface("org.bluez.AgentManager1")]
@@ -47,8 +47,8 @@ namespace bluez.DBus
     [Dictionary]
     class Adapter1Properties
     {
-        private string _Address = default(string);
-        public string Address
+        private string? _Address = default;
+        public string? Address
         {
             get
             {
@@ -61,8 +61,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _AddressType = default(string);
-        public string AddressType
+        private string? _AddressType = default;
+        public string? AddressType
         {
             get
             {
@@ -75,8 +75,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Name = default(string);
-        public string Name
+        private string? _Name = default;
+        public string? Name
         {
             get
             {
@@ -89,8 +89,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Alias = default(string);
-        public string Alias
+        private string? _Alias = default;
+        public string? Alias
         {
             get
             {
@@ -103,7 +103,7 @@ namespace bluez.DBus
             }
         }
 
-        private uint _Class = default(uint);
+        private uint _Class = default;
         public uint Class
         {
             get
@@ -117,7 +117,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Powered = default(bool);
+        private bool _Powered = default;
         public bool Powered
         {
             get
@@ -131,7 +131,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Discoverable = default(bool);
+        private bool _Discoverable = default;
         public bool Discoverable
         {
             get
@@ -145,7 +145,7 @@ namespace bluez.DBus
             }
         }
 
-        private uint _DiscoverableTimeout = default(uint);
+        private uint _DiscoverableTimeout = default;
         public uint DiscoverableTimeout
         {
             get
@@ -159,7 +159,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Pairable = default(bool);
+        private bool _Pairable = default;
         public bool Pairable
         {
             get
@@ -173,7 +173,7 @@ namespace bluez.DBus
             }
         }
 
-        private uint _PairableTimeout = default(uint);
+        private uint _PairableTimeout = default;
         public uint PairableTimeout
         {
             get
@@ -187,7 +187,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Discovering = default(bool);
+        private bool _Discovering = default;
         public bool Discovering
         {
             get
@@ -201,8 +201,8 @@ namespace bluez.DBus
             }
         }
 
-        private string[] _UUIDs = default(string[]);
-        public string[] UUIDs
+        private string[]? _UUIDs = default;
+        public string[]? UUIDs
         {
             get
             {
@@ -215,8 +215,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Modalias = default(string);
-        public string Modalias
+        private string? _Modalias = default;
+        public string? Modalias
         {
             get
             {
@@ -229,8 +229,8 @@ namespace bluez.DBus
             }
         }
 
-        private string[] _Roles = default(string[]);
-        public string[] Roles
+        private string[]? _Roles = default;
+        public string[]? Roles
         {
             get
             {
@@ -303,7 +303,7 @@ namespace bluez.DBus
             }
         }
 
-        private byte _SupportedInstances = default(byte);
+        private byte _SupportedInstances = default;
         public byte SupportedInstances
         {
             get
@@ -317,8 +317,8 @@ namespace bluez.DBus
             }
         }
 
-        private string[] _SupportedIncludes = default(string[]);
-        public string[] SupportedIncludes
+        private string[]? _SupportedIncludes = default;
+        public string[]? SupportedIncludes
         {
             get
             {
@@ -331,8 +331,8 @@ namespace bluez.DBus
             }
         }
 
-        private string[] _SupportedSecondaryChannels = default(string[]);
-        public string[] SupportedSecondaryChannels
+        private string[]? _SupportedSecondaryChannels = default;
+        public string[]? SupportedSecondaryChannels
         {
             get
             {
@@ -390,8 +390,8 @@ namespace bluez.DBus
     [Dictionary]
     class Device1Properties
     {
-        private string _Address = default(string);
-        public string Address
+        private string? _Address = default;
+        public string? Address
         {
             get
             {
@@ -404,8 +404,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _AddressType = default(string);
-        public string AddressType
+        private string? _AddressType = default;
+        public string? AddressType
         {
             get
             {
@@ -418,8 +418,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Name = default(string);
-        public string Name
+        private string? _Name = default;
+        public string? Name
         {
             get
             {
@@ -432,8 +432,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Alias = default(string);
-        public string Alias
+        private string? _Alias = default;
+        public string? Alias
         {
             get
             {
@@ -446,7 +446,7 @@ namespace bluez.DBus
             }
         }
 
-        private uint _Class = default(uint);
+        private uint _Class = default;
         public uint Class
         {
             get
@@ -460,7 +460,7 @@ namespace bluez.DBus
             }
         }
 
-        private ushort _Appearance = default(ushort);
+        private ushort _Appearance = default;
         public ushort Appearance
         {
             get
@@ -474,8 +474,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Icon = default(string);
-        public string Icon
+        private string? _Icon = default;
+        public string? Icon
         {
             get
             {
@@ -488,7 +488,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Paired = default(bool);
+        private bool _Paired = default;
         public bool Paired
         {
             get
@@ -502,7 +502,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Trusted = default(bool);
+        private bool _Trusted = default;
         public bool Trusted
         {
             get
@@ -516,7 +516,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Blocked = default(bool);
+        private bool _Blocked = default;
         public bool Blocked
         {
             get
@@ -530,7 +530,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _LegacyPairing = default(bool);
+        private bool _LegacyPairing = default;
         public bool LegacyPairing
         {
             get
@@ -544,7 +544,7 @@ namespace bluez.DBus
             }
         }
 
-        private short _RSSI = default(short);
+        private short _RSSI = default;
         public short RSSI
         {
             get
@@ -558,7 +558,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Connected = default(bool);
+        private bool _Connected = default;
         public bool Connected
         {
             get
@@ -572,8 +572,8 @@ namespace bluez.DBus
             }
         }
 
-        private string[] _UUIDs = default(string[]);
-        public string[] UUIDs
+        private string[]? _UUIDs = default;
+        public string[]? UUIDs
         {
             get
             {
@@ -586,8 +586,8 @@ namespace bluez.DBus
             }
         }
 
-        private string _Modalias = default(string);
-        public string Modalias
+        private string? _Modalias = default;
+        public string? Modalias
         {
             get
             {
@@ -600,7 +600,7 @@ namespace bluez.DBus
             }
         }
 
-        private ObjectPath _Adapter = default(ObjectPath);
+        private ObjectPath _Adapter = default;
         public ObjectPath Adapter
         {
             get
@@ -614,8 +614,8 @@ namespace bluez.DBus
             }
         }
 
-        private IDictionary<ushort, object> _ManufacturerData = default(IDictionary<ushort, object>);
-        public IDictionary<ushort, object> ManufacturerData
+        private IDictionary<ushort, object>? _ManufacturerData = default;
+        public IDictionary<ushort, object>? ManufacturerData
         {
             get
             {
@@ -628,8 +628,8 @@ namespace bluez.DBus
             }
         }
 
-        private IDictionary<string, object> _ServiceData = default(IDictionary<string, object>);
-        public IDictionary<string, object> ServiceData
+        private IDictionary<string, object>? _ServiceData = default;
+        public IDictionary<string, object>? ServiceData
         {
             get
             {
@@ -726,8 +726,8 @@ namespace bluez.DBus
     [Dictionary]
     class GattService1Properties
     {
-        private string _UUID = default(string);
-        public string UUID
+        private string? _UUID = default;
+        public string? UUID
         {
             get
             {
@@ -768,8 +768,8 @@ namespace bluez.DBus
             }
         }
 
-        private ObjectPath[] _Includes = default(ObjectPath[]);
-        public ObjectPath[] Includes
+        private ObjectPath[]? _Includes = default;
+        public ObjectPath[]? Includes
         {
             get
             {
@@ -809,8 +809,8 @@ namespace bluez.DBus
     [Dictionary]
     class GattCharacteristic1Properties
     {
-        private string _UUID = default(string);
-        public string UUID
+        private string? _UUID = default;
+        public string? UUID
         {
             get
             {
@@ -823,7 +823,7 @@ namespace bluez.DBus
             }
         }
 
-        private ObjectPath _Service = default(ObjectPath);
+        private ObjectPath _Service = default;
         public ObjectPath Service
         {
             get
@@ -837,8 +837,8 @@ namespace bluez.DBus
             }
         }
 
-        private byte[] _Value = default(byte[]);
-        public byte[] Value
+        private byte[]? _Value = default;
+        public byte[]? Value
         {
             get
             {
@@ -851,7 +851,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _Notifying = default(bool);
+        private bool _Notifying = default;
         public bool Notifying
         {
             get
@@ -865,8 +865,8 @@ namespace bluez.DBus
             }
         }
 
-        private string[] _Flags = default(string[]);
-        public string[] Flags
+        private string[]? _Flags = default;
+        public string[]? Flags
         {
             get
             {
@@ -879,7 +879,7 @@ namespace bluez.DBus
             }
         }
 
-        private bool _WriteAcquired = default(bool);
+        private bool _WriteAcquired = default;
         public bool WriteAcquired
         {
             get
@@ -933,8 +933,8 @@ namespace bluez.DBus
     [Dictionary]
     class GattDescriptor1Properties
     {
-        private string _UUID = default(string);
-        public string UUID
+        private string? _UUID = default;
+        public string? UUID
         {
             get
             {
@@ -947,7 +947,7 @@ namespace bluez.DBus
             }
         }
 
-        private ObjectPath _Characteristic = default(ObjectPath);
+        private ObjectPath _Characteristic = default;
         public ObjectPath Characteristic
         {
             get
@@ -961,8 +961,8 @@ namespace bluez.DBus
             }
         }
 
-        private byte[] _Value = default(byte[]);
-        public byte[] Value
+        private byte[]? _Value = default;
+        public byte[]? Value
         {
             get
             {

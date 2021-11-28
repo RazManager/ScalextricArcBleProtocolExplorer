@@ -1,0 +1,46 @@
+<mat-card class="section-container">
+    <mat-card-content>
+        <div gdColumns="max-content max-content 1fr max-content max-content 1fr max-content 1fr max-content"
+                gdGap="1em" style="align-items: center;" >                     
+            <div class="mat-caption">ID</div>
+            <div class="mat-caption" style="grid-column-start: 2; grid-column-end: 4;">Power multiplier</div>
+            <div class="mat-caption">Ghost</div>
+            <div class="mat-caption" style="grid-column-start: 5; grid-column-end: 7;">Rumble</div>
+            <div class="mat-caption" style="grid-column-start: 7; grid-column-end: 9;">Brake</div>
+            <div class="mat-caption">KERS</div>
+
+            <div class="mat-caption" style="justify-self: center;">1</div>
+            <div>{{commandService.dto.powerMultiplier1}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost1" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{commandService.dto.rumble1}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{commandService.dto.brake1}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers1" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+
+            <div class="mat-caption" style="justify-self: center;">2</div>
+            <div>{{commandService.dto.powerMultiplier2}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost2" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{commandService.dto.rumble2}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{commandService.dto.brake2}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers2" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+        </div>
+
+        <mat-radio-group [(ngModel)]="commandService.dto.command" [ngModelOptions]="{standalone: true}" gdColumns="max-content max-content max-content" gdGap="1em" style="margin-top: 1em;">
+            <mat-radio-button value="NoPowerTimerStopped">NoPowerTimerStopped</mat-radio-button>
+            <mat-radio-button value="NoPowerTimerTicking">NoPowerTimerTicking</mat-radio-button>
+            <mat-radio-button value="NoPowerRebootPic18">NoPowerRebootPic18</mat-radio-button>
+            <mat-radio-button value="PowerOnRaceTrigger">PowerOnRaceTrigger</mat-radio-button>
+            <mat-radio-button value="PowerOnRacing">PowerOnRacing</mat-radio-button>
+            <mat-radio-button value="PowerOnTimerHalt">PowerOnTimerHalt</mat-radio-button>
+        </mat-radio-group>
+
+        <button mat-raised-button color="primary" style="margin-top: 2em;" (click)="write()">
+            WRITE
+        </button>
+    </mat-card-content>
+</mat-card>

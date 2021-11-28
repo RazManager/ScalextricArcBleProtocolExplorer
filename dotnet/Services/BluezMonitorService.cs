@@ -9,7 +9,9 @@ using System.Collections.Concurrent;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
 using static bluez.DBus.GattCharacteristic1Extensions;
-
+using System.Threading.Channels;
+using static ScalextricArcBleProtocolExplorer.Services.CommandState;
+using static ScalextricArcBleProtocolExplorer.Services.ConnectionState;
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
@@ -18,7 +20,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public const string bluezService = "org.bluez";
         public const string bluezAdapterInterface = "org.bluez.Adapter1";
         public const string bluezDeviceInterface = "org.bluez.Device1";
-        //public const string bluezGattServiceInterface = "org.bluez.GattService1";
         public const string bluezGattCharacteristicInterface = "org.bluez.GattCharacteristic1";
 
         private class BluezInterfaceMetadata
@@ -38,22 +39,28 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly Guid firmwareRevisionCharacteristicUuid = new Guid("00002a26-0000-1000-8000-00805f9b34fb");
         private readonly Guid softwareRevisionCharacteristicUuid = new Guid("00002a28-0000-1000-8000-00805f9b34fb");
 
-        private readonly Guid throttleCharacteristicUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
-        private bluez.DBus.IGattCharacteristic1? throttleCharacteristicProxy = null;
-        private Task? throttleCharacteristicWatchTask = null;
+        private readonly Guid commandCharacteristicUuid = new Guid("00003b0a-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? _commandCharacteristicProxy = null;
 
         private readonly Guid slotCharacteristicUuid = new Guid("00003b0b-0000-1000-8000-00805f9b34fb");
-        private bluez.DBus.IGattCharacteristic1? slotCharacteristicProxy = null;
-        private Task? slotCharacteristicWatchTask = null;
+        private bluez.DBus.IGattCharacteristic1? _slotCharacteristicProxy = null;
+        private Task? _slotCharacteristicWatchTask = null;
+
+        private readonly Guid throttleCharacteristicUuid = new Guid("00003b09-0000-1000-8000-00805f9b34fb");
+        private bluez.DBus.IGattCharacteristic1? _throttleCharacteristicProxy = null;
+        private Task? _throttleCharacteristicWatchTask = null;
 
         private readonly ScalextricArcState _scalextricArcState;
+        private readonly Channel<CommandState> _commandStateChannel;
         private readonly ILogger<BluezMonitorService> _logger;
 
 
         public BluezMonitorService(ScalextricArcState scalextricArcState,
-                                  ILogger<BluezMonitorService> logger)
+                                   Channel<CommandState> commandStateChannel,
+                                   ILogger<BluezMonitorService> logger)
         {
             _scalextricArcState = scalextricArcState;
+            _commandStateChannel = commandStateChannel;
             _logger = logger;
         }
 
@@ -61,6 +68,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _ = BluezDiscoveryAsync(cancellationToken);
+            _ = CommandAsync(cancellationToken);
             return Task.CompletedTask;
         }
 
@@ -76,6 +84,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Task? watchInterfacesAddedTask = null;
             Task? watchInterfacesRemovedTask = null;
 
+            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
+
             if (Environment.OSVersion.Platform != PlatformID.Unix)
             {
                 _logger.LogError("You need to be running Linux for this application.");
@@ -87,8 +97,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 _bluezObjectPathInterfaces = new();
                 scalextricArcObjectPath = null;
                 scalextricArcProxy = null;
-                throttleCharacteristicWatchTask = null;
-                slotCharacteristicWatchTask = null;
+                _throttleCharacteristicWatchTask = null;
+                _slotCharacteristicWatchTask = null;
 
                 try
                 {
@@ -109,6 +119,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     if (activatableServices.SingleOrDefault(x => x == bluezService) is null)
                     {
                         _logger.LogError($"{bluezService} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
                         return;
                     }
 
@@ -127,6 +138,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 break;
                         }
                     }
+                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
 
                     // Find all D-Bus objects and their interfaces
                     var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(bluezService, Tmds.DBus.ObjectPath.Root);
@@ -150,6 +162,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     if (string.IsNullOrEmpty(bluezAdapterObjectPathKp.Key.ToString()))
                     {
                         _logger.LogError($"{bluezAdapterInterface} does not exist. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
                         return;
                     }
 
@@ -186,34 +199,36 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
-                            if (throttleCharacteristicWatchTask is not null)
+                            _commandCharacteristicProxy = null;
+
+                            if (_slotCharacteristicWatchTask is not null)
                             {
-                                throttleCharacteristicWatchTask.Dispose();
-                                throttleCharacteristicWatchTask = null;
+                                _slotCharacteristicWatchTask.Dispose();
+                                _slotCharacteristicWatchTask = null;
                             }
 
-                            if (throttleCharacteristicProxy is not null)
+                            if (_slotCharacteristicProxy is not null)
                             {
-                                if (await throttleCharacteristicProxy.GetNotifyingAsync())
+                                if (await _slotCharacteristicProxy.GetNotifyingAsync())
                                 {
-                                    await throttleCharacteristicProxy.StopNotifyAsync();
+                                    await _slotCharacteristicProxy.StopNotifyAsync();
                                 }
-                                throttleCharacteristicProxy = null;
+                                _slotCharacteristicProxy = null;
                             }
 
-                            if (slotCharacteristicWatchTask is not null)
+                            if (_throttleCharacteristicWatchTask is not null)
                             {
-                                slotCharacteristicWatchTask.Dispose();
-                                slotCharacteristicWatchTask = null;
+                                _throttleCharacteristicWatchTask.Dispose();
+                                _throttleCharacteristicWatchTask = null;
                             }
 
-                            if (slotCharacteristicProxy is not null)
+                            if (_throttleCharacteristicProxy is not null)
                             {
-                                if (await slotCharacteristicProxy.GetNotifyingAsync())
+                                if (await _throttleCharacteristicProxy.GetNotifyingAsync())
                                 {
-                                    await slotCharacteristicProxy.StopNotifyAsync();
+                                    await _throttleCharacteristicProxy.StopNotifyAsync();
                                 }
-                                slotCharacteristicProxy = null;
+                                _throttleCharacteristicProxy = null;
                             }
 
                             if (scalextricArcProxy is not null)
@@ -236,6 +251,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _logger.LogInformation("Starting Bluetooth device discovery.");
                                 await bluezAdapterProxy.StartDiscoveryAsync();
                             }
+                            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Discovering);
                         }
                         else
                         {
@@ -244,6 +260,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             {
                                 _logger.LogInformation("Stopping Bluetooth device discovery.");
                                 await bluezAdapterProxy.StopDiscoveryAsync();
+                                await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
                             }
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
@@ -392,6 +409,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             _logger.LogInformation("Could not connect to Scalextric ARC.");
                         }
                     }
+                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
 
                     if (scalextricArcObjectPath != null)
                     {
@@ -456,12 +474,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             //Console.WriteLine("After GetAllAsync...");
                             Console.WriteLine($"UUID={properties.UUID}");
                             Console.WriteLine($"Service={properties.Service}");
-                            Console.WriteLine($"Flags={string.Join(", ", properties.Flags)}");
+                            Console.WriteLine($"Flags={string.Join(", ", properties.Flags!)}");
                             //Console.WriteLine($"WriteAcquired={properties.WriteAcquired}");
                             //Console.WriteLine($"NotifyAcquired={properties.NotifyAcquired}");
                             //Console.WriteLine($"Notifying={properties.Notifying}");
 
-                            if (properties.Flags.Contains("read"))
+                            if (properties.Flags!.Contains("read"))
                             {
                                 var value = await proxy.ReadValueAsync(new Dictionary<string, object>());
                                 Console.WriteLine($"Length={value.Length}");
@@ -470,49 +488,92 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                     var valueUTF8 = System.Text.Encoding.UTF8.GetString(value);
                                     Console.WriteLine($"valueUTF8={valueUTF8}");
 
-                                    if (new Guid(properties.UUID) == manufacturerNameCharacteristicUuid)
+                                    if (new Guid(properties.UUID!) == manufacturerNameCharacteristicUuid)
                                     {
                                         manufacturerName = valueUTF8;
                                     }
-                                    else if (new Guid(properties.UUID) == modelNumberCharacteristicUuid)
+                                    else if (new Guid(properties.UUID!) == modelNumberCharacteristicUuid)
                                     {
                                         modelNumber = valueUTF8;
                                     }
-                                    else if (new Guid(properties.UUID) == hardwareRevisionCharacteristicUuid)
+                                    else if (new Guid(properties.UUID!) == hardwareRevisionCharacteristicUuid)
                                     {
                                         hardwareRevision = valueUTF8;
                                     }
-                                    else if (new Guid(properties.UUID) == firmwareRevisionCharacteristicUuid)
+                                    else if (new Guid(properties.UUID!) == firmwareRevisionCharacteristicUuid)
                                     {
                                         firmwareRevision = valueUTF8;
                                     }
-                                    else if (new Guid(properties.UUID) == softwareRevisionCharacteristicUuid)
+                                    else if (new Guid(properties.UUID!) == softwareRevisionCharacteristicUuid)
                                     {
                                         softwareRevision = valueUTF8;
+                                    }
+                                    else if (new Guid(properties.UUID!) == commandCharacteristicUuid)
+                                    {
+                                        await _scalextricArcState.CommandState.SetAsync
+                                        (
+                                            (CommandType)value[0],
+                                            (byte)(value[1] & 0b111111),
+                                            (value[1] & 0b10000000) > 0,
+                                            value[7],
+                                            value[13],
+                                            (value[19] & 0b1) > 0,
+                                            (byte)(value[2] & 0b111111),
+                                            (value[2] & 0b10000000) > 0,
+                                            value[8],
+                                            value[14],
+                                            (value[19] & 0b10) > 0,
+                                            (byte)(value[3] & 0b111111),
+                                            (value[3] & 0b10000000) > 0,
+                                            value[9],
+                                            value[15],
+                                            (value[19] & 0b100) > 0,
+                                            (byte)(value[4] & 0b111111),
+                                            (value[4] & 0b10000000) > 0,
+                                            value[10],
+                                            value[16],
+                                            (value[19] & 0b1000) > 0,
+                                            (byte)(value[5] & 0b111111),
+                                            (value[5] & 0b10000000) > 0,
+                                            value[11],
+                                            value[17],
+                                            (value[19] & 0b10000) > 0,
+                                            (byte)(value[6] & 0b111111),
+                                            (value[6] & 0b10000000) > 0,
+                                            value[12],
+                                            value[18],
+                                            (value[19] & 0b100000) > 0,
+                                            false
+                                        );
                                     }
                                 }
                             }
 
-                            if (new Guid(properties.UUID) == throttleCharacteristicUuid)
+                            if (new Guid(properties.UUID!) == commandCharacteristicUuid)
                             {
-                                throttleCharacteristicProxy = proxy;
-                                Console.WriteLine("StartNotifyAsync before");
-                                await throttleCharacteristicProxy.StartNotifyAsync();
-                                Console.WriteLine("StartNotifyAsync after");
-                                throttleCharacteristicWatchTask = throttleCharacteristicProxy.WatchPropertiesAsync(throttleCharacteristicWatchProperties);
+                                _commandCharacteristicProxy = proxy;
                             }
 
-                            if (new Guid(properties.UUID) == slotCharacteristicUuid)
+                            if (new Guid(properties.UUID!) == slotCharacteristicUuid)
                             {
-                                slotCharacteristicProxy = proxy;
+                                _slotCharacteristicProxy = proxy;
                                 Console.WriteLine("StartNotifyAsync before");
-                                await slotCharacteristicProxy.StartNotifyAsync();
+                                await _slotCharacteristicProxy.StartNotifyAsync();
                                 Console.WriteLine("StartNotifyAsync after");
-                                slotCharacteristicWatchTask = slotCharacteristicProxy.WatchPropertiesAsync(slotCharacteristicWatchProperties);
+                                _slotCharacteristicWatchTask = _slotCharacteristicProxy.WatchPropertiesAsync(slotCharacteristicWatchProperties);
+                            }
+
+                            if (new Guid(properties.UUID!) == throttleCharacteristicUuid)
+                            {
+                                _throttleCharacteristicProxy = proxy;
+                                Console.WriteLine("StartNotifyAsync before");
+                                await _throttleCharacteristicProxy.StartNotifyAsync();
+                                Console.WriteLine("StartNotifyAsync after");
+                                _throttleCharacteristicWatchTask = _throttleCharacteristicProxy.WatchPropertiesAsync(throttleCharacteristicWatchProperties);
                             }
                         }
 
-                        _scalextricArcState.DeviceState.Set
+                        _scalextricArcState.DeviceInformation.Set
                         (
                             manufacturerName,
                             modelNumber,
@@ -541,9 +602,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         //        Console.WriteLine($"valueUTF8={valueUTF8}");
                         //    }
                         //}
-                    }
 
-                    Console.WriteLine("OK...");
+                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -554,7 +615,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        public void throttleCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
+        private void throttleCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
         {
             foreach (var item in propertyChanges.Changed)
             {
@@ -625,7 +686,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     _scalextricArcState.SlotStates[value[1] - 1].Set
                     (
                         value[0],
-                        value[1],
                         (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
                         (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
                         (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
@@ -680,6 +740,39 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 break;
                         }
                     }
+                }
+            }
+        }
+
+
+        private async Task CommandAsync(CancellationToken cancellationToken)
+        {
+            await foreach (var commandState in _commandStateChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+                if (_commandCharacteristicProxy is not null)
+                {
+                    var value = new byte[20];
+                    value[0] = (byte)commandState.Command;
+                    value[1] = (byte)(commandState.PowerMultiplier1 + (commandState.Ghost1 ? 128 : 0));
+                    value[2] = (byte)(commandState.PowerMultiplier2 + (commandState.Ghost2 ? 128 : 0));
+                    value[3] = (byte)(commandState.PowerMultiplier3 + (commandState.Ghost3 ? 128 : 0));
+                    value[4] = (byte)(commandState.PowerMultiplier4 + (commandState.Ghost4 ? 128 : 0));
+                    value[5] = (byte)(commandState.PowerMultiplier5 + (commandState.Ghost5 ? 128 : 0));
+                    value[6] = (byte)(commandState.PowerMultiplier6 + (commandState.Ghost6 ? 128 : 0));
+                    value[7] = commandState.Rumble1;
+                    value[8] = commandState.Rumble2;
+                    value[9] = commandState.Rumble3;
+                    value[10] = commandState.Rumble4;
+                    value[11] = commandState.Rumble5;
+                    value[12] = commandState.Rumble6;
+                    value[13] = commandState.Brake1;
+                    value[14] = commandState.Brake2;
+                    value[15] = commandState.Brake3;
+                    value[16] = commandState.Brake4;
+                    value[17] = commandState.Brake5;
+                    value[18] = commandState.Brake6;
+                    value[19] = (byte)((commandState.Kers1 ? 1 : 0) + (commandState.Kers2 ? 2 : 0) + (commandState.Kers3 ? 4 : 0) + (commandState.Kers4 ? 8 : 0) + (commandState.Kers5 ? 16 : 0) + (commandState.Kers6 ? 32 : 0));
+                    await _commandCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
                 }
             }
         }

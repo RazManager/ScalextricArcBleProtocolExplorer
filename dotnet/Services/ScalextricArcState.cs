@@ -1,29 +1,202 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System;
-
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class ScalextricArcState
     {
-        public DeviceState DeviceState { get; init; } = new();
-        public ThrottleState ThrottleState { get; init; }
+        public ConnectionState ConnectionState { get; init; }
+        public CommandState CommandState { get; init; }
+        public DeviceInformation DeviceInformation { get; init; } = new();
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
+        public ThrottleState ThrottleState { get; init; }
 
-        public ScalextricArcState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
-                                  IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext)
+
+        public ScalextricArcState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
+                                  IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
+                                  Channel<CommandState> commandStateChannel,
+                                  IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
+                                  IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
         {
-            ThrottleState = new ThrottleState(throttleHubContext);
+            ConnectionState = new ConnectionState(connectionHubContext);
+
+            CommandState = new CommandState(commandHubContext, commandStateChannel);
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
-                SlotStates[i] = new SlotState(slotHubContext) { CarId = (byte)(i + 1)};
+                SlotStates[i] = new SlotState(slotHubContext) { CarId = (byte)(i + 1) };
             }
+
+            ThrottleState = new ThrottleState(throttleHubContext);
         }
     }
-    
 
-    public class DeviceState
+
+    public class ConnectionState
+    {
+        private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
+
+        public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
+        public enum ConnectionStateType
+        {
+            Disabled,
+            Enabled,
+            Discovering,
+            Connected,
+            Initialized
+        }
+
+        public ConnectionStateType State { get; set; }
+
+        public async Task SetAsync(ConnectionStateType state)
+        {
+            State = state;
+            await _hubContext.Clients.All.ChangedState(this);
+        }
+    }
+
+
+    public class CommandState
+    {
+        private readonly IHubContext<Hubs.CommandHub, Hubs.ICommandHub> _hubContext;
+        private readonly Channel<CommandState> _commandStateChannel;
+
+        public CommandState(IHubContext<Hubs.CommandHub, Hubs.ICommandHub> hubContext,
+                            Channel<CommandState> commandStateChannel)
+        {
+            _hubContext = hubContext;
+            _commandStateChannel = commandStateChannel;
+        }
+
+        public enum CommandType
+        {
+            NoPowerTimerStopped = 0,
+            NoPowerTimerTicking = 1,
+            PowerOnRaceTrigger = 2,
+            PowerOnRacing = 3,
+            PowerOnTimerHalt = 4,
+            NoPowerRebootPic18 = 5
+        }
+
+        public CommandType Command { get; set; }
+        public byte PowerMultiplier1 { get; set; }
+        public bool Ghost1 { get; set; }
+        public byte Rumble1 { get; set; }
+        public byte Brake1 { get; set; }
+        public bool Kers1 { get; set; }
+        public byte PowerMultiplier2 { get; set; }
+        public bool Ghost2 { get; set; }
+        public byte Rumble2 { get; set; }
+        public byte Brake2 { get; set; }
+        public bool Kers2 { get; set; }
+        public byte PowerMultiplier3 { get; set; }
+        public bool Ghost3 { get; set; }
+        public byte Rumble3 { get; set; }
+        public byte Brake3 { get; set; }
+        public bool Kers3 { get; set; }
+        public byte PowerMultiplier4 { get; set; }
+        public bool Ghost4 { get; set; }
+        public byte Rumble4 { get; set; }
+        public byte Brake4 { get; set; }
+        public bool Kers4 { get; set; }
+        public byte PowerMultiplier5 { get; set; }
+        public bool Ghost5 { get; set; }
+        public byte Rumble5 { get; set; }
+        public byte Brake5 { get; set; }
+        public bool Kers5 { get; set; }
+        public byte PowerMultiplier6 { get; set; }
+        public bool Ghost6 { get; set; }
+        public byte Rumble6 { get; set; }
+        public byte Brake6 { get; set; }
+        public bool Kers6 { get; set; }
+
+        public async Task SetAsync
+        (
+            CommandType command,
+            byte powerMultiplier1,
+            bool ghost1,
+            byte rumble1,
+            byte brake1,
+            bool kers1,
+            byte powerMultiplier2,
+            bool ghost2,
+            byte rumble2,
+            byte brake2,
+            bool kers2,
+            byte powerMultiplier3,
+            bool ghost3,
+            byte rumble3,
+            byte brake3,
+            bool kers3,
+            byte powerMultiplier4,
+            bool ghost4,
+            byte rumble4,
+            byte brake4,
+            bool kers4,
+            byte powerMultiplier5,
+            bool ghost5,
+            byte rumble5,
+            byte brake5,
+            bool kers5,
+            byte powerMultiplier6,
+            bool ghost6,
+            byte rumble6,
+            byte brake6,
+            bool kers6,
+            bool write
+        )
+        {
+            Command = command;
+            PowerMultiplier1 = powerMultiplier1;
+            Ghost1 = ghost1;
+            Rumble1 = rumble1;
+            Brake1 = brake1;
+            Kers1 = kers1;
+            PowerMultiplier2 = powerMultiplier2;
+            Ghost2 = ghost2;
+            Rumble2 = rumble2;
+            Brake2 = brake2;
+            Kers2 = kers2;
+            PowerMultiplier3 = powerMultiplier3;
+            Ghost3 = ghost3;
+            Rumble3 = rumble3;
+            Brake3 = brake3;
+            Kers3 = kers3;
+            PowerMultiplier4 = powerMultiplier4;
+            Ghost4 = ghost4;
+            Rumble4 = rumble4;
+            Brake4 = brake4;
+            Kers4 = kers4;
+            PowerMultiplier5 = powerMultiplier5;
+            Ghost5 = ghost5;
+            Rumble5 = rumble5;
+            Brake5 = brake5;
+            Kers5 = kers5;
+            PowerMultiplier6 = powerMultiplier6;
+            Ghost6 = ghost6;
+            Rumble6 = rumble6;
+            Brake6 = brake6;
+            Kers6 = kers6;
+
+            if (write)
+            {
+                await _commandStateChannel.Writer.WriteAsync(this);
+            }
+
+            await _hubContext.Clients.All.ChangedState(this);
+        }
+    }
+
+
+
+
+    public class DeviceInformation
     {
         public string? ManufacturerName { get; set; }
         public string? ModelNumber { get; set; }
@@ -45,6 +218,100 @@ namespace ScalextricArcBleProtocolExplorer.Services
             HardwareRevision = hardwareRevision;
             FirmwareRevision = firmwareRevision;
             SoftwareRevision = softwareRevision;
+        }
+    }
+
+
+    public class SlotState
+    {
+        private readonly IHubContext<Hubs.SlotHub, Hubs.ISlotHub> _hubContext;
+
+        public SlotState(IHubContext<Hubs.SlotHub, Hubs.ISlotHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
+        public byte? PacketSequence { get; set; }
+        public byte CarId { get; set; }
+        public uint? TimestampTrack1 { get; set; }
+        private uint? TimestampTrack1Previous { get; set; }
+        public uint? TimestampTrack2 { get; set; }
+        private uint? TimestampTrack2Previous { get; set; }
+        public uint? TimestampPitlane1 { get; set; }
+        private uint? TimestampPitlane1Previous { get; set; }
+        public uint? TimestampPitlane2 { get; set; }
+        private uint? TimestampPitlane2Previous { get; set; }
+
+        public uint? TimestampTrack1Interval
+        {
+            get
+            {
+                if (TimestampTrack1.HasValue && TimestampTrack1Previous.HasValue)
+                {
+                    return TimestampTrack1.Value - TimestampTrack1Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? TimestampTrack2Interval
+        {
+            get
+            {
+                if (TimestampTrack2.HasValue && TimestampTrack2Previous.HasValue)
+                {
+                    return TimestampTrack2.Value - TimestampTrack2Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? TimestampPitlane1Interval
+        {
+            get
+            {
+                if (TimestampPitlane1.HasValue && TimestampPitlane1Previous.HasValue)
+                {
+                    return TimestampPitlane1.Value - TimestampPitlane1Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? TimestampPitlane2Interval
+        {
+            get
+            {
+                if (TimestampPitlane2.HasValue && TimestampPitlane2Previous.HasValue)
+                {
+                    return TimestampPitlane2.Value - TimestampPitlane2Previous.Value;
+                }
+                return null;
+            }
+        }
+
+        public void Set
+        (
+            byte packetSequence,
+            //byte carId,
+            uint timestampTrack1,
+            uint timestampTrack2,
+            uint timestampPitlane1,
+            uint timestampPitlane2
+        )
+        {
+            PacketSequence = packetSequence;
+            //CarId = carId;
+            TimestampTrack1Previous = TimestampTrack1;
+            TimestampTrack1 = timestampTrack1;
+            TimestampTrack2Previous = TimestampTrack2;
+            TimestampTrack2 = timestampTrack2;
+            TimestampPitlane1Previous = TimestampPitlane1;
+            TimestampPitlane1 = timestampPitlane1;
+            TimestampPitlane2Previous = TimestampPitlane2;
+            TimestampPitlane2 = timestampPitlane2;
+
+            _hubContext.Clients.All.ChangedState(this);
         }
     }
 
@@ -197,7 +464,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             LaneChangeButtonDoubleTapped6 = laneChangeButtonDoubleTapped6;
             CtrlVersion6 = ctrlVersion6;
 
-            Console.WriteLine("${timestamp} {Timestamp} {timestamp - Timestamp}");
+            Console.WriteLine($"{timestamp} {Timestamp} {timestamp - Timestamp}");
 
             TimestampPrevious = Timestamp;
             Timestamp = timestamp;
@@ -209,96 +476,4 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
-    public class SlotState
-    {
-        private readonly IHubContext<Hubs.SlotHub, Hubs.ISlotHub> _hubContext;
-
-        public SlotState(IHubContext<Hubs.SlotHub, Hubs.ISlotHub> hubContext)
-        {
-            _hubContext = hubContext;
-        }
-
-        public byte? PacketSequence { get; set; }
-        public byte CarId { get; set; }
-        public uint? TimestampTrack1 { get; set; }
-        private uint? TimestampTrack1Previous { get; set; }
-        public uint? TimestampTrack2 { get; set; }
-        private uint? TimestampTrack2Previous { get; set; }
-        public uint? TimestampPitlane1 { get; set; }
-        private uint? TimestampPitlane1Previous { get; set; }
-        public uint? TimestampPitlane2 { get; set; }
-        private uint? TimestampPitlane2Previous { get; set; }
-
-        public uint? TimestampTrack1Interval
-        {
-            get
-            {
-                if (TimestampTrack1.HasValue && TimestampTrack1Previous.HasValue)
-                {
-                    return TimestampTrack1.Value - TimestampTrack1Previous.Value;
-                }
-                return null;
-            }
-        }
-
-        public uint? TimestampTrack2Interval
-        {
-            get
-            {
-                if (TimestampTrack2.HasValue && TimestampTrack2Previous.HasValue)
-                {
-                    return TimestampTrack2.Value - TimestampTrack2Previous.Value;
-                }
-                return null;
-            }
-        }
-
-        public uint? TimestampPitlane1Interval
-        {
-            get
-            {
-                if (TimestampPitlane1.HasValue && TimestampPitlane1Previous.HasValue)
-                {
-                    return TimestampPitlane1.Value - TimestampPitlane1Previous.Value;
-                }
-                return null;
-            }
-        }
-
-        public uint? TimestampPitlane2Interval
-        {
-            get
-            {
-                if (TimestampPitlane2.HasValue && TimestampPitlane2Previous.HasValue)
-                {
-                    return TimestampPitlane2.Value - TimestampPitlane2Previous.Value;
-                }
-                return null;
-            }
-        }
-
-        public void Set
-        (
-            byte packetSequence,
-            byte carId,
-            uint timestampTrack1,
-            uint timestampTrack2,
-            uint timestampPitlane1,
-            uint timestampPitlane2
-        )
-        {
-            PacketSequence = packetSequence;
-            //CarId = carId;
-            TimestampTrack1Previous = TimestampTrack1;
-            TimestampTrack1 = timestampTrack1;
-            TimestampTrack2Previous = TimestampTrack2;
-            TimestampTrack2 = timestampTrack2;
-            TimestampPitlane1Previous = TimestampPitlane1;
-            TimestampPitlane1 = timestampPitlane1;
-            TimestampPitlane2Previous = TimestampPitlane2;
-            TimestampPitlane2 = timestampPitlane2;
-
-            _hubContext.Clients.All.ChangedState(this);
-        }
-    }
 }
