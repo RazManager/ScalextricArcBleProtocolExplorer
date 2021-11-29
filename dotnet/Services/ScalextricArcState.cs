@@ -332,7 +332,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 TimestampStartFinishServerPrevious = TimestampStartFinishServerLast;
                 TimestampStartFinishServerLast = DateTimeOffset.UtcNow;
             }
-            if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack1)
+            if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
                 TimestampStartFinish2Previous = TimestampStartFinish2;
                 TimestampStartFinish2 = timestampTrack2;
