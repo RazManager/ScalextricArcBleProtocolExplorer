@@ -9,6 +9,7 @@
             <div class="mat-caption">Pitlane 1 (ms)</div>
             <div class="mat-caption">Pitlane 2 (ms)</div>
             <div class="mat-caption">Laptime (ms)</div>
+            <div class="mat-caption">Laptime server (ms)</div>
             <div class="mat-caption">Refresh rate (ms)</div>
 
             <ng-container *ngFor="let slot of dto">
@@ -19,6 +20,7 @@
                 <div style="justify-self: right;">{{slot.timestampPitlane1}}</div>
                 <div style="justify-self: right;">{{slot.timestampPitlane2}}</div>
                 <div style="justify-self: right;">{{slot.laptime}}</div>
+                <div style="justify-self: right;">{{slot.laptimeServer}}</div>
                 <div style="justify-self: right;">{{slot.refreshRate}}</div>
             </ng-container>
         </div>

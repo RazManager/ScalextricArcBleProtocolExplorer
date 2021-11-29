@@ -235,16 +235,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
             _hubContext = hubContext;
         }
 
-        public byte? PacketSequence { get; set; }
-        public byte CarId { get; set; }
-        public uint? TimestampStartFinish1 { get; set; }
-        private uint? TimestampStartFinish1Previous { get; set; }
-        public uint? TimestampStartFinish2 { get; set; }
-        private uint? TimestampStartFinish2Previous { get; set; }
-        public uint? TimestampPitlane1 { get; set; }
-        public uint? TimestampPitlane2 { get; set; }
-        private DateTimeOffset? TimestampRefreshRateLast { get; set; }
-        private DateTimeOffset? TimestampRefreshRatePrevious { get; set; }
+        public byte? PacketSequence { get; set; } = null;
+        public byte CarId { get; init; }
+        public uint? TimestampStartFinish1 { get; set; } = null;
+        private uint? TimestampStartFinish1Previous { get; set; } = null;
+        public uint? TimestampStartFinish2 { get; set; } = null;
+        private uint? TimestampStartFinish2Previous { get; set; } = null;
+        public uint? TimestampPitlane1 { get; set; } = null;
+        public uint? TimestampPitlane2 { get; set; } = null;
+        private DateTimeOffset? TimestampStartFinishServerLast { get; set; } = null;
+        private DateTimeOffset? TimestampStartFinishServerPrevious { get; set; } = null;
+        private DateTimeOffset? TimestampRefreshRateLast { get; set; } = null;
+        private DateTimeOffset? TimestampRefreshRatePrevious { get; set; } = null;
 
         public uint? Laptime
         {
@@ -287,6 +289,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
+        public int? LaptimeServer
+        {
+            get
+            {
+                if (TimestampStartFinishServerLast.HasValue && TimestampStartFinishServerPrevious.HasValue)
+                {
+                    return (int)(TimestampStartFinishServerLast.Value - TimestampStartFinishServerPrevious.Value).TotalMilliseconds;
+                }
+
+                return null;
+            }
+        }
 
         public int? RefreshRate
         {
@@ -315,14 +329,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 TimestampStartFinish1Previous = TimestampStartFinish1;
                 TimestampStartFinish1 = timestampTrack1;
+                TimestampStartFinishServerPrevious = TimestampStartFinishServerLast;
+                TimestampStartFinishServerLast = DateTimeOffset.UtcNow;
             }
             if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack1)
             {
                 TimestampStartFinish2Previous = TimestampStartFinish2;
                 TimestampStartFinish2 = timestampTrack2;
+                TimestampStartFinishServerPrevious = TimestampStartFinishServerLast;
+                TimestampStartFinishServerLast = DateTimeOffset.UtcNow;
             }
             TimestampPitlane1 = timestampPitlane1;
             TimestampPitlane2 = timestampPitlane2;
+
 
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
