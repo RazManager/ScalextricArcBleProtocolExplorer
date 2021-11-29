@@ -242,33 +242,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public uint? TimestampStartFinish2 { get; set; }
         private uint? TimestampStartFinish2Previous { get; set; }
         public uint? TimestampPitlane1 { get; set; }
-        //private uint? TimestampPitlane1Previous { get; set; }
         public uint? TimestampPitlane2 { get; set; }
-        //private uint? TimestampPitlane2Previous { get; set; }
-
-        public uint? TimestampStartFinish1Interval
-        {
-            get
-            {
-                if (TimestampStartFinish1.HasValue && TimestampStartFinish1Previous.HasValue)
-                {
-                    return TimestampStartFinish1.Value - TimestampStartFinish1Previous.Value;
-                }
-                return null;
-            }
-        }
-
-        public uint? TimestampStartFinish2Interval
-        {
-            get
-            {
-                if (TimestampStartFinish2.HasValue && TimestampStartFinish2Previous.HasValue)
-                {
-                    return TimestampStartFinish2.Value - TimestampStartFinish2Previous.Value;
-                }
-                return null;
-            }
-        }
+        private DateTimeOffset? TimestampRefreshRateLast { get; set; }
+        private DateTimeOffset? TimestampRefreshRatePrevious { get; set; }
 
         public uint? Laptime
         {
@@ -312,10 +288,22 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
+        public int? RefreshRate
+        {
+            get
+            {
+                if (TimestampRefreshRateLast.HasValue && TimestampRefreshRatePrevious.HasValue)
+                {
+                    return (int)(TimestampRefreshRateLast.Value - TimestampRefreshRatePrevious.Value).TotalMilliseconds;
+                }
+                return null;
+            }
+        }
+
+
         public void Set
         (
             byte packetSequence,
-            //byte carId,
             uint timestampTrack1,
             uint timestampTrack2,
             uint timestampPitlane1,
@@ -323,15 +311,21 @@ namespace ScalextricArcBleProtocolExplorer.Services
         )
         {
             PacketSequence = packetSequence;
-            //CarId = carId;
-            TimestampStartFinish1Previous = TimestampStartFinish1;
-            TimestampStartFinish1 = timestampTrack1;
-            TimestampStartFinish2Previous = TimestampStartFinish2;
-            TimestampStartFinish2 = timestampTrack2;
-            //TimestampPitlane1Previous = TimestampPitlane1;
+            if (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1)
+            {
+                TimestampStartFinish1Previous = TimestampStartFinish1;
+                TimestampStartFinish1 = timestampTrack1;
+            }
+            if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack1)
+            {
+                TimestampStartFinish2Previous = TimestampStartFinish2;
+                TimestampStartFinish2 = timestampTrack2;
+            }
             TimestampPitlane1 = timestampPitlane1;
-            //TimestampPitlane2Previous = TimestampPitlane2;
             TimestampPitlane2 = timestampPitlane2;
+
+            TimestampRefreshRatePrevious = TimestampRefreshRateLast;
+            TimestampRefreshRateLast = DateTimeOffset.UtcNow;
 
             _hubContext.Clients.All.ChangedState(this);
         }
