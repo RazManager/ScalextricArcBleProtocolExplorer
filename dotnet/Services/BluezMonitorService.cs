@@ -84,7 +84,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Task? watchInterfacesAddedTask = null;
             Task? watchInterfacesRemovedTask = null;
 
-            await _scalextricArcState.ConnectionState!.SetAsync(ConnectionStateType.Disabled);
+            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
 
             if (Environment.OSVersion.Platform != PlatformID.Unix)
             {
@@ -99,7 +99,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 scalextricArcProxy = null;
                 _throttleCharacteristicWatchTask = null;
                 _slotCharacteristicWatchTask = null;
-                _scalextricArcState.Initialize();
 
                 try
                 {
@@ -410,7 +409,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             _logger.LogInformation("Could not connect to Scalextric ARC.");
                         }
                     }
-                    await _scalextricArcState.ConnectionState!.SetAsync(ConnectionStateType.Connected);
+                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
 
                     if (scalextricArcObjectPath != null)
                     {
@@ -503,7 +502,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                         }
                                         else if (new Guid(properties.UUID!) == commandCharacteristicUuid)
                                         {
-                                            await _scalextricArcState.CommandState!.SetAsync
+                                            await _scalextricArcState.CommandState.SetAsync
                                             (
                                                 (CommandType)value[0],
                                                 (byte)(value[1] & 0b111111),

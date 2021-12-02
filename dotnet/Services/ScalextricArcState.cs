@@ -11,17 +11,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class ScalextricArcState
     {
-        private readonly IHubContext<ConnectionHub, IConnectionHub> _connectionHubContext;
-        private readonly IHubContext<CommandHub, ICommandHub> _commandHubContext;
-        private readonly Channel<CommandState> _commandStateChannel;
-        private readonly IHubContext<SlotHub, ISlotHub> _slotHubContext;
-        private readonly IHubContext<ThrottleHub, IThrottleHub> _throttleHubContext;
-
-        public ConnectionState? ConnectionState { get; set; }
-        public CommandState? CommandState { get; set; }
+        public ConnectionState ConnectionState { get; set; }
+        public CommandState CommandState { get; set; }
         public DeviceInformation DeviceInformation { get; set; } = new();
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
-        public ThrottleState? ThrottleState { get; set; }
+        public ThrottleState ThrottleState { get; set; }
 
         public ScalextricArcState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
@@ -29,29 +23,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                   IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
                                   IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
         {
-            Initialize();
-            _connectionHubContext = connectionHubContext;
-            _commandHubContext = commandHubContext;
-            _commandStateChannel = commandStateChannel;
-            _slotHubContext = slotHubContext;
-            _throttleHubContext = throttleHubContext;
-        }
+            ConnectionState = new ConnectionState(connectionHubContext);
 
-
-        public void Initialize()
-        {
-            ConnectionState = new ConnectionState(_connectionHubContext);
-
-            CommandState = new CommandState(_commandHubContext, _commandStateChannel);
-
-            DeviceInformation = new();
+            CommandState = new CommandState(commandHubContext, commandStateChannel);
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
-                SlotStates[i] = new SlotState(_slotHubContext) { CarId = (byte)(i + 1) };
+                SlotStates[i] = new SlotState(slotHubContext) { CarId = (byte)(i + 1) };
             }
 
-            ThrottleState = new ThrottleState(_throttleHubContext);
+            ThrottleState = new ThrottleState(throttleHubContext);
         }
     }
 
