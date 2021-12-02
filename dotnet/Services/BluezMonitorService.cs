@@ -1,17 +1,17 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
 using static bluez.DBus.GattCharacteristic1Extensions;
-using System.Threading.Channels;
-using static ScalextricArcBleProtocolExplorer.Services.CommandState;
 using static ScalextricArcBleProtocolExplorer.Services.ConnectionState;
+
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
@@ -84,7 +84,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Task? watchInterfacesAddedTask = null;
             Task? watchInterfacesRemovedTask = null;
 
-            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
+            await _scalextricArcState.ConnectionState!.SetAsync(ConnectionStateType.Disabled);
 
             if (Environment.OSVersion.Platform != PlatformID.Unix)
             {
@@ -99,6 +99,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 scalextricArcProxy = null;
                 _throttleCharacteristicWatchTask = null;
                 _slotCharacteristicWatchTask = null;
+                _scalextricArcState.Initialize();
 
                 try
                 {
@@ -409,7 +410,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             _logger.LogInformation("Could not connect to Scalextric ARC.");
                         }
                     }
-                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
+                    await _scalextricArcState.ConnectionState!.SetAsync(ConnectionStateType.Connected);
 
                     if (scalextricArcObjectPath != null)
                     {
@@ -438,26 +439,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                         }
 
-                        //foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezGattServiceInterface)).OrderBy(x => x.Key))
-                        //{
-                        //    Console.WriteLine();
-                        //    Console.WriteLine($"GattService: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
-                        //    //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattService1>({bluezServiceName}, {item.Key})");
-                        //    var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattService1>(bluezService, item.Key);
-                        //    //Console.WriteLine("After...");
-                        //    var properties = await proxy.GetAllAsync();
-                        //    //Console.WriteLine("After GetAllAsync...");
-                        //    Console.WriteLine($"UUID={properties.UUID}");
-                        //    //Console.WriteLine($"Device={gattService1Properties.Device}");
-                        //    //Console.WriteLine($"Primary={gattService1Properties.Primary}");
-                        //    //Console.WriteLine($"Includes={gattService1Properties.Includes}");
-                        //    Console.WriteLine($"Includes:");
-                        //    foreach (var include in properties.Includes)
-                        //    {
-                        //        Console.WriteLine(include);
-                        //    }
-                        //}
-
                         string? manufacturerName = null;
                         string? modelNumber = null;
                         string? hardwareRevision = null;
@@ -465,88 +446,102 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         string? softwareRevision = null;
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
-                            Console.WriteLine();
+                            //Console.WriteLine();
                             Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                             //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
                             var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezService, item.Key);
                             //Console.WriteLine("After...");
                             var properties = await proxy.GetAllAsync();
                             //Console.WriteLine("After GetAllAsync...");
-                            Console.WriteLine($"UUID={properties.UUID}");
-                            Console.WriteLine($"Service={properties.Service}");
-                            Console.WriteLine($"Flags={string.Join(", ", properties.Flags!)}");
+                            //Console.WriteLine($"UUID={properties.UUID}");
+                            //Console.WriteLine($"Service={properties.Service}");
+                            //Console.WriteLine($"Flags={string.Join(", ", properties.Flags!)}");
                             //Console.WriteLine($"WriteAcquired={properties.WriteAcquired}");
                             //Console.WriteLine($"NotifyAcquired={properties.NotifyAcquired}");
                             //Console.WriteLine($"Notifying={properties.Notifying}");
 
-                            if (properties.Flags!.Contains("read"))
+                            if (properties.Flags is not null)
                             {
-                                var value = await proxy.ReadValueAsync(new Dictionary<string, object>());
-                                Console.WriteLine($"Length={value.Length}");
-                                if (value.Length > 0)
+                                foreach (var flag in properties.Flags)
                                 {
-                                    var valueUTF8 = System.Text.Encoding.UTF8.GetString(value);
-                                    Console.WriteLine($"valueUTF8={valueUTF8}");
+                                    if (!string.IsNullOrEmpty(properties.UUID) && !string.IsNullOrEmpty(flag))
+                                    {
+                                        _scalextricArcState.ConnectionState.GattCharacteristicFlags.Add(new GattCharacteristicFlag
+                                        {
+                                            uuid = new Guid(properties.UUID),
+                                            Flag = flag
+                                        });
+                                    }                                    
+                                }
 
-                                    if (new Guid(properties.UUID!) == manufacturerNameCharacteristicUuid)
+                                if (properties.Flags!.Contains("read"))
+                                {
+                                    var value = await proxy.ReadValueAsync(new Dictionary<string, object>());
+                                    if (value.Length > 0)
                                     {
-                                        manufacturerName = valueUTF8;
-                                    }
-                                    else if (new Guid(properties.UUID!) == modelNumberCharacteristicUuid)
-                                    {
-                                        modelNumber = valueUTF8;
-                                    }
-                                    else if (new Guid(properties.UUID!) == hardwareRevisionCharacteristicUuid)
-                                    {
-                                        hardwareRevision = valueUTF8;
-                                    }
-                                    else if (new Guid(properties.UUID!) == firmwareRevisionCharacteristicUuid)
-                                    {
-                                        firmwareRevision = valueUTF8;
-                                    }
-                                    else if (new Guid(properties.UUID!) == softwareRevisionCharacteristicUuid)
-                                    {
-                                        softwareRevision = valueUTF8;
-                                    }
-                                    else if (new Guid(properties.UUID!) == commandCharacteristicUuid)
-                                    {
-                                        await _scalextricArcState.CommandState.SetAsync
-                                        (
-                                            (CommandType)value[0],
-                                            (byte)(value[1] & 0b111111),
-                                            (value[1] & 0b10000000) > 0,
-                                            value[7],
-                                            value[13],
-                                            (value[19] & 0b1) > 0,
-                                            (byte)(value[2] & 0b111111),
-                                            (value[2] & 0b10000000) > 0,
-                                            value[8],
-                                            value[14],
-                                            (value[19] & 0b10) > 0,
-                                            (byte)(value[3] & 0b111111),
-                                            (value[3] & 0b10000000) > 0,
-                                            value[9],
-                                            value[15],
-                                            (value[19] & 0b100) > 0,
-                                            (byte)(value[4] & 0b111111),
-                                            (value[4] & 0b10000000) > 0,
-                                            value[10],
-                                            value[16],
-                                            (value[19] & 0b1000) > 0,
-                                            (byte)(value[5] & 0b111111),
-                                            (value[5] & 0b10000000) > 0,
-                                            value[11],
-                                            value[17],
-                                            (value[19] & 0b10000) > 0,
-                                            (byte)(value[6] & 0b111111),
-                                            (value[6] & 0b10000000) > 0,
-                                            value[12],
-                                            value[18],
-                                            (value[19] & 0b100000) > 0,
-                                            false
-                                        );
+                                        var valueUTF8 = System.Text.Encoding.UTF8.GetString(value);
+
+                                        if (new Guid(properties.UUID!) == manufacturerNameCharacteristicUuid)
+                                        {
+                                            manufacturerName = valueUTF8;
+                                        }
+                                        else if (new Guid(properties.UUID!) == modelNumberCharacteristicUuid)
+                                        {
+                                            modelNumber = valueUTF8;
+                                        }
+                                        else if (new Guid(properties.UUID!) == hardwareRevisionCharacteristicUuid)
+                                        {
+                                            hardwareRevision = valueUTF8;
+                                        }
+                                        else if (new Guid(properties.UUID!) == firmwareRevisionCharacteristicUuid)
+                                        {
+                                            firmwareRevision = valueUTF8;
+                                        }
+                                        else if (new Guid(properties.UUID!) == softwareRevisionCharacteristicUuid)
+                                        {
+                                            softwareRevision = valueUTF8;
+                                        }
+                                        else if (new Guid(properties.UUID!) == commandCharacteristicUuid)
+                                        {
+                                            await _scalextricArcState.CommandState!.SetAsync
+                                            (
+                                                (CommandType)value[0],
+                                                (byte)(value[1] & 0b111111),
+                                                (value[1] & 0b10000000) > 0,
+                                                value[7],
+                                                value[13],
+                                                (value[19] & 0b1) > 0,
+                                                (byte)(value[2] & 0b111111),
+                                                (value[2] & 0b10000000) > 0,
+                                                value[8],
+                                                value[14],
+                                                (value[19] & 0b10) > 0,
+                                                (byte)(value[3] & 0b111111),
+                                                (value[3] & 0b10000000) > 0,
+                                                value[9],
+                                                value[15],
+                                                (value[19] & 0b100) > 0,
+                                                (byte)(value[4] & 0b111111),
+                                                (value[4] & 0b10000000) > 0,
+                                                value[10],
+                                                value[16],
+                                                (value[19] & 0b1000) > 0,
+                                                (byte)(value[5] & 0b111111),
+                                                (value[5] & 0b10000000) > 0,
+                                                value[11],
+                                                value[17],
+                                                (value[19] & 0b10000) > 0,
+                                                (byte)(value[6] & 0b111111),
+                                                (value[6] & 0b10000000) > 0,
+                                                value[12],
+                                                value[18],
+                                                (value[19] & 0b100000) > 0,
+                                                false
+                                            );
+                                        }
                                     }
                                 }
+
                             }
 
                             if (new Guid(properties.UUID!) == commandCharacteristicUuid)
@@ -557,18 +552,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             if (new Guid(properties.UUID!) == slotCharacteristicUuid)
                             {
                                 _slotCharacteristicProxy = proxy;
-                                Console.WriteLine("StartNotifyAsync before");
                                 await _slotCharacteristicProxy.StartNotifyAsync();
-                                Console.WriteLine("StartNotifyAsync after");
                                 _slotCharacteristicWatchTask = _slotCharacteristicProxy.WatchPropertiesAsync(slotCharacteristicWatchProperties);
                             }
 
                             if (new Guid(properties.UUID!) == throttleCharacteristicUuid)
                             {
                                 _throttleCharacteristicProxy = proxy;
-                                Console.WriteLine("StartNotifyAsync before");
                                 await _throttleCharacteristicProxy.StartNotifyAsync();
-                                Console.WriteLine("StartNotifyAsync after");
                                 _throttleCharacteristicWatchTask = _throttleCharacteristicProxy.WatchPropertiesAsync(throttleCharacteristicWatchProperties);
                             }
                         }
@@ -581,27 +572,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             firmwareRevision,
                             softwareRevision
                         );
-
-                        //foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.InterfaceName == bluezGattDescriptorInterface)).OrderBy(x => x.Key))
-                        //{
-                        //    Console.WriteLine();
-                        //    Console.WriteLine($"GattDescriptor: {item.Key} {string.Join(", ", item.Value.Select(x => x.InterfaceName))}");
-                        //    //Console.WriteLine($"Before CreateProxy<bluez.DBus.IGattCharacteristic1>({bluezServiceName}, {item.Key})");
-                        //    var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattDescriptor1>(bluezServiceName, item.Key);
-                        //    //Console.WriteLine("After...");
-                        //    var properties = await proxy.GetAllAsync();
-                        //    //Console.WriteLine("After GetAllAsync...");
-                        //    Console.WriteLine($"UUID={properties.UUID}");
-                        //    Console.WriteLine($"Characteristic={properties.Characteristic}");
-
-                        //    if (properties.Value.Length > 0)
-                        //    {
-                        //        var valueASCII = System.Text.Encoding.ASCII.GetString(properties.Value);
-                        //        var valueUTF8 = System.Text.Encoding.UTF8.GetString(properties.Value);
-                        //        Console.WriteLine($"valueASCII={valueASCII}");
-                        //        Console.WriteLine($"valueUTF8={valueUTF8}");
-                        //    }
-                        //}
 
                         await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
                     }
@@ -626,7 +596,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     //Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
                     //Console.WriteLine($"timestamp1={value[7]}, timestamp2={value[8]}, timestamp3={value[9]}, timestamp14={value[10]}, timestamp={(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)}");
 
-                    _scalextricArcState.ThrottleState.Set
+                    _scalextricArcState.ThrottleState!.Set
                     (
                         value[0],
                         value[12],

@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using ScalextricArcBleProtocolExplorer.Hubs;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -8,12 +11,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class ScalextricArcState
     {
-        public ConnectionState ConnectionState { get; init; }
-        public CommandState CommandState { get; init; }
-        public DeviceInformation DeviceInformation { get; init; } = new();
-        public SlotState[] SlotStates { get; init; } = new SlotState[6];
-        public ThrottleState ThrottleState { get; init; }
+        private readonly IHubContext<ConnectionHub, IConnectionHub> _connectionHubContext;
+        private readonly IHubContext<CommandHub, ICommandHub> _commandHubContext;
+        private readonly Channel<CommandState> _commandStateChannel;
+        private readonly IHubContext<SlotHub, ISlotHub> _slotHubContext;
+        private readonly IHubContext<ThrottleHub, IThrottleHub> _throttleHubContext;
 
+        public ConnectionState? ConnectionState { get; set; }
+        public CommandState? CommandState { get; set; }
+        public DeviceInformation DeviceInformation { get; set; } = new();
+        public SlotState[] SlotStates { get; init; } = new SlotState[6];
+        public ThrottleState? ThrottleState { get; set; }
 
         public ScalextricArcState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
@@ -21,17 +29,40 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                   IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
                                   IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
         {
-            ConnectionState = new ConnectionState(connectionHubContext);
+            Initialize();
+            _connectionHubContext = connectionHubContext;
+            _commandHubContext = commandHubContext;
+            _commandStateChannel = commandStateChannel;
+            _slotHubContext = slotHubContext;
+            _throttleHubContext = throttleHubContext;
+        }
 
-            CommandState = new CommandState(commandHubContext, commandStateChannel);
+
+        public void Initialize()
+        {
+            ConnectionState = new ConnectionState(_connectionHubContext);
+
+            CommandState = new CommandState(_commandHubContext, _commandStateChannel);
+
+            DeviceInformation = new();
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
-                SlotStates[i] = new SlotState(slotHubContext) { CarId = (byte)(i + 1) };
+                SlotStates[i] = new SlotState(_slotHubContext) { CarId = (byte)(i + 1) };
             }
 
-            ThrottleState = new ThrottleState(throttleHubContext);
+            ThrottleState = new ThrottleState(_throttleHubContext);
         }
+    }
+
+
+    public class GattCharacteristicFlag
+    {
+        [Required]
+        public Guid uuid { get; set; }
+
+        [Required]
+        public string Flag { get; set; } = null!;
     }
 
 
@@ -53,7 +84,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Initialized
         }
 
+        [Required]
         public ConnectionStateType State { get; set; }
+
+        public List<GattCharacteristicFlag> GattCharacteristicFlags { get; init; } = new();
 
         public async Task SetAsync(ConnectionStateType state)
         {
@@ -76,36 +110,97 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
     public class CommandDto
     {
+        [Required]
         public CommandType Command { get; set; }
+
+        [Required]
         public byte PowerMultiplier1 { get; set; }
+
+        [Required]
         public bool Ghost1 { get; set; }
+
+        [Required]
         public byte Rumble1 { get; set; }
+
+        [Required]
         public byte Brake1 { get; set; }
+
+        [Required]
         public bool Kers1 { get; set; }
+
+        [Required]
         public byte PowerMultiplier2 { get; set; }
+
+        [Required]
         public bool Ghost2 { get; set; }
+
+        [Required]
         public byte Rumble2 { get; set; }
+
+        [Required]
         public byte Brake2 { get; set; }
+
+        [Required]
         public bool Kers2 { get; set; }
+
+        [Required]
         public byte PowerMultiplier3 { get; set; }
+
+        [Required]
         public bool Ghost3 { get; set; }
+
+        [Required]
         public byte Rumble3 { get; set; }
+
+        [Required]
         public byte Brake3 { get; set; }
+
+        [Required]
         public bool Kers3 { get; set; }
+
+        [Required]
         public byte PowerMultiplier4 { get; set; }
+
+        [Required]
         public bool Ghost4 { get; set; }
+
+        [Required]
         public byte Rumble4 { get; set; }
+
+        [Required]
         public byte Brake4 { get; set; }
+
+        [Required]
         public bool Kers4 { get; set; }
+
+        [Required]
         public byte PowerMultiplier5 { get; set; }
+
+        [Required]
         public bool Ghost5 { get; set; }
+
+        [Required]
         public byte Rumble5 { get; set; }
+
+        [Required]
         public byte Brake5 { get; set; }
+
+        [Required]
         public bool Kers5 { get; set; }
+
+        [Required]
         public byte PowerMultiplier6 { get; set; }
+
+        [Required]
         public bool Ghost6 { get; set; }
+
+        [Required]
         public byte Rumble6 { get; set; }
+
+        [Required]
         public byte Brake6 { get; set; }
+
+        [Required]
         public bool Kers6 { get; set; }
     }
 
@@ -236,6 +331,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
         public byte? PacketSequence { get; set; } = null;
+        [Required]
         public byte CarId { get; init; }
         public uint? TimestampStartFinish1 { get; set; } = null;
         private uint? TimestampStartFinish1Previous { get; set; } = null;
@@ -243,10 +339,32 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private uint? TimestampStartFinish2Previous { get; set; } = null;
         public uint? TimestampPitlane1 { get; set; } = null;
         public uint? TimestampPitlane2 { get; set; } = null;
-        private DateTimeOffset? TimestampStartFinishServerLast { get; set; } = null;
-        private DateTimeOffset? TimestampStartFinishServerPrevious { get; set; } = null;
         private DateTimeOffset? TimestampRefreshRateLast { get; set; } = null;
         private DateTimeOffset? TimestampRefreshRatePrevious { get; set; } = null;
+
+        public uint? TimestampStartFinishPitlaneInterval1
+        {
+            get
+            {
+                if (TimestampStartFinish1.HasValue && TimestampPitlane1.HasValue && TimestampStartFinish1.Value < TimestampPitlane1.Value)
+                {
+                    return TimestampPitlane1.Value - TimestampStartFinish1.Value;
+                }
+                return null;
+            }
+        }
+
+        public uint? TimestampStartFinishPitlaneInterval2
+        {
+            get
+            {
+                if (TimestampStartFinish2.HasValue && TimestampPitlane2.HasValue && TimestampStartFinish2.Value < TimestampPitlane2.Value)
+                {
+                    return TimestampPitlane2.Value - TimestampStartFinish2.Value;
+                }
+                return null;
+            }
+        }
 
         public uint? Laptime
         {
@@ -289,19 +407,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public int? LaptimeServer
-        {
-            get
-            {
-                if (TimestampStartFinishServerLast.HasValue && TimestampStartFinishServerPrevious.HasValue)
-                {
-                    return (int)(TimestampStartFinishServerLast.Value - TimestampStartFinishServerPrevious.Value).TotalMilliseconds;
-                }
-
-                return null;
-            }
-        }
-
         public int? RefreshRate
         {
             get
@@ -313,7 +418,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 return null;
             }
         }
-
 
         public void Set
         (
@@ -329,19 +433,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 TimestampStartFinish1Previous = TimestampStartFinish1;
                 TimestampStartFinish1 = timestampTrack1;
-                TimestampStartFinishServerPrevious = TimestampStartFinishServerLast;
-                TimestampStartFinishServerLast = DateTimeOffset.UtcNow;
             }
             if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
                 TimestampStartFinish2Previous = TimestampStartFinish2;
                 TimestampStartFinish2 = timestampTrack2;
-                TimestampStartFinishServerPrevious = TimestampStartFinishServerLast;
-                TimestampStartFinishServerLast = DateTimeOffset.UtcNow;
             }
             TimestampPitlane1 = timestampPitlane1;
             TimestampPitlane2 = timestampPitlane2;
-
 
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
@@ -359,7 +458,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             _hubContext = hubContext;
         }
-
 
         public byte? PacketSequence { get; set; }
         public byte? PicVersion { get; set; }
@@ -397,8 +495,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte? CtrlVersion6 { get; set; }
         public uint? Timestamp { get; set; }
         private uint? TimestampPrevious { get; set; }
-        private DateTimeOffset? TimeStampServicePrevious { get; set; }
-        private DateTimeOffset? TimeStampService { get; set; }
+        private DateTimeOffset? TimeStampRefreshRateLast { get; set; }
+        private DateTimeOffset? TimeStampRefreshRatePrevious { get; set; }
 
         public uint? TimestampInterval
         {
@@ -412,18 +510,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public int? TimestampServerInterval
+        public int? RefreshRate
         {
             get
             {
-                if (TimeStampService.HasValue && TimeStampServicePrevious.HasValue)
+                if (TimeStampRefreshRateLast.HasValue && TimeStampRefreshRatePrevious.HasValue)
                 {
-                    return (int)(TimeStampService.Value - TimeStampServicePrevious.Value).TotalMilliseconds;
+                    return (int)(TimeStampRefreshRateLast.Value - TimeStampRefreshRatePrevious.Value).TotalMilliseconds;
                 }
                 return null;
             }
         }
-
 
         public void Set
         (
@@ -503,8 +600,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             TimestampPrevious = Timestamp;
             Timestamp = timestamp;
-            TimeStampServicePrevious = TimeStampService;
-            TimeStampService = DateTimeOffset.UtcNow;
+            TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
+            TimeStampRefreshRateLast = DateTimeOffset.UtcNow;
 
             _hubContext.Clients.All.ChangedState(this);
         }

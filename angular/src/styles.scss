@@ -1,3 +1,8 @@
+@use '@angular/material' as mat;
+
+$primary-palette: mat.$indigo-palette;
+
+
 html, body, mat-sidenav-container {
     height: 100%;
 }
@@ -39,3 +44,13 @@ mat-spinner.mat-progress-spinner {
     overflow: auto;
 }
 
+
+.throttle-value-bar {
+    //fill: royalblue;
+    fill: mat.get-color-from-palette($primary-palette, 500);
+}
+
+.throttle-value-bar-background {
+    fill: lightblue;
+    fill: mat.get-color-from-palette($primary-palette, 50);
+}

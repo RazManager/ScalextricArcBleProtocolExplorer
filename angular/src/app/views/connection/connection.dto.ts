@@ -9,4 +9,11 @@ export enum ConnectionStateType {
 
 export class ConnectionDto {
     public state!: ConnectionStateType;
+    public gattCharacteristicFlags!: GattCharacteristicFlag[];
+}
+
+
+export class GattCharacteristicFlag {
+    public uuid!: string;
+    public flag!: string;
 }

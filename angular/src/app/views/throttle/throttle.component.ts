@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
 import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
 
+import { ConnectionService } from '../connection/connection.service';
 import { ThrottleDto } from './throttle.dto';
 import { ThrottleObserversService } from './throttle-observers.service';
 
@@ -18,10 +19,12 @@ export class ThrottleComponent
         extends CommonBaseComponent
         implements OnInit {
     public dto!: ThrottleDto;
+    public characteristicUuid = "00003b09-0000-1000-8000-00805f9b34fb";
 
 
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
+                public readonly connnectionService: ConnectionService,
                 toolbarService: CommonToolbarService,
                 private readonly observersService: ThrottleObserversService) {
         super(snackBar);
@@ -45,4 +48,35 @@ export class ThrottleComponent
             }
         });
     }
+
+    public valueWidth(id: number): string {
+        let value : number | null = null;
+        switch (id) {
+            case 1:
+                value = this.dto.value1;
+                break;
+            case 2:
+                value = this.dto.value2;
+                break;
+            case 3:
+                value = this.dto.value3;
+                break;
+            case 4:
+                value = this.dto.value4;
+                break;
+            case 5:
+                value = this.dto.value5;
+                break;
+            case 6:
+                value = this.dto.value6;
+                break;                                                            
+        }
+
+        if (value === null) {
+            return "0%"
+        }
+
+        return (value * 100 / 63 ) + "%";
+    }
+
 }
