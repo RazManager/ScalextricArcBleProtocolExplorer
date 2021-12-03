@@ -1,4 +1,4 @@
-<mat-card *ngIf="!!commandService.dto" class="section-container">
+<mat-card *ngIf="!!dto" class="section-container">
     <mat-card-content>
         <div gdColumns="max-content max-content 1fr max-content max-content 1fr max-content 1fr max-content"
                 gdGap="1em" style="align-items: center;" >                     
@@ -10,67 +10,67 @@
             <div class="mat-caption">KERS</div>
 
             <div class="mat-caption" style="justify-self: center;">1</div>
-            <div>{{commandService.dto.powerMultiplier1}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost1" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
-            <div>{{commandService.dto.rumble1}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div>{{commandService.dto.brake1}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers1" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.powerMultiplier1}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost1" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.rumble1}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.rumble1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{dto.brake1}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.brake1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers1" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
 
             <div class="mat-caption" style="justify-self: center;">2</div>
-            <div>{{commandService.dto.powerMultiplier2}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost2" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
-            <div>{{commandService.dto.rumble2}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div>{{commandService.dto.brake2}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers2" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.powerMultiplier2}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost2" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.rumble2}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.rumble2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{dto.brake2}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.brake2" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers2" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
 
             <div class="mat-caption" style="justify-self: center;">3</div>
-            <div>{{commandService.dto.powerMultiplier3}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier3" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost3" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
-            <div>{{commandService.dto.rumble3}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble3" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div>{{commandService.dto.brake3}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake3" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers3" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.powerMultiplier3}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier3" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost3" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.rumble3}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.rumble3" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{dto.brake3}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.brake3" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers3" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
 
             <div class="mat-caption" style="justify-self: center;">4</div>
-            <div>{{commandService.dto.powerMultiplier4}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier4" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost4" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
-            <div>{{commandService.dto.rumble4}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble4" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div>{{commandService.dto.brake4}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake4" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers4" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.powerMultiplier4}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier4" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost4" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.rumble4}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.rumble4" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{dto.brake4}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.brake4" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers4" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
 
             <div class="mat-caption" style="justify-self: center;">5</div>
-            <div>{{commandService.dto.powerMultiplier5}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier5" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost5" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
-            <div>{{commandService.dto.rumble5}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble5" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div>{{commandService.dto.brake5}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake5" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers5" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.powerMultiplier5}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier5" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost5" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.rumble5}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.rumble5" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{dto.brake5}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.brake5" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers5" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
 
             <div class="mat-caption" style="justify-self: center;">6</div>
-            <div>{{commandService.dto.powerMultiplier6}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.powerMultiplier6" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.ghost6" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
-            <div>{{commandService.dto.rumble6}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.rumble6" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div>{{commandService.dto.brake6}}</div>
-            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="commandService.dto.brake6" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
-            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="commandService.dto.kers6" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.powerMultiplier6}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier6" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost6" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
+            <div>{{dto.rumble6}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.rumble6" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div>{{dto.brake6}}</div>
+            <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.brake6" [ngModelOptions]="{standalone: true}" style="width: 100%;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers6" [ngModelOptions]="{standalone: true}"></mat-checkbox></div>
         </div>
 
-        <mat-radio-group [(ngModel)]="commandService.dto.command" [ngModelOptions]="{standalone: true}" gdColumns="max-content max-content max-content" gdGap="1em" style="margin-top: 1em;">
+        <mat-radio-group [(ngModel)]="dto.command" [ngModelOptions]="{standalone: true}" gdColumns="max-content max-content max-content" gdGap="1em" style="margin-top: 1em;">
             <mat-radio-button value="NoPowerTimerStopped">NoPowerTimerStopped</mat-radio-button>
             <mat-radio-button value="NoPowerTimerTicking">NoPowerTimerTicking</mat-radio-button>
             <mat-radio-button value="NoPowerRebootPic18">NoPowerRebootPic18</mat-radio-button>

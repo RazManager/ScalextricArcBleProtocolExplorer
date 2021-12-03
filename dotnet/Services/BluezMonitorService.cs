@@ -465,11 +465,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 {
                                     if (!string.IsNullOrEmpty(properties.UUID) && !string.IsNullOrEmpty(flag))
                                     {
-                                        _scalextricArcState.ConnectionState.GattCharacteristicFlags.Add(new GattCharacteristicFlag
-                                        {
-                                            uuid = new Guid(properties.UUID),
-                                            Flag = flag
-                                        });
+                                        _scalextricArcState.DeviceInformation.AddGattCharacteristicFlag(new Guid(properties.UUID), flag);
                                     }                                    
                                 }
 

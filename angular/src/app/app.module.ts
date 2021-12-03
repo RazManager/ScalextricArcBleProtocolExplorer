@@ -23,9 +23,7 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './views/api.service';
-import { CommandService } from './views/command/command.service';
 import { CommandComponent } from './views/command/command.component';
-import { ConnectionService } from './views/connection/connection.service';
 import { DeviceInformationResolver } from './views/device-information/device-information-resolver.service';
 import { DeviceInformationComponent } from './views/device-information/device-information.component';
 import { SlotResolver } from './views/slot/slot-resolver.service';
@@ -69,8 +67,6 @@ import { ThrottleComponent } from './views/throttle/throttle.component';
         CommonMenuService,
         CommonToolbarService,
         ApiService,
-        CommandService,
-        ConnectionService,
         DeviceInformationResolver,
         SlotResolver,
         SystemInformationResolver,

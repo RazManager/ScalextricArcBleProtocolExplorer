@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using ScalextricArcBleProtocolExplorer.Hubs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using System.Linq;
 
 
 namespace ScalextricArcBleProtocolExplorer.Services
@@ -37,16 +37,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
-    public class GattCharacteristicFlag
-    {
-        [Required]
-        public Guid uuid { get; set; }
-
-        [Required]
-        public string Flag { get; set; } = null!;
-    }
-
-
     public class ConnectionState
     {
         private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
@@ -67,8 +57,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         [Required]
         public ConnectionStateType State { get; set; }
-
-        public List<GattCharacteristicFlag> GattCharacteristicFlags { get; init; } = new();
 
         public async Task SetAsync(ConnectionStateType state)
         {
@@ -276,6 +264,23 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
+    public class GattCharacteristic
+    {
+        [Required]
+        public Guid uuid { get; set; }
+
+        [Required]
+        public List<GattCharacteristicFlag> Flags { get; init; } = new();
+    }
+
+
+    public class GattCharacteristicFlag
+    {
+        [Required]
+        public string Flag { get; set; } = null!;
+    }
+
+
     public class DeviceInformation
     {
         public string? ManufacturerName { get; set; }
@@ -283,6 +288,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public string? HardwareRevision { get; set; }
         public string? FirmwareRevision { get; set; }
         public string? SoftwareRevision { get; set; }
+        public List<GattCharacteristic> GattCharacteristics { get; init; } = new();
 
         public void Set
         (
@@ -298,6 +304,23 @@ namespace ScalextricArcBleProtocolExplorer.Services
             HardwareRevision = hardwareRevision;
             FirmwareRevision = firmwareRevision;
             SoftwareRevision = softwareRevision;
+        }
+
+        public void AddGattCharacteristicFlag(Guid uuid, string flag)
+        {
+            var gattCharacteristic = GattCharacteristics.SingleOrDefault(x => x.uuid == uuid);
+            if (gattCharacteristic == null)
+            {
+                gattCharacteristic = new GattCharacteristic
+                {
+                    uuid = uuid
+                };
+                GattCharacteristics.Add(gattCharacteristic);
+            }
+            gattCharacteristic.Flags.Add(new GattCharacteristicFlag
+            {
+                Flag = flag
+            });
         }
     }
 

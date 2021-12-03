@@ -5,7 +5,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
 import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
 
-import { ConnectionService } from '../connection/connection.service';
 import { ThrottleDto } from './throttle.dto';
 import { ThrottleObserversService } from './throttle-observers.service';
 
@@ -19,12 +18,10 @@ export class ThrottleComponent
         extends CommonBaseComponent
         implements OnInit {
     public dto!: ThrottleDto;
-    public characteristicUuid = "00003b09-0000-1000-8000-00805f9b34fb";
 
 
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
-                public readonly connnectionService: ConnectionService,
                 toolbarService: CommonToolbarService,
                 private readonly observersService: ThrottleObserversService) {
         super(snackBar);

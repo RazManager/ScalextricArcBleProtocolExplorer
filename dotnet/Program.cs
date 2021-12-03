@@ -4,10 +4,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureLogging(loggingBuilder =>
+{
+    loggingBuilder.AddProvider(new ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerProvider());
+});
 
 builder.WebHost.ConfigureKestrel(options =>
 {

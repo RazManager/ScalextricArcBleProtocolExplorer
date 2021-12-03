@@ -10,10 +10,8 @@ import { CommonBreakpointObserver } from 'src/lib/components/common-breakpointob
 
 import { ApiService } from './views/api.service';
 import { CommandDto } from './views/command/command.dto';
-import { CommandService } from './views/command/command.service';
 import { CommandObserversService } from './views/command/command-observers.service';
 import { ConnectionDto } from './views/connection/connection.dto';
-import { ConnectionService } from './views/connection/connection.service';
 import { ConnectionObserversService } from './views/connection/connection-observers.service';
 
 
@@ -27,6 +25,8 @@ export class AppComponent implements OnInit {
     public sidenavMode: MatDrawerMode = "side";
     public sidenavOpened: boolean = false;
     public menuShow = false;
+    public command: CommandDto | undefined;
+    public connection: ConnectionDto | undefined;
 
 
     constructor(private readonly router: Router,
@@ -35,9 +35,7 @@ export class AppComponent implements OnInit {
                 private readonly breakpointObserver: CommonBreakpointObserver,
                 public readonly busyService: CommonBusyService,
                 private readonly apiService: ApiService,
-                public readonly commandService: CommandService,
                 private readonly commandObserversService: CommandObserversService,
-                public readonly connectionService: ConnectionService,
                 private readonly connectionObserversService: ConnectionObserversService) {
     }
 
@@ -69,7 +67,7 @@ export class AppComponent implements OnInit {
             .onChangedState
             .subscribe((dto: ConnectionDto) => {
                 console.log('ConnectionDto', dto);
-                this.connectionService.dto = dto;
+                this.connection = dto;
             });
 
         this.connectionObserversService.observe();
@@ -78,7 +76,7 @@ export class AppComponent implements OnInit {
             .onChangedState
             .subscribe((dto: CommandDto) => {
                 console.log('CommandDto', dto);
-                this.commandService.dto = dto;
+                this.command = dto;
             });
 
         this.commandObserversService.observe();
@@ -86,14 +84,14 @@ export class AppComponent implements OnInit {
         this.apiService.getConnection()
             .subscribe((dto: ConnectionDto) => 
             {
-                this.connectionService.dto = dto;
+                this.connection = dto;
             });
 
 
         this.apiService.getCommand()
             .subscribe((dto: CommandDto) => 
             {
-                this.commandService.dto = dto;
+                this.command = dto;
             });
     }
 

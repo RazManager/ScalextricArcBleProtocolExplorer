@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Data } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
@@ -7,7 +7,7 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 import { ApiErrorResponse } from 'src/lib/common/common-base.service';
 
 import { ApiService } from '../api.service';
-import { CommandService } from './command.service';
+import { CommandDto } from './command.dto';
 import { CommandObserversService } from './command-observers.service';
 
 
@@ -17,20 +17,42 @@ import { CommandObserversService } from './command-observers.service';
 
 })
 export class CommandComponent
-        extends CommonBaseComponent {
-
+        extends CommonBaseComponent
+        implements OnInit {
+    public dto!: CommandDto;
+            
+            
 
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
                 toolbarService: CommonToolbarService,
-                public readonly commandService: CommandService,
+                private readonly observersService: CommandObserversService,
                 private readonly apiService: ApiService) {
         super(snackBar);
         toolbarService.header = "Command";
     }
 
+
+    public ngOnInit(): void {
+        this.route.data.subscribe({
+            next: (data: Data) => {
+                this.dto = <CommandDto>data['result'];
+
+                this.observersService
+                .onChangedState
+                .subscribe((dto: CommandDto) => {
+                    console.log('SlotDto', dto);                
+                    this.dto = dto;
+                });
+
+                this.observersService.observe();
+            }
+        });
+    }
+
+
     public write(): void {
-        this.apiService.postCommand(this.commandService.dto)
+        this.apiService.postCommand(this.dto)
         .subscribe({
             next: () => {
                 this.snackBarOpen("Command written.");

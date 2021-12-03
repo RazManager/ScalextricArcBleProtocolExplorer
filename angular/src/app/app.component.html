@@ -28,7 +28,7 @@
                 <mat-list-item (click)="navigate(['/system'])">
                     System information
                 </mat-list-item>
-                <mat-list-item *ngIf="!!connectionService.dto && connectionService.dto.state === 'Initialized'" (click)="navigate(['/log'])">
+                <mat-list-item *ngIf="!!connection && connection.state === 'Initialized'" (click)="navigate(['/log'])">
                     System log
                 </mat-list-item>
             </mat-nav-list>
@@ -46,19 +46,19 @@
                         {{toolbarService.header}}   
                     </div>
                     <div>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerStopped' || commandService.dto.command === 'NoPowerTimerTicking' || commandService.dto.command === 'NoPowerRebootPic18')">power_off</mat-icon>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'PowerOnRaceTrigger' || commandService.dto.command === 'PowerOnRacing' || commandService.dto.command === 'PowerOnTimerHalt')">power</mat-icon>   
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!command && (command.command === 'NoPowerTimerStopped' || command.command === 'NoPowerTimerTicking' || command.command === 'NoPowerRebootPic18')">power_off</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!command && (command.command === 'PowerOnRaceTrigger' || command.command === 'PowerOnRacing' || command.command === 'PowerOnTimerHalt')">power</mat-icon>   
                     </div>
                     <div>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerStopped' || commandService.dto.command === 'PowerOnRaceTrigger' || commandService.dto.command === 'NoPowerRebootPic18')">timer_off</mat-icon>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Initialized' && !!commandService.dto && (commandService.dto.command === 'NoPowerTimerTicking' || commandService.dto.command === 'PowerOnRacing' || commandService.dto.command === 'PowerOnTimerHalt')">timer</mat-icon>    
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!command && (command.command === 'NoPowerTimerStopped' || command.command === 'PowerOnRaceTrigger' || command.command === 'NoPowerRebootPic18')">timer_off</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized' && !!command && (command.command === 'NoPowerTimerTicking' || command.command === 'PowerOnRacing' || command.command === 'PowerOnTimerHalt')">timer</mat-icon>    
                     </div>
                     <div>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Disabled'">bluetooth_disabled</mat-icon>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Enabled'">bluetooth</mat-icon>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Discovering'">bluetooth_searching</mat-icon>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Connected'">bluetooth_connected</mat-icon>
-                        <mat-icon *ngIf="!!connectionService.dto && connectionService.dto.state === 'Initialized'">bluetooth_drive</mat-icon>    
+                        <mat-icon *ngIf="!!connection && connection.state === 'Disabled'">bluetooth_disabled</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Enabled'">bluetooth</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Discovering'">bluetooth_searching</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Connected'">bluetooth_connected</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.state === 'Initialized'">bluetooth_drive</mat-icon>    
                     </div>
                 </mat-toolbar-row>   
             </mat-toolbar>
