@@ -38,6 +38,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private const string hardwareRevisionCharacteristicUuid = "00002a27-0000-1000-8000-00805f9b34fb";
         private const string firmwareRevisionCharacteristicUuid = "00002a26-0000-1000-8000-00805f9b34fb";
         private const string softwareRevisionCharacteristicUuid = "00002a28-0000-1000-8000-00805f9b34fb";
+        private const string dfuControlPointCharacteristicUuid = "00001531-1212-efde-1523-785feabcd123";
+        private const string dfuPacketCharacteristicUuid = "00001532-1212-efde-1523-785feabcd123";
+        private const string dfuRevisionCharacteristicUuid = "00001534-1212-efde-1523-785feabcd123";
 
         private const string commandCharacteristicUuid = "00003b0a-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _commandCharacteristicProxy = null;
@@ -52,9 +55,27 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private const string throttleProfile1CharacteristicUuid = "0000ff01-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile1CharacteristicProxy = null;
+        private Task? _throttleProfile1CharacteristicWatchTask = null;
 
         private const string throttleProfile2CharacteristicUuid = "0000ff02-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile2CharacteristicProxy = null;
+        private Task? _throttleProfile2CharacteristicWatchTask = null;
+
+        private const string throttleProfile3CharacteristicUuid = "0000ff03-0000-1000-8000-00805f9b34fb";
+        private bluez.DBus.IGattCharacteristic1? _throttleProfile3CharacteristicProxy = null;
+        private Task? _throttleProfile3CharacteristicWatchTask = null;
+
+        private const string throttleProfile4CharacteristicUuid = "0000ff04-0000-1000-8000-00805f9b34fb";
+        private bluez.DBus.IGattCharacteristic1? _throttleProfile4CharacteristicProxy = null;
+        private Task? _throttleProfile4CharacteristicWatchTask = null;
+
+        private const string throttleProfile5CharacteristicUuid = "0000ff05-0000-1000-8000-00805f9b34fb";
+        private bluez.DBus.IGattCharacteristic1? _throttleProfile5CharacteristicProxy = null;
+        private Task? _throttleProfile5CharacteristicWatchTask = null;
+
+        private const string throttleProfile6CharacteristicUuid = "0000ff06-0000-1000-8000-00805f9b34fb";
+        private bluez.DBus.IGattCharacteristic1? _throttleProfile6CharacteristicProxy = null;
+        private Task? _throttleProfile6CharacteristicWatchTask = null;
 
         private readonly ScalextricArcState _scalextricArcState;
         private readonly Channel<CommandState> _commandStateChannel;
@@ -481,6 +502,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                         gattCharacteristic.Name = "Software revision";
                                         break;
 
+                                    case dfuControlPointCharacteristicUuid:
+                                        gattCharacteristic.Name = "DFU control point";
+                                        break;
+
+                                    case dfuPacketCharacteristicUuid:
+                                        gattCharacteristic.Name = "DFU packet";
+                                        break;
+
+                                    case dfuRevisionCharacteristicUuid:
+                                        gattCharacteristic.Name = "DFU revision";
+                                        break;
+
                                     case commandCharacteristicUuid:
                                         gattCharacteristic.Name = "Command";
                                         break;
@@ -499,6 +532,22 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                                     case throttleProfile2CharacteristicUuid:
                                         gattCharacteristic.Name = "Throttle profile 2";
+                                        break;
+
+                                    case throttleProfile3CharacteristicUuid:
+                                        gattCharacteristic.Name = "Throttle profile 3";
+                                        break;
+
+                                    case throttleProfile4CharacteristicUuid:
+                                        gattCharacteristic.Name = "Throttle profile 4";
+                                        break;
+
+                                    case throttleProfile5CharacteristicUuid:
+                                        gattCharacteristic.Name = "Throttle profile 5";
+                                        break;
+
+                                    case throttleProfile6CharacteristicUuid:
+                                        gattCharacteristic.Name = "Throttle profile 6";
                                         break;
 
                                     default:
@@ -568,6 +617,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                                 false
                                             );
                                         }
+
+                                        if (properties.UUID == throttleProfile1CharacteristicUuid)
+                                        {
+                                            foreach (var b in value)
+                                            {
+                                                _logger.LogInformation($"throttleProfile1CharacteristicUuid Value {b}");
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -590,8 +647,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 await _throttleCharacteristicProxy.StartNotifyAsync();
                                 _throttleCharacteristicWatchTask = _throttleCharacteristicProxy.WatchPropertiesAsync(throttleCharacteristicWatchProperties);
                             }
+
+                            if (properties.UUID == throttleProfile1CharacteristicUuid)
+                            {
+                                _throttleProfile1CharacteristicProxy = proxy;
+                                await _throttleProfile1CharacteristicProxy.StartNotifyAsync();
+                                _throttleProfile1CharacteristicWatchTask = _throttleProfile1CharacteristicProxy.WatchPropertiesAsync(throttleProfile1CharacteristicWatchProperties);
+                            }
+
+                            _scalextricArcState.GattCharacteristics.Add(gattCharacteristic);
                         }
 
+                        _logger.LogInformation("Connection to Scalextric ARC has been completed.");
                         await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
                     }
                 }
@@ -654,6 +721,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         (uint)(value[7] + value[8] * 256 + value[9] * 65536 + value[10] * 16777216)
                     );
                 }
+            }
+        }
+
+
+        private void throttleProfile1CharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
+        {
+            foreach (var item in propertyChanges.Changed)
+            {
+                _logger.LogInformation($"throttleProfile1CharacteristicWatchProperties: {item.Key} {item.Value}");
             }
         }
 

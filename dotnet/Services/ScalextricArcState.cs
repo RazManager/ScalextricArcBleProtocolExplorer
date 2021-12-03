@@ -572,4 +572,33 @@ namespace ScalextricArcBleProtocolExplorer.Services
             _hubContext.Clients.All.ChangedState(this);
         }
     }
+
+
+    public class ThrottleProfileBlockState
+    {
+        //private readonly IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> _hubContext;
+
+        //public ThrottleProfileState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> hubContext)
+        //{
+        //    _hubContext = hubContext;
+        //}
+
+        public byte? Block { get; set; }
+        public byte? Data1 { get; set; }
+        public byte? Data2 { get; set; }
+        public byte? Data3 { get; set; }
+        public byte? Data4 { get; set; }
+        public byte? Data5 { get; set; }
+        public byte? Data6 { get; set; }
+        public byte? Data7 { get; set; }
+        public byte? Data8 { get; set; }
+        public byte? Data9 { get; set; }
+        public byte? Data10 { get; set; }
+        public byte? Data11 { get; set; }
+        public byte? Data12 { get; set; }
+        public byte? Data13{ get; set; }
+        public byte? Data14{ get; set; }
+        public byte? Data15{ get; set; }
+        public byte? Data16{ get; set; }
+    }
 }
