@@ -14,6 +14,8 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs'; 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
@@ -23,9 +25,12 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './views/api.service';
+import { CommandResolver } from './views/command/command-resolver.service';
 import { CommandComponent } from './views/command/command.component';
-import { DeviceInformationResolver } from './views/device-information/device-information-resolver.service';
-import { DeviceInformationComponent } from './views/device-information/device-information.component';
+import { GattCharacteristicResolver } from './views/gatt-characteristic/gatt-characteristic-resolver.service';
+import { GattCharacteristicComponent } from './views/gatt-characteristic/gatt-characteristic.component';
+import { LogResolver } from './views/log/log-resolver.service';
+import { LogComponent } from './views/log/log.component';
 import { SlotResolver } from './views/slot/slot-resolver.service';
 import { SlotComponent } from './views/slot/slot.component';
 import { SystemInformationResolver } from './views/system-information/system-information-resolver.service';
@@ -38,7 +43,8 @@ import { ThrottleComponent } from './views/throttle/throttle.component';
     declarations: [
         AppComponent,
         CommandComponent,
-        DeviceInformationComponent,
+        GattCharacteristicComponent,
+        LogComponent,
         SlotComponent,
         SystemInformationComponent,
         ThrottleComponent
@@ -58,6 +64,8 @@ import { ThrottleComponent } from './views/throttle/throttle.component';
         MatSidenavModule,
         MatSliderModule,
         MatSnackBarModule,
+        MatTableModule,
+        MatTabsModule,
         MatToolbarModule,
         FlexLayoutModule,
         AppRoutingModule
@@ -67,7 +75,9 @@ import { ThrottleComponent } from './views/throttle/throttle.component';
         CommonMenuService,
         CommonToolbarService,
         ApiService,
-        DeviceInformationResolver,
+        CommandResolver,
+        GattCharacteristicResolver,
+        LogResolver,
         SlotResolver,
         SystemInformationResolver,
         ThrottleResolver

@@ -13,7 +13,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
     {
         public ConnectionState ConnectionState { get; set; }
         public CommandState CommandState { get; set; }
-        public DeviceInformation DeviceInformation { get; set; } = new();
+        public List<GattCharacteristic> GattCharacteristics { get; set; } = new();
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
         public ThrottleState ThrottleState { get; set; }
 
@@ -267,7 +267,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
     public class GattCharacteristic
     {
         [Required]
-        public Guid uuid { get; set; }
+        public string uuid { get; set; } = null!;
+
+        public string? Name { get; set; }
+
+        public string? Value { get; set; }
+
+        public int? Length { get; set; }
 
         [Required]
         public List<GattCharacteristicFlag> Flags { get; init; } = new();
@@ -278,50 +284,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
     {
         [Required]
         public string Flag { get; set; } = null!;
-    }
-
-
-    public class DeviceInformation
-    {
-        public string? ManufacturerName { get; set; }
-        public string? ModelNumber { get; set; }
-        public string? HardwareRevision { get; set; }
-        public string? FirmwareRevision { get; set; }
-        public string? SoftwareRevision { get; set; }
-        public List<GattCharacteristic> GattCharacteristics { get; init; } = new();
-
-        public void Set
-        (
-            string? manufacturerName,
-            string? modelNumber,
-            string? hardwareRevision,
-            string? firmwareRevision,
-            string? softwareRevision
-        )
-        {
-            ManufacturerName = manufacturerName;
-            ModelNumber = modelNumber;
-            HardwareRevision = hardwareRevision;
-            FirmwareRevision = firmwareRevision;
-            SoftwareRevision = softwareRevision;
-        }
-
-        public void AddGattCharacteristicFlag(Guid uuid, string flag)
-        {
-            var gattCharacteristic = GattCharacteristics.SingleOrDefault(x => x.uuid == uuid);
-            if (gattCharacteristic == null)
-            {
-                gattCharacteristic = new GattCharacteristic
-                {
-                    uuid = uuid
-                };
-                GattCharacteristics.Add(gattCharacteristic);
-            }
-            gattCharacteristic.Flags.Add(new GattCharacteristicFlag
-            {
-                Flag = flag
-            });
-        }
     }
 
 

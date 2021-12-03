@@ -1,9 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { CommandResolver } from './views/command/command-resolver.service';
 import { CommandComponent } from './views/command/command.component';
-import { DeviceInformationResolver } from './views/device-information/device-information-resolver.service';
-import { DeviceInformationComponent } from './views/device-information/device-information.component';
+import { GattCharacteristicResolver } from './views/gatt-characteristic/gatt-characteristic-resolver.service';
+import { GattCharacteristicComponent } from './views/gatt-characteristic/gatt-characteristic.component';
+import { LogResolver } from './views/log/log-resolver.service';
+import { LogComponent } from './views/log/log.component';
 import { SlotResolver } from './views/slot/slot-resolver.service';
 import { SlotComponent } from './views/slot/slot.component';
 import { SystemInformationResolver } from './views/system-information/system-information-resolver.service';
@@ -21,13 +24,23 @@ const routes: Routes = [
     },
     {
         path: 'command',
-        component: CommandComponent
+        component: CommandComponent,
+        resolve: {
+            result: CommandResolver
+        }
     },
     {
-        path: 'device',
-        component: DeviceInformationComponent,
+        path: 'gatt-characteristic',
+        component: GattCharacteristicComponent,
         resolve: {
-            result: DeviceInformationResolver
+            result: GattCharacteristicResolver
+        }
+    },
+    {
+        path: 'log',
+        component: LogComponent,
+        resolve: {
+            result: LogResolver
         }
     },
     {

@@ -38,7 +38,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.CpuInfo
             }
             catch (System.Exception exception)
             {
-                logger.LogError($"Could not read /proc/cpuinfo: {exception.Message}");
+                logger.LogError(exception, $"Could not read /proc/cpuinfo: {exception.Message}");
             }
         }
     }

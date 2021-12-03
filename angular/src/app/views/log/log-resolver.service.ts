@@ -7,22 +7,22 @@ import { catchError } from 'rxjs/operators';
 import { ApiErrorResponse } from '../../../lib/common/common-base.service';
 import { CommonBaseResolver } from '../../../lib/common/common-base-resolver.service';
 
-import { DeviceInformationDto } from './device-information.dto';
+import { LogDto } from './log.dto';
 import { ApiService } from '../api.service';
 
 
 @Injectable()
-export class DeviceInformationResolver
+export class LogResolver
         extends CommonBaseResolver
-        implements Resolve<DeviceInformationDto> {
+        implements Resolve<LogDto[]> {
     constructor(snackBar: MatSnackBar,
                 private readonly apiService: ApiService) {
         super(snackBar);
     }
 
     
-    public resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<DeviceInformationDto> {
-        return this.apiService.getDevice()
+    public resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<LogDto[]> {
+        return this.apiService.getLogs()
                               .pipe(catchError((err: ApiErrorResponse) => this.onError(err)));
     }
 }

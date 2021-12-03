@@ -10,25 +10,34 @@
             </mat-toolbar>
    
             <mat-nav-list>
-                <mat-list-item (click)="navigate(['/device'])">
-                    Device information
-                </mat-list-item>
-                <mat-list-item (click)="navigate(['/command'])">
-                    Command
-                </mat-list-item>
-                <mat-list-item (click)="navigate(['/slot'])">
-                    Slot
-                </mat-list-item>
-                <mat-list-item (click)="navigate(['/throttle'])">
-                    Throttle
-                </mat-list-item>
-                <mat-list-item disabled="true" style="color: lightgray; background-color: unset;"   (click)="navigate(['/throttle-profile'])">
-                    Throttle profiles
-                </mat-list-item>
                 <mat-list-item (click)="navigate(['/system'])">
                     System information
                 </mat-list-item>
-                <mat-list-item *ngIf="!!connection && connection.state === 'Initialized'" (click)="navigate(['/log'])">
+                <mat-list-item
+                        [disabled]="!connection || connection.state !== 'Initialized'"
+                        (click)="navigate(['/gatt-characteristic'])">
+                    GATT characteristics
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.state !== 'Initialized'"
+                        (click)="navigate(['/command'])">
+                    Command
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.state !== 'Initialized'"
+                        (click)="navigate(['/slot'])">
+                    Slot
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.state !== 'Initialized'"                
+                        (click)="navigate(['/throttle'])">
+                    Throttle
+                </mat-list-item>
+                <mat-list-item disabled="true" style="color: lightgray; background-color: unset;"
+                        (click)="navigate(['/throttle-profile'])">
+                    Throttle profiles
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/log'])">
                     System log
                 </mat-list-item>
             </mat-nav-list>

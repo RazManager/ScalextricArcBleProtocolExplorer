@@ -46,11 +46,9 @@ mat-spinner.mat-progress-spinner {
 
 
 .throttle-value-bar {
-    //fill: royalblue;
     fill: mat.get-color-from-palette($primary-palette, 500);
 }
 
 .throttle-value-bar-background {
-    fill: lightblue;
     fill: mat.get-color-from-palette($primary-palette, 50);
 }

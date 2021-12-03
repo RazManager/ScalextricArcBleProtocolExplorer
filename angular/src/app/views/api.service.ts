@@ -8,7 +8,8 @@ import { CommonBusyService } from '../../lib/common/common-busy.service';
 
 import { ConnectionDto } from './connection/connection.dto';
 import { CommandDto } from './command/command.dto';
-import { DeviceInformationDto } from './device-information/device-information.dto';
+import { GattCharacteristicDto } from './gatt-characteristic/gatt-characteristic.dto';
+import { LogDto } from './log/log.dto';
 import { ThrottleDto } from './throttle/throttle.dto';
 import { SlotDto } from './slot/slot.dto';
 import { SystemInformationDto } from './system-information/system-information.dto';
@@ -47,9 +48,17 @@ export class ApiService extends CommonBaseService {
     }
 
 
-    public getDevice(): Observable<DeviceInformationDto> {
+    public getGattCharacteristics(): Observable<GattCharacteristicDto[]> {
         this.busyService.begin(this);
-        return this.httpClient.get<DeviceInformationDto>(`${this.serviceUrl}/device-information`)
+        return this.httpClient.get<GattCharacteristicDto[]>(`${this.serviceUrl}/gatt-characteristics`)
+                              .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
+                                    finalize(() => this.busyService.end(this)));
+    }
+
+
+    public getLogs(): Observable<LogDto[]> {
+        this.busyService.begin(this);
+        return this.httpClient.get<LogDto[]>(`${this.serviceUrl}/logs`)
                               .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));
     }

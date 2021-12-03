@@ -1,0 +1,36 @@
+<mat-card class="section-container">
+    <mat-card-content gdColumns="max-content max-content" style="column-gap: 1em;">
+        <div class="mat-caption">
+            UUID
+        </div>
+        <div class="mat-caption">
+            Name
+        </div>
+        <div class="mat-caption">
+            Value
+        </div>
+        <div class="mat-caption">
+            Length
+        </div>
+        <div class="mat-caption">
+            Flags
+        </div>
+        <ng-container *ngFor="let gattCharacteristic of dto">
+            <div>
+                {{gattCharacteristic.uuid}}
+            </div>
+            <div>
+                {{gattCharacteristic.name}}
+            </div>
+            <div>
+                {{gattCharacteristic.value}}
+            </div>
+            <div style="justify-self: right;">
+                {{gattCharacteristic.length}}
+            </div>
+            <div>
+                {{flags(gattCharacteristic.flags)}}
+            </div>
+        </ng-container>
+    </mat-card-content>
+</mat-card>

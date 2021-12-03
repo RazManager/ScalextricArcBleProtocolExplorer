@@ -15,8 +15,8 @@
             <div>{{dto.timestampInterval}}</div>
             <div>{{dto.refreshRate}}</div>
             <span *ngIf="dto.isDigital === true">Digital</span><span *ngIf="dto.isDigital === false">Analog</span>
-            <div style="text-align:end;">{{dto.picVersion}}</div>
-            <div style="justify-self: end;">{{dto.baseVersion}}</div>
+            <div>{{dto.picVersion}}</div>
+            <div>{{dto.baseVersion}}</div>
         </div>
 
         <div gdColumns="max-content 1em 1fr max-content max-content max-content max-content"
@@ -46,7 +46,8 @@
             <div>{{dto.value2}}</div>
             <div style="width: 100%;">
                 <svg height="1em" width="100%">
-                    <rect y="4" height="100%" [attr.width]="valueWidth(2)" style="fill:cornflowerblue"></rect>
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(2)" class="throttle-value-bar"></rect>
                 </svg>    
             </div>
             <div><mat-checkbox [checked]="dto.brakeButton2" disabled></mat-checkbox></div>
@@ -58,7 +59,8 @@
             <div>{{dto.value3}}</div>
             <div style="width: 100%;">
                 <svg height="1em" width="100%">
-                    <rect y="4" height="100%" [attr.width]="valueWidth(3)" style="fill:cornflowerblue"></rect>
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(3)" class="throttle-value-bar"></rect>
                 </svg>    
             </div>
             <div><mat-checkbox [checked]="dto.brakeButton3" disabled></mat-checkbox></div>
@@ -70,7 +72,8 @@
             <div>{{dto.value4}}</div>
             <div style="width: 100%;">
                 <svg height="1em" width="100%">
-                    <rect y="4" height="100%" [attr.width]="valueWidth(4)" style="fill:cornflowerblue"></rect>
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(4)" class="throttle-value-bar"></rect>
                 </svg>    
             </div>
             <div><mat-checkbox [checked]="dto.brakeButton4" disabled></mat-checkbox></div>
@@ -82,7 +85,8 @@
             <div>{{dto.value5}}</div>
             <div style="width: 100%;">
                 <svg height="1em" width="100%">
-                    <rect y="4" height="100%" [attr.width]="valueWidth(5)" style="fill:cornflowerblue"></rect>
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(5)" class="throttle-value-bar"></rect>
                 </svg>    
             </div>
             <div><mat-checkbox [checked]="dto.brakeButton5" disabled></mat-checkbox></div>
@@ -94,7 +98,8 @@
             <div>{{dto.value6}}</div>
             <div style="width: 100%;">
                 <svg height="1em" width="100%">
-                    <rect y="4" height="100%" [attr.width]="valueWidth(6)" style="fill:cornflowerblue"></rect>
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(6)" class="throttle-value-bar"></rect>
                 </svg>    
             </div>
             <div><mat-checkbox [checked]="dto.brakeButton6" disabled></mat-checkbox></div>

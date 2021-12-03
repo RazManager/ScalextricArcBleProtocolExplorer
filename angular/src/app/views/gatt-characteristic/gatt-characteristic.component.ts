@@ -5,31 +5,36 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonBaseComponent } from '../../../lib/common/common-base.component';
 import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
 
-import { DeviceInformationDto } from './device-information.dto';
+import { GattCharacteristicDto, GattCharacteristicFlagDto } from './gatt-characteristic.dto';
 
 
 @Component({
-    templateUrl: './device-information.component.html'
+    templateUrl: './gatt-characteristic.component.html'
 })
-export class DeviceInformationComponent
+export class GattCharacteristicComponent
         extends CommonBaseComponent
         implements OnInit {
-    public dto!: DeviceInformationDto;
+    public dto!: GattCharacteristicDto[];
 
 
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
                 toolbarService: CommonToolbarService) {
         super(snackBar);
-        toolbarService.header = "Device information";
+        toolbarService.header = "GATT characteristics";
     }
-
+  
 
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                this.dto = <DeviceInformationDto>data['result'];
+                this.dto = <GattCharacteristicDto[]>data['result'];
             }
         });
+    }
+
+
+    public flags(flags: GattCharacteristicFlagDto[]): string {
+        return flags.map(x => x.flag).join(", ");
     }
 }

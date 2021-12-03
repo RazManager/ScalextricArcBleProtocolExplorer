@@ -8,6 +8,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.MemoryLogger
     {
         private readonly string _category;
 
+
         public MemoryLogger(string category)
         {
             _category = category;
@@ -25,23 +26,24 @@ namespace ScalextricArcBleProtocolExplorer.Services.MemoryLogger
             return true;
         }
 
+
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             if (exception != null)
             {
-                //MemoryLoggerQueue.Queue.TryAdd(
-                //    new MemoryLoggerData(_category, logLevel, formatter(state, exception)),
-                //    1000
-                //);
+                MemoryLoggerChannel.ChannelData.Writer.TryWrite(new MemoryLoggerData(_category, logLevel, formatter(state, exception)));
             }
             else
             {
-                //MemoryLoggerQueue.Queue.TryAdd(
-                //    new MemoryLoggerData(_category, logLevel, state.ToString()),
-                //    1000
-                //);
+                if (state is null)
+                {
+                    MemoryLoggerChannel.ChannelData.Writer.TryWrite(new MemoryLoggerData(_category, logLevel, "?"));
+                }
+                else
+                {
+                    MemoryLoggerChannel.ChannelData.Writer.TryWrite(new MemoryLoggerData(_category, logLevel, state.ToString()!));
+                }
             }
         }
     }
-
 }

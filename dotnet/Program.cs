@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading.Channels;
 
 
@@ -19,6 +20,10 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(8080);
 });
+
+builder.Services.AddSingleton(serviceProvider =>
+    new Queue<ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerData>()
+);
 
 builder.Services.AddSingleton(serviceProvider =>
     Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.CommandState>(new BoundedChannelOptions(10)
@@ -40,9 +45,11 @@ builder.Services.AddSingleton(serviceProvider =>
     )
 );
 
-
-builder.Services.AddScoped<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService, ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>();
-
+//builder.Services.AddScoped<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService, ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>();
+builder.Services.AddSingleton<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService>(serviceProvider =>
+    new ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService(serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>>())
+);
+builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerService>();
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
 
 builder.Services.AddControllers()
@@ -99,6 +106,7 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub>("hubs/connection");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.CommandHub>("hubs/command");
+    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.LogHub>("hubs/log");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.SlotHub>("hubs/slot");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle");
 });
