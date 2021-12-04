@@ -37,6 +37,8 @@ import { SystemInformationResolver } from './views/system-information/system-inf
 import { SystemInformationComponent } from './views/system-information/system-information.component';
 import { ThrottleResolver } from './views/throttle/throttle-resolver.service';
 import { ThrottleComponent } from './views/throttle/throttle.component';
+import { ThrottleProfileResolver } from './views/throttle-profile/throttle-profile-resolver.service';
+import { ThrottleProfileComponent } from './views/throttle-profile/throttle-profile.component';
 
 
 @NgModule({
@@ -47,7 +49,8 @@ import { ThrottleComponent } from './views/throttle/throttle.component';
         LogComponent,
         SlotComponent,
         SystemInformationComponent,
-        ThrottleComponent
+        ThrottleComponent,
+        ThrottleProfileComponent
     ],
     imports: [
         BrowserModule,
@@ -80,7 +83,8 @@ import { ThrottleComponent } from './views/throttle/throttle.component';
         LogResolver,
         SlotResolver,
         SystemInformationResolver,
-        ThrottleResolver
+        ThrottleResolver,
+        ThrottleProfileResolver
     ],
     bootstrap: [AppComponent]
 })

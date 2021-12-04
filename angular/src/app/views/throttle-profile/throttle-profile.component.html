@@ -1,8 +1,12 @@
-<mat-tab-group>
-    <mat-tab *ngFor="let throttle-profile of dto" label="Id {{throttle-profile.carId}}">
+<mat-tab-group backgroundColor="primary" >
+    <mat-tab *ngFor="let throttleprofile of dto" label="ID {{throttleprofile.carId}}">
         <mat-card class="section-container">
             <mat-card-content>
-                <div *ngFor="value of throttle-profile.values">{{value}}</div>
+                {{throttleprofile.values}}
+<!-- 
+                <div *ngFor="value of throttleprofile.values">{{value.value}}</div>
+                 -->
+            </mat-card-content>
         </mat-card>
     </mat-tab>
 </mat-tab-group>

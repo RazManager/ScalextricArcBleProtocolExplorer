@@ -12,7 +12,7 @@ import { ApiService } from '../api.service';
 
 
 @Injectable()
-export class SlotResolver
+export class ThrottleProfileResolver
         extends CommonBaseResolver
         implements Resolve<ThrottleProfileDto[]> {
     constructor(snackBar: MatSnackBar,

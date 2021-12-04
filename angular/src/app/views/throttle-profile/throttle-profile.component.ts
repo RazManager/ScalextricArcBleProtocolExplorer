@@ -10,11 +10,11 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 
 
 @Component({
-    templateUrl: './slot.component.html',
+    templateUrl: './throttle-profile.component.html',
     providers: [ ThrottleProfileObserversService ]
 
 })
-export class SlotComponent
+export class ThrottleProfileComponent
         extends CommonBaseComponent
         implements OnInit {
     public dto!: ThrottleProfileDto[];

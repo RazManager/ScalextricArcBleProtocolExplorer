@@ -13,6 +13,8 @@ import { SystemInformationResolver } from './views/system-information/system-inf
 import { SystemInformationComponent } from './views/system-information/system-information.component';
 import { ThrottleResolver } from './views/throttle/throttle-resolver.service';
 import { ThrottleComponent } from './views/throttle/throttle.component';
+import { ThrottleProfileResolver } from './views/throttle-profile/throttle-profile-resolver.service';
+import { ThrottleProfileComponent } from './views/throttle-profile/throttle-profile.component';
 
 const routes: Routes = [
     {
@@ -62,6 +64,13 @@ const routes: Routes = [
         component: ThrottleComponent,
         resolve: {
             result: ThrottleResolver
+        }
+    },
+    {
+        path: 'throttle-profile',
+        component: ThrottleProfileComponent,
+        resolve: {
+            result: ThrottleProfileResolver
         }
     }
 ];

@@ -344,32 +344,67 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             get
             {
+                int lane = 0;
                 uint? last = null;
                 if (TimestampStartFinish1.HasValue && TimestampStartFinish2.HasValue)
                 {
-                    last = Math.Max(TimestampStartFinish1.Value, TimestampStartFinish2.Value);
+                    if (TimestampStartFinish1.Value > TimestampStartFinish2.Value)
+                    {
+                        lane = 1;
+                        last = TimestampStartFinish1.Value;
+                    }
+                    else
+                    {
+                        lane = 2;
+                        last = TimestampStartFinish2.Value;
+                    }
                 }
                 else if (TimestampStartFinish1.HasValue)
                 {
+                    lane = 1;
                     last = TimestampStartFinish1.Value;
                 }
                 else if (TimestampStartFinish2.HasValue)
                 {
+                    lane = 2;
                     last = TimestampStartFinish2.Value;
                 }
 
                 uint? previous = null;
-                if (TimestampStartFinish1Previous.HasValue && TimestampStartFinish2Previous.HasValue)
+                switch (lane)
                 {
-                    previous = Math.Max(TimestampStartFinish1Previous.Value, TimestampStartFinish2Previous.Value);
-                }
-                else if (TimestampStartFinish1Previous.HasValue)
-                {
-                    previous = TimestampStartFinish1Previous.Value;
-                }
-                else if (TimestampStartFinish2Previous.HasValue)
-                {
-                    previous = TimestampStartFinish2Previous.Value;
+                    case 1:
+                        if (TimestampStartFinish1Previous.HasValue && TimestampStartFinish2.HasValue)
+                        {
+                            previous = Math.Max(TimestampStartFinish1Previous.Value, TimestampStartFinish2.Value);
+                        }
+                        else if (TimestampStartFinish1Previous.HasValue)
+                        {
+                            previous = TimestampStartFinish1Previous.Value;
+                        }
+                        else if (TimestampStartFinish2.HasValue)
+                        {
+                            previous = TimestampStartFinish2.Value;
+                        }
+                        break;
+
+                    case 2:
+                        if (TimestampStartFinish2Previous.HasValue && TimestampStartFinish1.HasValue)
+                        {
+                            previous = Math.Max(TimestampStartFinish2Previous.Value, TimestampStartFinish1.Value);
+                        }
+                        else if (TimestampStartFinish2Previous.HasValue)
+                        {
+                            previous = TimestampStartFinish2Previous.Value;
+                        }
+                        else if (TimestampStartFinish1.HasValue)
+                        {
+                            previous = TimestampStartFinish1.Value;
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 if (last.HasValue && previous.HasValue)
@@ -588,13 +623,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte CarId { get; init; }
 
         [Required]
-        public byte[] Values { get; set; } = new byte[64];
+        public int[] Values { get; set; } = new int[64];
 
         public ThrottleProfileDto()
         {
             for (int i = 0; i < Values.Length; i++)
             {
-                Values[i] = (byte)(255 / (Values.Length - 1) * i);
+                Values[i] = 255 / (Values.Length - 1) * i;
             }
         }
     }
@@ -612,7 +647,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             _channel = channel;
         }
 
-        public async Task SetAsync(byte[] values)
+        public async Task SetAsync(int[] values)
         {
             Values = values;
             await _channel.Writer.WriteAsync(this);
