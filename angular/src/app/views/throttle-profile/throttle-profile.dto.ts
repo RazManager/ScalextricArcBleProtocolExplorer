@@ -1,4 +1,8 @@
 export class ThrottleProfileDto {
     public carId!: number;
-    public values!: number[];
+    public values!: ThrottleProfileValueDto[];
+}
+
+export class ThrottleProfileValueDto {
+    public value!: number;
 }

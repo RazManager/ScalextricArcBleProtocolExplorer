@@ -623,15 +623,21 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte CarId { get; init; }
 
         [Required]
-        public int[] Values { get; set; } = new int[64];
+        public List<ThrottleProfileValueDto> Values = new();
 
         public ThrottleProfileDto()
         {
-            for (int i = 0; i < Values.Length; i++)
+            for (int i = 0; i < 64; i++)
             {
-                Values[i] = 255 / (Values.Length - 1) * i;
+                Values.Add(new ThrottleProfileValueDto { Value = (byte)(255 * i / 63) });
             }
         }
+    }
+
+
+    public class ThrottleProfileValueDto
+    {
+        public byte Value { get; set; }
     }
 
 

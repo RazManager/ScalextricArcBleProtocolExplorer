@@ -2,10 +2,16 @@
     <mat-tab *ngFor="let throttleprofile of dto" label="ID {{throttleprofile.carId}}">
         <mat-card class="section-container">
             <mat-card-content>
-                {{throttleprofile.values}}
-<!-- 
-                <div *ngFor="value of throttleprofile.values">{{value.value}}</div>
-                 -->
+                <div gdColumns="max-content max-content 1fr">
+                    <ng-container *ngFor="let value of throttleprofile.values; let i=index;">
+                        <div style="justify-self: center; margin-right: 1em;">{{i}}</div>
+                        <div style="justify-self: center;">{{value}}</div>
+                        <mat-slider thumbLabel min="0" max="255" [(ngModel)]="value.value" [ngModelOptions]="{standalone: true}" style="height: 1em; top: -1em;"></mat-slider>
+                    </ng-container>
+                </div>
+                <button mat-raised-button color="primary" style="margin-top: 2em;">
+                    WRITE
+                </button>
             </mat-card-content>
         </mat-card>
     </mat-tab>
