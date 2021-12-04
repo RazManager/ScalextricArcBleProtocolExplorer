@@ -39,7 +39,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             for (byte i = 0; i < ThrottleProfileStates.Length; i++)
             {
-                ThrottleProfileStates[i] = new ThrottleProfileState(throttleProfileHubContext, throttleProfileStateChannel) { CarId = (byte)(i + 1) };
+                var values = new List<ThrottleProfileValueDto>();
+                for (int v = 0; i < 64; i++)
+                {
+                    values.Add(new ThrottleProfileValueDto { Value = (byte)(255 * v / 63) });
+                }
+                ThrottleProfileStates[i] = new ThrottleProfileState(throttleProfileHubContext, throttleProfileStateChannel) { CarId = (byte)(i + 1), Values = values };
             }
         }
     }
@@ -623,15 +628,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte CarId { get; init; }
 
         [Required]
-        public List<ThrottleProfileValueDto> Values = new();
-
-        public ThrottleProfileDto()
-        {
-            for (int i = 0; i < 64; i++)
-            {
-                Values.Add(new ThrottleProfileValueDto { Value = (byte)(255 * i / 63) });
-            }
-        }
+        public IEnumerable<ThrottleProfileValueDto> Values { get; set; } = new List<ThrottleProfileValueDto>();
     }
 
 
@@ -653,7 +650,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             _channel = channel;
         }
 
-        public async Task SetAsync(int[] values)
+        public async Task SetAsync(IEnumerable<ThrottleProfileValueDto> values)
         {
             Values = values;
             await _channel.Writer.WriteAsync(this);
