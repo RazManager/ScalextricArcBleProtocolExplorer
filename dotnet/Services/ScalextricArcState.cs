@@ -16,12 +16,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public List<GattCharacteristic> GattCharacteristics { get; set; } = new();
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
         public ThrottleState ThrottleState { get; set; }
+        public ThrottleProfileState[] ThrottleProfileStates { get; init; } = new ThrottleProfileState[6];
 
         public ScalextricArcState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
                                   Channel<CommandState> commandStateChannel,
                                   IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
-                                  IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext)
+                                  IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
+                                  IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> throttleProfileHubContext,
+                                  Channel<ThrottleProfileState> throttleProfileStateChannel)
         {
             ConnectionState = new ConnectionState(connectionHubContext);
 
@@ -33,6 +36,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
 
             ThrottleState = new ThrottleState(throttleHubContext);
+
+            for (byte i = 0; i < ThrottleProfileStates.Length; i++)
+            {
+                ThrottleProfileStates[i] = new ThrottleProfileState(throttleProfileHubContext, throttleProfileStateChannel) { CarId = (byte)(i + 1) };
+            }
         }
     }
 
@@ -177,13 +185,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
     public class CommandState : CommandDto
     {
         private readonly IHubContext<Hubs.CommandHub, Hubs.ICommandHub> _hubContext;
-        private readonly Channel<CommandState> _commandStateChannel;
+        private readonly Channel<CommandState> _channel;
 
         public CommandState(IHubContext<Hubs.CommandHub, Hubs.ICommandHub> hubContext,
-                            Channel<CommandState> commandStateChannel)
+                            Channel<CommandState> channel)
         {
             _hubContext = hubContext;
-            _commandStateChannel = commandStateChannel;
+            _channel = channel;
         }
 
         public async Task SetAsync
@@ -256,7 +264,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             if (write)
             {
-                await _commandStateChannel.Writer.WriteAsync(this);
+                await _channel.Writer.WriteAsync(this);
             }
 
             await _hubContext.Clients.All.ChangedState(this);
@@ -574,31 +582,41 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
-    public class ThrottleProfileBlockState
+    public class ThrottleProfileDto
     {
-        //private readonly IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> _hubContext;
+        [Required]
+        public byte CarId { get; init; }
 
-        //public ThrottleProfileState(IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> hubContext)
-        //{
-        //    _hubContext = hubContext;
-        //}
+        [Required]
+        public byte[] Values { get; set; } = new byte[64];
 
-        public byte? Block { get; set; }
-        public byte? Data1 { get; set; }
-        public byte? Data2 { get; set; }
-        public byte? Data3 { get; set; }
-        public byte? Data4 { get; set; }
-        public byte? Data5 { get; set; }
-        public byte? Data6 { get; set; }
-        public byte? Data7 { get; set; }
-        public byte? Data8 { get; set; }
-        public byte? Data9 { get; set; }
-        public byte? Data10 { get; set; }
-        public byte? Data11 { get; set; }
-        public byte? Data12 { get; set; }
-        public byte? Data13{ get; set; }
-        public byte? Data14{ get; set; }
-        public byte? Data15{ get; set; }
-        public byte? Data16{ get; set; }
+        public ThrottleProfileDto()
+        {
+            for (int i = 0; i < Values.Length; i++)
+            {
+                Values[i] = (byte)(255 / (Values.Length - 1) * i);
+            }
+        }
+    }
+
+
+    public class ThrottleProfileState : ThrottleProfileDto
+    {
+        private readonly IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> _hubContext;
+        private readonly Channel<ThrottleProfileState> _channel;
+
+        public ThrottleProfileState(IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> hubContext,
+                                    Channel<ThrottleProfileState> channel)
+        {
+            _hubContext = hubContext;
+            _channel = channel;
+        }
+
+        public async Task SetAsync(byte[] values)
+        {
+            Values = values;
+            await _channel.Writer.WriteAsync(this);
+            await _hubContext.Clients.All.ChangedState(this);
+        }
     }
 }

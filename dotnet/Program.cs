@@ -35,17 +35,27 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
+    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ThrottleProfileState>(new BoundedChannelOptions(10)
+    {
+        FullMode = BoundedChannelFullMode.DropOldest,
+        SingleWriter = false,
+        SingleReader = true
+    })
+);
+
+builder.Services.AddSingleton(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState
     (
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub, ScalextricArcBleProtocolExplorer.Hubs.IConnectionHub>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.CommandHub, ScalextricArcBleProtocolExplorer.Hubs.ICommandHub>>(),
         serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.CommandState>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.SlotHub, ScalextricArcBleProtocolExplorer.Hubs.ISlotHub>>(),
-        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleHub>>()
+        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleHub>>(),
+        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleProfileHub>>(),
+        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ThrottleProfileState>>()
     )
 );
 
-//builder.Services.AddScoped<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService, ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>();
 builder.Services.AddSingleton<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService>(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService(serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>>())
 );
@@ -109,6 +119,7 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.LogHub>("hubs/log");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.SlotHub>("hubs/slot");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle");
+    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle-profile");
 });
 
 app.Run();

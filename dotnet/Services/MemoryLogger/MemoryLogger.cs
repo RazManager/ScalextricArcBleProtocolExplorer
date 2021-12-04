@@ -17,7 +17,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.MemoryLogger
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
 

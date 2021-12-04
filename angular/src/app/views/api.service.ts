@@ -11,6 +11,7 @@ import { CommandDto } from './command/command.dto';
 import { GattCharacteristicDto } from './gatt-characteristic/gatt-characteristic.dto';
 import { LogDto } from './log/log.dto';
 import { ThrottleDto } from './throttle/throttle.dto';
+import { ThrottleProfileDto } from './throttle-profile/throttle-profile.dto';
 import { SlotDto } from './slot/slot.dto';
 import { SystemInformationDto } from './system-information/system-information.dto';
 
@@ -67,6 +68,14 @@ export class ApiService extends CommonBaseService {
     public getThrottle(): Observable<ThrottleDto> {
         this.busyService.begin(this);
         return this.httpClient.get<ThrottleDto>(`${this.serviceUrl}/throttle`)
+                              .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
+                                    finalize(() => this.busyService.end(this)));
+    }
+
+
+    public getThrottleProfiles(): Observable<ThrottleProfileDto[]> {
+        this.busyService.begin(this);
+        return this.httpClient.get<ThrottleProfileDto[]>(`${this.serviceUrl}/throttle-profiles`)
                               .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));
     }
