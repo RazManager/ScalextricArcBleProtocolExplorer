@@ -946,7 +946,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 buffer[item.Index % 16 + 1] = item.Dto.Value;
                 if (item.Index % 16 == 15)
                 {
-                    buffer[0] = (byte)(item.Index / 16 + 1);
+                    buffer[0] = (byte)(item.Index / 16);
                     Console.WriteLine("Writing throttle profile buffer:");
                     for (int i = 0; i < buffer.Length; i++)
                     {

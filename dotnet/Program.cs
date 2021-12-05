@@ -129,13 +129,13 @@ app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub>("hubs/car-id");
+    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.CarIdHub>("hubs/car-id");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub>("hubs/connection");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.CommandHub>("hubs/command");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.LogHub>("hubs/log");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.SlotHub>("hubs/slot");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle");
-    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle-profile");
+    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub>("hubs/throttle-profile");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.TrackHub>("hubs/track");
 });
 

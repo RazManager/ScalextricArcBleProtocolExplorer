@@ -51,7 +51,7 @@ export class ThrottleProfileComponent
 
 
     public write(carId: number): void {
-        this.apiService.postThrottleProfile(this.dto[carId])
+        this.apiService.postThrottleProfile(this.dto[carId - 1])
         .subscribe({
             next: () => {
                 this.snackBarOpen("Throttle profile written for ID=" + carId + ".");
