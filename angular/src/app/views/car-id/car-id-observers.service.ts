@@ -2,16 +2,16 @@ import { Injectable, Injector } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
 
 import { ObserversBaseService, OBSERVERS_SERVICE_PART_URL } from 'src/app/observers-base.service';
-import { ThrottleDto } from './throttle.dto';
+import { CarIdDto } from './car-id.dto';
 
 
 @Injectable()
-export class ThrottleObserversService extends ObserversBaseService {
-    private subscriber: Subscriber<ThrottleDto> | undefined;
+export class CarIdObserversService extends ObserversBaseService {
+    private subscriber: Subscriber<CarIdDto> | undefined;
 
 
     public constructor() {
-        const injector = Injector.create({providers: [{provide: OBSERVERS_SERVICE_PART_URL, useValue: 'hubs/throttle'}]});
+        const injector = Injector.create({providers: [{provide: OBSERVERS_SERVICE_PART_URL, useValue: 'hubs/car-id'}]});
         super(injector.get( OBSERVERS_SERVICE_PART_URL));
     }
 
@@ -25,8 +25,8 @@ export class ThrottleObserversService extends ObserversBaseService {
     }   
 
 
-    public get onChangedState(): Observable<ThrottleDto> {
-        return new Observable((subscriber: Subscriber<ThrottleDto>) => {
+    public get onChangedState(): Observable<CarIdDto> {
+        return new Observable((subscriber: Subscriber<CarIdDto>) => {
             this.subscriber = subscriber;
         });
     };

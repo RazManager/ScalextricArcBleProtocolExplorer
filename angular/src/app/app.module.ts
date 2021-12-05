@@ -25,6 +25,8 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ApiService } from './views/api.service';
+import { CarIdResolver } from './views/car-id/car-id-resolver.service';
+import { CarIdComponent } from './views/car-id/car-id.component';
 import { CommandResolver } from './views/command/command-resolver.service';
 import { CommandComponent } from './views/command/command.component';
 import { GattCharacteristicResolver } from './views/gatt-characteristic/gatt-characteristic-resolver.service';
@@ -39,18 +41,22 @@ import { ThrottleResolver } from './views/throttle/throttle-resolver.service';
 import { ThrottleComponent } from './views/throttle/throttle.component';
 import { ThrottleProfileResolver } from './views/throttle-profile/throttle-profile-resolver.service';
 import { ThrottleProfileComponent } from './views/throttle-profile/throttle-profile.component';
+import { TrackResolver } from './views/track/track-resolver.service';
+import { TrackComponent } from './views/track/track.component';
 
 
 @NgModule({
     declarations: [
         AppComponent,
+        CarIdComponent,
         CommandComponent,
         GattCharacteristicComponent,
         LogComponent,
         SlotComponent,
         SystemInformationComponent,
         ThrottleComponent,
-        ThrottleProfileComponent
+        ThrottleProfileComponent,
+        TrackComponent
     ],
     imports: [
         BrowserModule,
@@ -78,13 +84,15 @@ import { ThrottleProfileComponent } from './views/throttle-profile/throttle-prof
         CommonMenuService,
         CommonToolbarService,
         ApiService,
+        CarIdResolver,
         CommandResolver,
         GattCharacteristicResolver,
         LogResolver,
         SlotResolver,
         SystemInformationResolver,
         ThrottleResolver,
-        ThrottleProfileResolver
+        ThrottleProfileResolver,
+        TrackResolver
     ],
     bootstrap: [AppComponent]
 })

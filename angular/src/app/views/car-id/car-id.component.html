@@ -1,0 +1,32 @@
+<mat-card *ngIf="!!dto" class="section-container">
+    <mat-card-content>
+        <div style="margin-bottom: 1em">
+            <div class="mat-caption">Car ID</div>
+            <div>{{dto.carId}}</div>
+        </div>
+
+        <div gdRows="repeat(7, max-content)" gdGap="1em">
+            <button mat-raised-button (click)="write(0)">
+                Car ID 0
+            </button>
+            <button mat-raised-button (click)="write(1)">
+                Car ID 1
+            </button>
+            <button mat-raised-button (click)="write(2)">
+                Car ID 2
+            </button>
+            <button mat-raised-button (click)="write(3)">
+                Car ID 3
+            </button>
+            <button mat-raised-button (click)="write(4)">
+                Car ID 4
+            </button>
+            <button mat-raised-button (click)="write(5)">
+                Car ID 5
+            </button>
+            <button mat-raised-button (click)="write(6)">
+                Car ID 6
+            </button>
+        </div>
+    </mat-card-content>
+</mat-card>

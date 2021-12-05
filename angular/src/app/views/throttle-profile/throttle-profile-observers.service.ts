@@ -7,7 +7,7 @@ import { ThrottleProfileDto } from './throttle-profile.dto';
 
 @Injectable()
 export class ThrottleProfileObserversService extends ObserversBaseService {
-    private throttleProfileSubscriber: Subscriber<ThrottleProfileDto> | undefined;
+    private subscriber: Subscriber<ThrottleProfileDto> | undefined;
 
 
     public constructor() {
@@ -18,8 +18,8 @@ export class ThrottleProfileObserversService extends ObserversBaseService {
 
     public registerHandlers() {
         this.hubConnection.on('ChangedState', (message) => {
-            if (this.throttleProfileSubscriber) {
-                this.throttleProfileSubscriber.next(message)                    
+            if (this.subscriber) {
+                this.subscriber.next(message)                    
             }
         });
     }   
@@ -27,7 +27,7 @@ export class ThrottleProfileObserversService extends ObserversBaseService {
 
     public get onChangedState(): Observable<ThrottleProfileDto> {
         return new Observable((subscriber: Subscriber<ThrottleProfileDto>) => {
-            this.throttleProfileSubscriber = subscriber;
+            this.subscriber = subscriber;
         });
     };
 }

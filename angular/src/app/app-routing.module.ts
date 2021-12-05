@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
+import { CarIdResolver } from './views/car-id/car-id-resolver.service';
+import { CarIdComponent } from './views/car-id/car-id.component';
 import { CommandResolver } from './views/command/command-resolver.service';
 import { CommandComponent } from './views/command/command.component';
 import { GattCharacteristicResolver } from './views/gatt-characteristic/gatt-characteristic-resolver.service';
@@ -15,13 +17,15 @@ import { ThrottleResolver } from './views/throttle/throttle-resolver.service';
 import { ThrottleComponent } from './views/throttle/throttle.component';
 import { ThrottleProfileResolver } from './views/throttle-profile/throttle-profile-resolver.service';
 import { ThrottleProfileComponent } from './views/throttle-profile/throttle-profile.component';
+import { TrackResolver } from './views/track/track-resolver.service';
+import { TrackComponent } from './views/track/track.component';
 
 const routes: Routes = [
     {
-        path: '',
-        component: SystemInformationComponent,
+        path: 'car-id',
+        component: CarIdComponent,
         resolve: {
-            result: SystemInformationResolver
+            result: CarIdResolver
         }
     },
     {
@@ -71,6 +75,20 @@ const routes: Routes = [
         component: ThrottleProfileComponent,
         resolve: {
             result: ThrottleProfileResolver
+        }
+    },
+    {
+        path: 'track',
+        component: TrackComponent,
+        resolve: {
+            result: TrackResolver
+        }
+    },
+    {
+        path: '',
+        component: SystemInformationComponent,
+        resolve: {
+            result: SystemInformationResolver
         }
     }
 ];

@@ -41,6 +41,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private const string dfuControlPointCharacteristicUuid = "00001531-1212-efde-1523-785feabcd123";
         private const string dfuPacketCharacteristicUuid = "00001532-1212-efde-1523-785feabcd123";
         private const string dfuRevisionCharacteristicUuid = "00001534-1212-efde-1523-785feabcd123";
+        private const string serviceChangedCharacteristicUuid = "00002a05-0000-1000-8000-00805f9b34fb";
 
         private const string commandCharacteristicUuid = "00003b0a-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _commandCharacteristicProxy = null;
@@ -59,35 +60,43 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private const string throttleProfile2CharacteristicUuid = "0000ff02-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile2CharacteristicProxy = null;
-        private Task? _throttleProfile2CharacteristicWatchTask = null;
 
         private const string throttleProfile3CharacteristicUuid = "0000ff03-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile3CharacteristicProxy = null;
-        private Task? _throttleProfile3CharacteristicWatchTask = null;
 
         private const string throttleProfile4CharacteristicUuid = "0000ff04-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile4CharacteristicProxy = null;
-        private Task? _throttleProfile4CharacteristicWatchTask = null;
 
         private const string throttleProfile5CharacteristicUuid = "0000ff05-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile5CharacteristicProxy = null;
-        private Task? _throttleProfile5CharacteristicWatchTask = null;
 
         private const string throttleProfile6CharacteristicUuid = "0000ff06-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile6CharacteristicProxy = null;
-        private Task? _throttleProfile6CharacteristicWatchTask = null;
+
+        private const string trackCharacteristicUuid = "00003b0c-0000-1000-8000-00805f9b34fb";
+        private bluez.DBus.IGattCharacteristic1? _trackCharacteristicProxy = null;
+        private Task? _trackCharacteristicWatchTask = null;
+
+        private const string carIdCharacteristicUuid = "00003b0d-0000-1000-8000-00805f9b34fb";
+        private bluez.DBus.IGattCharacteristic1? _carIdCharacteristicProxy = null;
 
         private readonly ScalextricArcState _scalextricArcState;
+        private readonly Channel<CarIdState> _carIdStateChannel;
         private readonly Channel<CommandState> _commandStateChannel;
+        private readonly Channel<ThrottleProfileState> _throttleProfileStateChannel;
         private readonly ILogger<BluezMonitorService> _logger;
 
 
         public BluezMonitorService(ScalextricArcState scalextricArcState,
+                                   Channel<CarIdState> carIdStateChannel,
                                    Channel<CommandState> commandStateChannel,
+                                   Channel<ThrottleProfileState> throttleProfileStateChannel,
                                    ILogger<BluezMonitorService> logger)
         {
             _scalextricArcState = scalextricArcState;
+            _carIdStateChannel = carIdStateChannel;
             _commandStateChannel = commandStateChannel;
+            _throttleProfileStateChannel = throttleProfileStateChannel;
             _logger = logger;
         }
 
@@ -95,7 +104,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _ = BluezDiscoveryAsync(cancellationToken);
+            _ = CarIdAsync(cancellationToken);
             _ = CommandAsync(cancellationToken);
+            _ = ThrottleProfileAsync(cancellationToken);
             return Task.CompletedTask;
         }
 
@@ -124,8 +135,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 _bluezObjectPathInterfaces = new();
                 scalextricArcObjectPath = null;
                 scalextricArcProxy = null;
-                _throttleCharacteristicWatchTask = null;
                 _slotCharacteristicWatchTask = null;
+                _throttleCharacteristicWatchTask = null;
 
                 try
                 {
@@ -220,12 +231,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     Console.WriteLine($"Creating bluez.DBus.IAdapter1 proxy: {bluezService} {bluezAdapterObjectPathKp.Key}");
                     var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezService, bluezAdapterObjectPathKp.Key);
 
+                    _logger.LogInformation("Bluez initialization done. Trying to find a Scalextric ARC device.");
+
                     while (!cancellationToken.IsCancellationRequested)
                     {
                         var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezDeviceInterface && !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName.Trim() == "Scalextric ARC"));
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
+                            _carIdCharacteristicProxy = null;
+
                             _commandCharacteristicProxy = null;
 
                             if (_slotCharacteristicWatchTask is not null)
@@ -258,6 +273,21 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _throttleCharacteristicProxy = null;
                             }
 
+                            if (_trackCharacteristicWatchTask is not null)
+                            {
+                                _trackCharacteristicWatchTask.Dispose();
+                                _trackCharacteristicWatchTask = null;
+                            }
+
+                            if (_trackCharacteristicProxy is not null)
+                            {
+                                if (await _trackCharacteristicProxy.GetNotifyingAsync())
+                                {
+                                    await _trackCharacteristicProxy.StopNotifyAsync();
+                                }
+                                _trackCharacteristicProxy = null;
+                            }
+
                             if (scalextricArcProxy is not null)
                             {
                                 if (await scalextricArcProxy.GetConnectedAsync())
@@ -270,7 +300,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (await bluezAdapterProxy.GetDiscoveringAsync())
                             {
-                                Console.WriteLine("Bluetooth device discovery already started.");
+                                _logger.LogInformation("Bluetooth device discovery already started.");
                             }
                             else
                             {
@@ -344,7 +374,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
-            Console.WriteLine();
             Console.WriteLine($"{args.objectPath} added with the following interfaces...");
             foreach (var iface in args.interfaces)
             {
@@ -353,7 +382,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             if (args.interfaces.Keys.Any(x => x.StartsWith(bluezService)))
             {
-                var bluezInterfaceMetadatas = new List<BluezInterfaceMetadata>();
+                var bluezInterfaceMetadata = new List<BluezInterfaceMetadata>();
                 foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezService)))
                 {
                     if (item.Key == bluezDeviceInterface)
@@ -367,7 +396,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     {
                         uuid = new Guid(uuidStr.ToString()!);
                     }
-                    bluezInterfaceMetadatas.Add(new BluezInterfaceMetadata
+                    bluezInterfaceMetadata.Add(new BluezInterfaceMetadata
                     {
                         BluezInterface = item.Key,
                         UUID = uuid,
@@ -375,16 +404,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     });
                 }
 
-                _bluezObjectPathInterfaces.TryAdd(args.objectPath, bluezInterfaceMetadatas);
+                _bluezObjectPathInterfaces.TryAdd(args.objectPath, bluezInterfaceMetadata);
             }
         }
 
 
         private void InterfaceRemoved((Tmds.DBus.ObjectPath objectPath, string[] interfaces) args)
         {
-            Console.WriteLine();
             Console.WriteLine($"{args.objectPath} removed...");
-            _bluezObjectPathInterfaces.TryRemove(args.objectPath, out IEnumerable<BluezInterfaceMetadata>? bluezInterfaceMetadatas);
+            _bluezObjectPathInterfaces.TryRemove(args.objectPath, out IEnumerable<BluezInterfaceMetadata>? bluezInterfaceMetadata);
         }
 
 
@@ -459,20 +487,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         }
 
-                        Console.WriteLine("Bluez objects and interfaces");
-                        foreach (var item in _bluezObjectPathInterfaces)
-                        {
-                            Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
-                        }
+                        //Console.WriteLine("Bluez objects and interfaces");
+                        //foreach (var item in _bluezObjectPathInterfaces)
+                        //{
+                        //    Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
+                        //}
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
-                            //Console.WriteLine($"GattCharacteristic: {item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                             var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezService, item.Key);
                             var properties = await proxy.GetAllAsync();
-                            //Console.WriteLine($"UUID={properties.UUID}");
-                            //Console.WriteLine($"Service={properties.Service}");
-                            //Console.WriteLine($"Flags={string.Join(", ", properties.Flags!)}");
 
                             var gattCharacteristic = new GattCharacteristic();
 
@@ -514,6 +538,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                         gattCharacteristic.Name = "DFU revision";
                                         break;
 
+                                    case serviceChangedCharacteristicUuid:
+                                        gattCharacteristic.Name = "Service changed";
+                                        break;
+
+                                    case carIdCharacteristicUuid:
+                                        gattCharacteristic.Name = "Car ID";
+                                        break;
+
                                     case commandCharacteristicUuid:
                                         gattCharacteristic.Name = "Command";
                                         break;
@@ -550,6 +582,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                         gattCharacteristic.Name = "Throttle profile 6";
                                         break;
 
+                                    case trackCharacteristicUuid:
+                                        gattCharacteristic.Name = "Track";
+                                        break;
+
                                     default:
                                         break;
                                 }
@@ -577,6 +613,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                         if (!value.Any(x => x < 32))
                                         {
                                             gattCharacteristic.Value = System.Text.Encoding.UTF8.GetString(value);
+                                        }
+
+                                        if (properties.UUID == carIdCharacteristicUuid)
+                                        {
+                                            _logger.LogInformation($"CarIdState CarID={value[0]} Length={value.Length}");
+                                            await _scalextricArcState.CarIdState.SetAsync
+                                            (
+                                                value[0],
+                                                false
+                                            );
                                         }
 
                                         if (properties.UUID == commandCharacteristicUuid)
@@ -655,6 +701,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _throttleProfile1CharacteristicWatchTask = _throttleProfile1CharacteristicProxy.WatchPropertiesAsync(throttleProfile1CharacteristicWatchProperties);
                             }
 
+                            if (properties.UUID == trackCharacteristicUuid)
+                            {
+                                _trackCharacteristicProxy = proxy;
+                                await _trackCharacteristicProxy.StartNotifyAsync();
+                                _trackCharacteristicWatchTask = _trackCharacteristicProxy.WatchPropertiesAsync(trackCharacteristicWatchProperties);
+                            }
+
                             _scalextricArcState.GattCharacteristics.Add(gattCharacteristic);
                         }
 
@@ -671,6 +724,26 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
+        public void slotCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
+        {
+            foreach (var item in propertyChanges.Changed)
+            {
+                if (item.Key == "Value")
+                {
+                    var value = (byte[])item.Value;
+                    _scalextricArcState.SlotStates[value[1] - 1].Set
+                    (
+                        value[0],
+                        (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
+                        (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
+                        (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
+                        (uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)
+                    );
+                }
+            }
+        }
+
+
         private void throttleCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
         {
             foreach (var item in propertyChanges.Changed)
@@ -678,10 +751,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    //Console.WriteLine($"PS={value[0]}, 1={value[1]}, 2={value[2]}, 3={value[3]}, 4={value[4]}, 5={value[5]}, 6={value[6]}, AD={value[11] & 0b1}");
-                    //Console.WriteLine($"brake1={(value[1] & 0b1000000) > 0}, LC1={(value[1] & 0b10000000) > 0}, LC1D={(value[11] & 0b100) > 0}");
-                    //Console.WriteLine($"timestamp1={value[7]}, timestamp2={value[8]}, timestamp3={value[9]}, timestamp14={value[10]}, timestamp={(value[7] + value[8] * 2 ^ 8 + value[9] * 2 ^ 16 + value[10] * 2 ^ 24)}");
-
                     _scalextricArcState.ThrottleState!.Set
                     (
                         value[0],
@@ -734,22 +803,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        public void slotCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
+        private void trackCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
         {
             foreach (var item in propertyChanges.Changed)
             {
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    //Console.WriteLine($"PS={value[0]}, ID={value[1]}, {(uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216)}, {(uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216)}, {(uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216)}, {(uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)}");
-
-                    _scalextricArcState.SlotStates[value[1] - 1].Set
+                    _scalextricArcState.TrackState!.Set
                     (
                         value[0],
-                        (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
-                        (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
-                        (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
-                        (uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)
+                        value[1],
+                        value[2],
+                        (uint)(value[3] + value[4] * 256 + value[5] * 65536 + value[6] * 16777216)
                     );
                 }
             }
@@ -805,6 +871,20 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
+        private async Task CarIdAsync(CancellationToken cancellationToken)
+        {
+            await foreach (var carIdState in _carIdStateChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+                if (_carIdCharacteristicProxy is not null)
+                {
+                    var value = new byte[1];
+                    value[0] = carIdState.CarId;
+                    await _carIdCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
+                }
+            }
+        }
+
+
         private async Task CommandAsync(CancellationToken cancellationToken)
         {
             await foreach (var commandState in _commandStateChannel.Reader.ReadAllAsync(cancellationToken))
@@ -833,6 +913,46 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     value[18] = commandState.Brake6;
                     value[19] = (byte)((commandState.Kers1 ? 1 : 0) + (commandState.Kers2 ? 2 : 0) + (commandState.Kers3 ? 4 : 0) + (commandState.Kers4 ? 8 : 0) + (commandState.Kers5 ? 16 : 0) + (commandState.Kers6 ? 32 : 0));
                     await _commandCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
+                }
+            }
+        }
+
+
+        private async Task ThrottleProfileAsync(CancellationToken cancellationToken)
+        {
+            await foreach (var throttleProfileState in _throttleProfileStateChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+                switch (throttleProfileState.CarId)
+                {
+                    case 1:
+                        if (_throttleProfile1CharacteristicProxy is not null)
+                        {
+                            await ThrottleProfileWriteAsync(_throttleProfile1CharacteristicProxy, throttleProfileState.Values);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+
+        private async Task ThrottleProfileWriteAsync(bluez.DBus.IGattCharacteristic1 proxy, IEnumerable<ThrottleProfileValueDto> values)
+        {
+            byte[] buffer = new byte[20];
+            foreach (var item in values.Select((x, i) => new { Dto = x, Index = i}))
+            {
+                buffer[item.Index % 16 + 1] = item.Dto.Value;
+                if (item.Index % 16 == 15)
+                {
+                    buffer[0] = (byte)(item.Index / 16 + 1);
+                    Console.WriteLine("Writing throttle profile buffer:");
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        Console.WriteLine($"{i} {buffer[i]}");
+                    }
+                    await proxy.WriteValueAsync(buffer, new Dictionary<string, object>());
                 }
             }
         }

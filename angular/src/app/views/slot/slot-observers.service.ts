@@ -7,7 +7,7 @@ import { SlotDto } from './slot.dto';
 
 @Injectable()
 export class SlotObserversService extends ObserversBaseService {
-    private slotSubscriber: Subscriber<SlotDto> | undefined;
+    private subscriber: Subscriber<SlotDto> | undefined;
 
 
     public constructor() {
@@ -18,8 +18,8 @@ export class SlotObserversService extends ObserversBaseService {
 
     public registerHandlers() {
         this.hubConnection.on('ChangedState', (message) => {
-            if (this.slotSubscriber) {
-                this.slotSubscriber.next(message)                    
+            if (this.subscriber) {
+                this.subscriber.next(message)                    
             }
         });
     }   
@@ -27,7 +27,7 @@ export class SlotObserversService extends ObserversBaseService {
 
     public get onChangedState(): Observable<SlotDto> {
         return new Observable((subscriber: Subscriber<SlotDto>) => {
-            this.slotSubscriber = subscriber;
+            this.subscriber = subscriber;
         });
     };
 }

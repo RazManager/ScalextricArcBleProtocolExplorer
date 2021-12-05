@@ -7,7 +7,7 @@ import { LogDto } from './log.dto';
 
 @Injectable()
 export class LogObserversService extends ObserversBaseService {
-    private logSubscriber: Subscriber<LogDto> | undefined;
+    private subscriber: Subscriber<LogDto> | undefined;
 
 
     public constructor() {
@@ -18,8 +18,8 @@ export class LogObserversService extends ObserversBaseService {
 
     public registerHandlers() {
         this.hubConnection.on('ChangedState', (message) => {
-            if (this.logSubscriber) {
-                this.logSubscriber.next(message)                    
+            if (this.subscriber) {
+                this.subscriber.next(message)                    
             }
         });
     }   
@@ -27,7 +27,7 @@ export class LogObserversService extends ObserversBaseService {
 
     public get onChangedState(): Observable<LogDto> {
         return new Observable((subscriber: Subscriber<LogDto>) => {
-            this.logSubscriber = subscriber;
+            this.subscriber = subscriber;
         });
     };
 }

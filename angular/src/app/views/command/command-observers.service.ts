@@ -7,7 +7,7 @@ import { CommandDto } from './command.dto';
 
 @Injectable()
 export class CommandObserversService extends ObserversBaseService {
-    private commandSubscriber: Subscriber<CommandDto> | undefined;
+    private subscriber: Subscriber<CommandDto> | undefined;
 
 
     public constructor() {
@@ -18,8 +18,8 @@ export class CommandObserversService extends ObserversBaseService {
 
     public registerHandlers() {
         this.hubConnection.on('ChangedState', (message) => {
-            if (this.commandSubscriber) {
-                this.commandSubscriber.next(message)                    
+            if (this.subscriber) {
+                this.subscriber.next(message)                    
             }
         });
     }   
@@ -27,7 +27,7 @@ export class CommandObserversService extends ObserversBaseService {
 
     public get onChangedState(): Observable<CommandDto> {
         return new Observable((subscriber: Subscriber<CommandDto>) => {
-            this.commandSubscriber = subscriber;
+            this.subscriber = subscriber;
         });
     };
 }

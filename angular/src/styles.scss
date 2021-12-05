@@ -44,6 +44,20 @@ mat-spinner.mat-progress-spinner {
     overflow: auto;
 }
 
+/* 
+.mat-list-base > .mat-list-item {
+    color: inherit;
+}
+
+.mat-list-item-disabled {
+    color: red;
+    background-color: mat.get-color-from-palette($primary-palette, 500);
+}
+ */
+.command-slider {
+    width: 100%;
+    top: -18px;
+}
 
 .throttle-value-bar {
     fill: mat.get-color-from-palette($primary-palette, 500);

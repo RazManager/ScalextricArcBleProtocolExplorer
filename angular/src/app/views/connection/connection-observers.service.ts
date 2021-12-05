@@ -7,7 +7,7 @@ import { ConnectionDto } from './connection.dto';
 
 @Injectable()
 export class ConnectionObserversService extends ObserversBaseService {
-    private connectionSubscriber: Subscriber<ConnectionDto> | undefined;
+    private subscriber: Subscriber<ConnectionDto> | undefined;
 
 
     public constructor() {
@@ -18,8 +18,8 @@ export class ConnectionObserversService extends ObserversBaseService {
 
     public registerHandlers() {
         this.hubConnection.on('ChangedState', (message) => {
-            if (this.connectionSubscriber) {
-                this.connectionSubscriber.next(message)                    
+            if (this.subscriber) {
+                this.subscriber.next(message)                    
             }
         });
     }   
@@ -27,7 +27,7 @@ export class ConnectionObserversService extends ObserversBaseService {
 
     public get onChangedState(): Observable<ConnectionDto> {
         return new Observable((subscriber: Subscriber<ConnectionDto>) => {
-            this.connectionSubscriber = subscriber;
+            this.subscriber = subscriber;
         });
     };
 }

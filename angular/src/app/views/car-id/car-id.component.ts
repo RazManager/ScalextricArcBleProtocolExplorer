@@ -3,45 +3,45 @@ import { ActivatedRoute, Data } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
+import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
 import { ApiErrorResponse } from 'src/lib/common/common-base.service';
 
 import { ApiService } from '../api.service';
-import { ThrottleProfileDto } from './throttle-profile.dto';
-import { ThrottleProfileObserversService } from './throttle-profile-observers.service';
-import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
+import { CarIdDto } from './car-id.dto';
+import { CarIdObserversService } from './car-id-observers.service';
 
 
 @Component({
-    templateUrl: './throttle-profile.component.html',
-    providers: [ ThrottleProfileObserversService ]
+    templateUrl: './car-id.component.html',
+    providers: [ CarIdObserversService ]
 
 })
-export class ThrottleProfileComponent
+export class CarIdComponent
         extends CommonBaseComponent
         implements OnInit {
-    public dto!: ThrottleProfileDto[];
-
+    public dto!: CarIdDto;
+                       
 
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
                 toolbarService: CommonToolbarService,
-                private readonly observersService: ThrottleProfileObserversService,
+                private readonly observersService: CarIdObserversService,
                 private readonly apiService: ApiService) {
         super(snackBar);
-        toolbarService.header = "Throttle profiles";
+        toolbarService.header = "Car ID";
     }
 
 
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                this.dto = (<ThrottleProfileDto[]>data['result']).sort(x => x.carId);
+                this.dto = <CarIdDto>data['result'];
 
                 this.observersService
                 .onChangedState
-                .subscribe((dto: ThrottleProfileDto) => {
-                    console.log('ThrottleProfileDto', dto);                
-                    this.dto[dto.carId - 1] = dto;
+                .subscribe((dto: CarIdDto) => {
+                    console.log('CarIdDto', dto);                
+                    this.dto = dto;
                 });
 
                 this.observersService.observe();
@@ -51,10 +51,11 @@ export class ThrottleProfileComponent
 
 
     public write(carId: number): void {
-        this.apiService.postThrottleProfile(this.dto[carId])
+        this.dto.carId = carId;
+        this.apiService.postCarId(this.dto)
         .subscribe({
             next: () => {
-                this.snackBarOpen("Throttle profile written for ID=" + carId + ".");
+                this.snackBarOpen("Car ID written.");
              },
             error: (err: ApiErrorResponse) => this.onError(err)
         });

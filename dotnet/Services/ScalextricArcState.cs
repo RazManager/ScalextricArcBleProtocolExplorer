@@ -4,31 +4,37 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Linq;
 
 
 namespace ScalextricArcBleProtocolExplorer.Services
 {
     public class ScalextricArcState
     {
-        public ConnectionState ConnectionState { get; set; }
+        public CarIdState CarIdState { get; set; }
         public CommandState CommandState { get; set; }
+        public ConnectionState ConnectionState { get; set; }
         public List<GattCharacteristic> GattCharacteristics { get; set; } = new();
         public SlotState[] SlotStates { get; init; } = new SlotState[6];
         public ThrottleState ThrottleState { get; set; }
         public ThrottleProfileState[] ThrottleProfileStates { get; init; } = new ThrottleProfileState[6];
+        public TrackState TrackState { get; set; }
 
-        public ScalextricArcState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
+        public ScalextricArcState(IHubContext<Hubs.CarIdHub, Hubs.ICarIdHub> carIdHubContext,
+                                  Channel<CarIdState> carIdStateChannel, 
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
                                   Channel<CommandState> commandStateChannel,
+                                  IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,                                  
                                   IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
                                   IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
                                   IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> throttleProfileHubContext,
-                                  Channel<ThrottleProfileState> throttleProfileStateChannel)
+                                  Channel<ThrottleProfileState> throttleProfileStateChannel,
+                                  IHubContext<Hubs.TrackHub, Hubs.ITrackHub> trackHubContext)
         {
-            ConnectionState = new ConnectionState(connectionHubContext);
+            CarIdState = new CarIdState(carIdHubContext, carIdStateChannel);
 
             CommandState = new CommandState(commandHubContext, commandStateChannel);
+
+            ConnectionState = new ConnectionState(connectionHubContext);
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
@@ -40,40 +46,49 @@ namespace ScalextricArcBleProtocolExplorer.Services
             for (byte i = 0; i < ThrottleProfileStates.Length; i++)
             {
                 var values = new List<ThrottleProfileValueDto>();
-                for (int v = 0; i < 64; i++)
+                for (int v = 0; v < 64; v++)
                 {
                     values.Add(new ThrottleProfileValueDto { Value = (byte)(255 * v / 63) });
                 }
                 ThrottleProfileStates[i] = new ThrottleProfileState(throttleProfileHubContext, throttleProfileStateChannel) { CarId = (byte)(i + 1), Values = values };
             }
+
+            TrackState = new TrackState(trackHubContext);
         }
     }
 
 
-    public class ConnectionState
+    public class CarIdDto
     {
-        private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
+        public byte CarId { get; set; }
+    }
 
-        public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext)
+
+    public class CarIdState : CarIdDto
+    {
+        private readonly IHubContext<Hubs.CarIdHub, Hubs.ICarIdHub> _hubContext;
+        private readonly Channel<CarIdState> _channel;
+
+        public CarIdState(IHubContext<Hubs.CarIdHub, Hubs.ICarIdHub> hubContext,
+                          Channel<CarIdState> channel)
         {
             _hubContext = hubContext;
+            _channel = channel;
         }
 
-        public enum ConnectionStateType
+        public async Task SetAsync
+        (
+            byte carId,
+            bool write
+        )
         {
-            Disabled,
-            Enabled,
-            Discovering,
-            Connected,
-            Initialized
-        }
+            CarId = carId;
 
-        [Required]
-        public ConnectionStateType State { get; set; }
+            if (write)
+            {
+                await _channel.Writer.WriteAsync(this);
+            }
 
-        public async Task SetAsync(ConnectionStateType state)
-        {
-            State = state;
             await _hubContext.Clients.All.ChangedState(this);
         }
     }
@@ -272,6 +287,35 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 await _channel.Writer.WriteAsync(this);
             }
 
+            await _hubContext.Clients.All.ChangedState(this);
+        }
+    }
+
+
+    public class ConnectionState
+    {
+        private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
+
+        public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
+        public enum ConnectionStateType
+        {
+            Disabled,
+            Enabled,
+            Discovering,
+            Connected,
+            Initialized
+        }
+
+        [Required]
+        public ConnectionStateType State { get; set; }
+
+        public async Task SetAsync(ConnectionStateType state)
+        {
+            State = state;
             await _hubContext.Clients.All.ChangedState(this);
         }
     }
@@ -609,9 +653,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
             LaneChangeButton6 = laneChangeButton6;
             LaneChangeButtonDoubleTapped6 = laneChangeButtonDoubleTapped6;
             CtrlVersion6 = ctrlVersion6;
-
-            //Console.WriteLine($"{timestamp} {Timestamp} {timestamp - Timestamp}");
-
             TimestampPrevious = Timestamp;
             Timestamp = timestamp;
             TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
@@ -655,6 +696,68 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Values = values;
             await _channel.Writer.WriteAsync(this);
             await _hubContext.Clients.All.ChangedState(this);
+        }
+    }
+
+
+    public class TrackState
+    {
+        private readonly IHubContext<Hubs.TrackHub, Hubs.ITrackHub> _hubContext;
+
+        public TrackState(IHubContext<Hubs.TrackHub, Hubs.ITrackHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
+        public byte? PacketSequence { get; set; }
+        public byte? Track1 { get; set; }
+        public byte? Track2 { get; set; }
+        public uint? Timestamp { get; set; }
+        private uint? TimestampPrevious { get; set; }
+        private DateTimeOffset? TimeStampRefreshRateLast { get; set; }
+        private DateTimeOffset? TimeStampRefreshRatePrevious { get; set; }
+
+        public uint? TimestampInterval
+        {
+            get
+            {
+                if (Timestamp.HasValue && TimestampPrevious.HasValue)
+                {
+                    return Timestamp.Value - TimestampPrevious.Value;
+                }
+                return null;
+            }
+        }
+
+        public int? RefreshRate
+        {
+            get
+            {
+                if (TimeStampRefreshRateLast.HasValue && TimeStampRefreshRatePrevious.HasValue)
+                {
+                    return (int)(TimeStampRefreshRateLast.Value - TimeStampRefreshRatePrevious.Value).TotalMilliseconds;
+                }
+                return null;
+            }
+        }
+
+        public void Set
+        (
+            byte packetSequence,
+            byte track1,
+            byte track2,
+            uint timestamp
+        )
+        {
+            PacketSequence = packetSequence;
+            Track1 = track1;
+            Track2 = track2;
+            TimestampPrevious = Timestamp;
+            Timestamp = timestamp;
+            TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
+            TimeStampRefreshRateLast = DateTimeOffset.UtcNow;
+
+            _hubContext.Clients.All.ChangedState(this);
         }
     }
 }
