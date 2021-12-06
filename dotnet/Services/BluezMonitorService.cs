@@ -248,22 +248,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _slotCharacteristicWatchTask = null;
                             }
 
-                            if (_slotCharacteristicProxy is not null)
-                            {
-                                try
-                                {
-                                    if (await _slotCharacteristicProxy.GetNotifyingAsync())
-                                    {
-                                        await _slotCharacteristicProxy.StopNotifyAsync();
-                                    }
-                                }
-                                catch (Exception exception)
-                                {
-                                    _logger.LogError(exception, $"_slotCharacteristicProxy is not null: {exception.Message}");
-                                    throw;
-                                }
-                                _slotCharacteristicProxy = null;
-                            }
+                            _slotCharacteristicProxy = null;
 
                             if (_throttleCharacteristicWatchTask is not null)
                             {
@@ -271,14 +256,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _throttleCharacteristicWatchTask = null;
                             }
 
-                            if (_throttleCharacteristicProxy is not null)
-                            {
-                                if (await _throttleCharacteristicProxy.GetNotifyingAsync())
-                                {
-                                    await _throttleCharacteristicProxy.StopNotifyAsync();
-                                }
-                                _throttleCharacteristicProxy = null;
-                            }
+                            _throttleCharacteristicProxy = null;
 
                             _throttleProfile1CharacteristicProxy = null;
                             _throttleProfile2CharacteristicProxy = null;
@@ -293,14 +271,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _trackCharacteristicWatchTask = null;
                             }
 
-                            if (_trackCharacteristicProxy is not null)
-                            {
-                                if (await _trackCharacteristicProxy.GetNotifyingAsync())
-                                {
-                                    await _trackCharacteristicProxy.StopNotifyAsync();
-                                }
-                                _trackCharacteristicProxy = null;
-                            }
+                            _trackCharacteristicProxy = null;
 
                             if (scalextricArcProxy is not null)
                             {
@@ -681,6 +652,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 }
                             }
 
+                            if (properties.UUID == carIdCharacteristicUuid)
+                            {
+                                _carIdCharacteristicProxy = proxy;
+                            }
+
                             if (properties.UUID == commandCharacteristicUuid)
                             {
                                 _commandCharacteristicProxy = proxy;
@@ -897,6 +873,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 if (_carIdCharacteristicProxy is not null)
                 {
+                    Console.WriteLine($"Writing CarId: {carIdState.CarId}");
                     var value = new byte[1];
                     value[0] = carIdState.CarId;
                     await _carIdCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());

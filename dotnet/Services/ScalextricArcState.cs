@@ -492,15 +492,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
         )
         {
             PacketSequence = packetSequence;
+
+            var timestampStartFinishUpdated = false;
             if (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1)
             {
                 TimestampStartFinish1Previous = TimestampStartFinish1;
                 TimestampStartFinish1 = timestampTrack1;
+                timestampStartFinishUpdated = true;
             }
             if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
                 TimestampStartFinish2Previous = TimestampStartFinish2;
                 TimestampStartFinish2 = timestampTrack2;
+                timestampStartFinishUpdated = true;
             }
             TimestampPitlane1 = timestampPitlane1;
             TimestampPitlane2 = timestampPitlane2;
@@ -508,8 +512,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            if (TimestampStartFinish1.HasValue && TimestampStartFinish1.Value < timestampTrack1 ||
-                TimestampStartFinish2.HasValue && TimestampStartFinish2.Value < timestampTrack2)
+            if (timestampStartFinishUpdated)
             {
                 await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
             }
