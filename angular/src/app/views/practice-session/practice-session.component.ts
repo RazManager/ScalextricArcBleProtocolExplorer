@@ -4,7 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
 
-import { PracticeSessionCarIdDto } from './practice-session.dto';
+import { PracticeSessionCarIdDto, PracticeSessionLapDto } from './practice-session.dto';
 import { PracticeSessionObserversService } from './practice-session-observers.service';
 import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
 
@@ -25,7 +25,7 @@ export class PracticeSessionComponent
                 toolbarService: CommonToolbarService,
                 private readonly observersService: PracticeSessionObserversService) {
         super(snackBar);
-        toolbarService.header = "Slot";
+        toolbarService.header = "Practice session";
     }
 
 
@@ -39,10 +39,16 @@ export class PracticeSessionComponent
                 .subscribe((dto: PracticeSessionCarIdDto) => {
                     console.log('PracticeSessionCarIdDto', dto);                
                     this.dto[dto.carId - 1] = dto;
+                    //dto.latestLaps.sort((a,b) => 0 - (a.lap > b.lap ? 1 : -1));
                 });
 
                 this.observersService.observe();
             }
         });
+    }
+
+
+    public latestLaps(carId: number): PracticeSessionLapDto[] {
+        return this.dto.find(x => x.carId === carId)!.latestLaps.sort((a,b) => 0 - (a.lap > b.lap ? 1 : -1));
     }
 }

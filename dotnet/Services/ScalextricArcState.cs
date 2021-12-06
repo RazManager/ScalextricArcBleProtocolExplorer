@@ -498,13 +498,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 TimestampStartFinish1Previous = TimestampStartFinish1;
                 TimestampStartFinish1 = timestampTrack1;
-                timestampStartFinishUpdated = true;
+                timestampStartFinishUpdated = timestampTrack1 > 0;
             }
             if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
                 TimestampStartFinish2Previous = TimestampStartFinish2;
                 TimestampStartFinish2 = timestampTrack2;
-                timestampStartFinishUpdated = true;
+                timestampStartFinishUpdated = timestampTrack2 > 0;
             }
             TimestampPitlane1 = timestampPitlane1;
             TimestampPitlane2 = timestampPitlane2;

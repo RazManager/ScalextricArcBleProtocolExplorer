@@ -1,32 +1,29 @@
 <mat-card class="section-container">
     <mat-card-content>
-        <div gdColumns="repeat({{dto.length}}, 1fr)" gdGap="1em">
-            <div gdRows="max-content max-content max-content">
-                <ng-container *ngFor="let practiceSessionCarId of dto">
-                    <div>
-                        {{practiceSessionCarId.carId}}
+        <div gdColumns="repeat({{dto.length}}, max-content)" gdGap="2em">
+            <ng-container *ngFor="let practiceSessionCarId of dto">
+                <div>
+                    <div gdColumns="max-content" style="justify-items: center;">
+                        <div style="margin-bottom: 1em; font-size: xx-large;">{{practiceSessionCarId.carId}}</div>
+                        <div class="mat-caption">Laps</div>
+                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.laps}}</div>
+                        <div class="mat-caption">Best lap time</div>
+                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.bestLapTime}}</div>
+                        <div class="mat-caption">Best speed trap</div>
+                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.bestSpeedTrap}}</div>
                     </div>
-                    <div>
-                        {{practiceSessionCarId.laps}}
-                    </div>
-                    <div>
-                        {{practiceSessionCarId.bestLapTime}}
-                    </div>
-                    <div>
-                        {{practiceSessionCarId.bestSpeedTrap}}
-                    </div>
-                    <div gdColumns="max-content max-content max-content" gdGap="1em">
-                        <div>Lap</div>
-                        <div>Lap time</div>
-                        <div>Speed trap</div>
-                        <ng-container *ngFor="let practiceSessionLapDto of practiceSessionCarId.latestLaps">
+                    <div gdColumns="max-content max-content max-content" style="column-gap: 1em; justify-items: end;">
+                        <div class="mat-caption">Lap</div>
+                        <div class="mat-caption">Lap<br>time</div>
+                        <div class="mat-caption">Speed<br>trap</div>
+                        <ng-container *ngFor="let practiceSessionLapDto of latestLaps(practiceSessionCarId.carId)">
                             <div>{{practiceSessionLapDto.lap}}</div>
                             <div>{{practiceSessionLapDto.lapTime}}</div>
                             <div>{{practiceSessionLapDto.speedTrap}}</div>
                         </ng-container>
                     </div>
-                </ng-container>
-            </div>
+                </div>
+            </ng-container>
         </div>
     </mat-card-content>
 </mat-card>

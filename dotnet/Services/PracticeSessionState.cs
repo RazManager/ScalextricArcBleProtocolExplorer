@@ -77,15 +77,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     practiceSessionCarId.Laps++;
                 }
 
-                if (!practiceSessionCarId.BestLapTime.HasValue || practiceSessionCarId.BestLapTime / 100 < lapTime / 100)
+                if (!practiceSessionCarId.BestLapTime.HasValue || practiceSessionCarId.BestLapTime / 100.0 < lapTime / 100.0)
                 {
-                    practiceSessionCarId.BestLapTime = lapTime / 100;
+                    practiceSessionCarId.BestLapTime = lapTime / 100.0;
                 }
 
                 practiceSessionCarId.LatestLaps.Enqueue(new PracticeSessionLap
                 {
                     Lap = practiceSessionCarId.Laps.Value,
-                    LapTime = lapTime / 100
+                    LapTime = lapTime / 100.0
                 });
                 while (practiceSessionCarId.LatestLaps.Count > 5)
                 {

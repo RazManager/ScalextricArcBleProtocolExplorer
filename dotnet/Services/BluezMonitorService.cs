@@ -275,10 +275,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (scalextricArcProxy is not null)
                             {
-                                if (await scalextricArcProxy.GetConnectedAsync())
-                                {
-                                    await scalextricArcProxy.DisconnectAsync();
-                                }
+                                _logger.LogInformation("Scalextric ARC disconnected.");
+                                scalextricArcProxy = null;
                             }
 
                             scalextricArcObjectPath = null;
@@ -472,6 +470,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                         }
 
+
+
                         //Console.WriteLine("Bluez objects and interfaces");
                         //foreach (var item in _bluezObjectPathInterfaces)
                         //{
@@ -602,7 +602,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                                         if (properties.UUID == carIdCharacteristicUuid)
                                         {
-                                            _logger.LogInformation($"CarIdState CarID={value[0]} Length={value.Length}");
                                             await _scalextricArcState.CarIdState.SetAsync
                                             (
                                                 value[0],
@@ -873,7 +872,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 if (_carIdCharacteristicProxy is not null)
                 {
-                    Console.WriteLine($"Writing CarId: {carIdState.CarId}");
                     var value = new byte[1];
                     value[0] = carIdState.CarId;
                     await _carIdCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
