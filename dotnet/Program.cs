@@ -53,6 +53,13 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
+    new ScalextricArcBleProtocolExplorer.Services.PracticeSessionState
+    (
+        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.PracticeSessionHub, ScalextricArcBleProtocolExplorer.Hubs.IPracticeSessionHub>>()
+    )
+);
+
+builder.Services.AddSingleton(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState
     (
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.CarIdHub, ScalextricArcBleProtocolExplorer.Hubs.ICarIdHub>>(),
@@ -64,7 +71,8 @@ builder.Services.AddSingleton(serviceProvider =>
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleHub>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleProfileHub>>(),
         serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ThrottleProfileState>>(),
-        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.TrackHub, ScalextricArcBleProtocolExplorer.Hubs.ITrackHub>>()
+        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.TrackHub, ScalextricArcBleProtocolExplorer.Hubs.ITrackHub>>(),
+        serviceProvider.GetRequiredService<ScalextricArcBleProtocolExplorer.Services.PracticeSessionState>()
     )
 );
 
@@ -133,6 +141,7 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub>("hubs/connection");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.CommandHub>("hubs/command");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.LogHub>("hubs/log");
+    endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.PracticeSessionHub>("hubs/practice-session-car-id");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.SlotHub>("hubs/slot");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub>("hubs/throttle");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub>("hubs/throttle-profile");

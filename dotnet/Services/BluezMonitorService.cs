@@ -56,7 +56,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private const string throttleProfile1CharacteristicUuid = "0000ff01-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile1CharacteristicProxy = null;
-        private Task? _throttleProfile1CharacteristicWatchTask = null;
 
         private const string throttleProfile2CharacteristicUuid = "0000ff02-0000-1000-8000-00805f9b34fb";
         private bluez.DBus.IGattCharacteristic1? _throttleProfile2CharacteristicProxy = null;
@@ -251,9 +250,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (_slotCharacteristicProxy is not null)
                             {
-                                if (await _slotCharacteristicProxy.GetNotifyingAsync())
+                                try
                                 {
-                                    await _slotCharacteristicProxy.StopNotifyAsync();
+                                    if (await _slotCharacteristicProxy.GetNotifyingAsync())
+                                    {
+                                        await _slotCharacteristicProxy.StopNotifyAsync();
+                                    }
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.LogError(exception, $"_slotCharacteristicProxy is not null: {exception.Message}");
+                                    throw;
                                 }
                                 _slotCharacteristicProxy = null;
                             }
@@ -272,6 +279,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 }
                                 _throttleCharacteristicProxy = null;
                             }
+
+                            _throttleProfile1CharacteristicProxy = null;
+                            _throttleProfile2CharacteristicProxy = null;
+                            _throttleProfile3CharacteristicProxy = null;
+                            _throttleProfile4CharacteristicProxy = null;
+                            _throttleProfile5CharacteristicProxy = null;
+                            _throttleProfile6CharacteristicProxy = null;
 
                             if (_trackCharacteristicWatchTask is not null)
                             {
@@ -663,14 +677,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                                 false
                                             );
                                         }
-
-                                        if (properties.UUID == throttleProfile1CharacteristicUuid)
-                                        {
-                                            foreach (var b in value)
-                                            {
-                                                _logger.LogInformation($"throttleProfile1CharacteristicUuid Value {b}");
-                                            }
-                                        }
                                     }
                                 }
                             }
@@ -697,8 +703,31 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             if (properties.UUID == throttleProfile1CharacteristicUuid)
                             {
                                 _throttleProfile1CharacteristicProxy = proxy;
-                                await _throttleProfile1CharacteristicProxy.StartNotifyAsync();
-                                _throttleProfile1CharacteristicWatchTask = _throttleProfile1CharacteristicProxy.WatchPropertiesAsync(throttleProfile1CharacteristicWatchProperties);
+                            }
+
+                            if (properties.UUID == throttleProfile2CharacteristicUuid)
+                            {
+                                _throttleProfile2CharacteristicProxy = proxy;
+                            }
+
+                            if (properties.UUID == throttleProfile3CharacteristicUuid)
+                            {
+                                _throttleProfile3CharacteristicProxy = proxy;
+                            }
+
+                            if (properties.UUID == throttleProfile4CharacteristicUuid)
+                            {
+                                _throttleProfile4CharacteristicProxy = proxy;
+                            }
+
+                            if (properties.UUID == throttleProfile5CharacteristicUuid)
+                            {
+                                _throttleProfile5CharacteristicProxy = proxy;
+                            }
+
+                            if (properties.UUID == throttleProfile6CharacteristicUuid)
+                            {
+                                _throttleProfile6CharacteristicProxy = proxy;
                             }
 
                             if (properties.UUID == trackCharacteristicUuid)
@@ -731,14 +760,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    _scalextricArcState.SlotStates[value[1] - 1].Set
+                    _scalextricArcState.SlotStates[value[1] - 1].SetAsync
                     (
                         value[0],
                         (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
                         (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
                         (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
                         (uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)
-                    );
+                    ).Wait();
                 }
             }
         }
@@ -751,7 +780,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    _scalextricArcState.ThrottleState!.Set
+                    _scalextricArcState.ThrottleState!.SetAsync
                     (
                         value[0],
                         value[12],
@@ -788,17 +817,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         (value[11] & 0b10000000) > 0,
                         value[19],
                         (uint)(value[7] + value[8] * 256 + value[9] * 65536 + value[10] * 16777216)
-                    );
+                    ).Wait();
                 }
-            }
-        }
-
-
-        private void throttleProfile1CharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
-        {
-            foreach (var item in propertyChanges.Changed)
-            {
-                _logger.LogInformation($"throttleProfile1CharacteristicWatchProperties: {item.Key} {item.Value}");
             }
         }
 
@@ -931,6 +951,41 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                         break;
 
+                    case 2:
+                        if (_throttleProfile2CharacteristicProxy is not null)
+                        {
+                            await ThrottleProfileWriteAsync(_throttleProfile2CharacteristicProxy, throttleProfileState.Values);
+                        }
+                        break;
+
+                    case 3:
+                        if (_throttleProfile3CharacteristicProxy is not null)
+                        {
+                            await ThrottleProfileWriteAsync(_throttleProfile3CharacteristicProxy, throttleProfileState.Values);
+                        }
+                        break;
+
+                    case 4:
+                        if (_throttleProfile4CharacteristicProxy is not null)
+                        {
+                            await ThrottleProfileWriteAsync(_throttleProfile4CharacteristicProxy, throttleProfileState.Values);
+                        }
+                        break;
+
+                    case 5:
+                        if (_throttleProfile5CharacteristicProxy is not null)
+                        {
+                            await ThrottleProfileWriteAsync(_throttleProfile5CharacteristicProxy, throttleProfileState.Values);
+                        }
+                        break;
+
+                    case 6:
+                        if (_throttleProfile6CharacteristicProxy is not null)
+                        {
+                            await ThrottleProfileWriteAsync(_throttleProfile6CharacteristicProxy, throttleProfileState.Values);
+                        }
+                        break;
+
                     default:
                         break;
                 }
@@ -947,11 +1002,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Index % 16 == 15)
                 {
                     buffer[0] = (byte)(item.Index / 16);
-                    Console.WriteLine("Writing throttle profile buffer:");
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        Console.WriteLine($"{i} {buffer[i]}");
-                    }
+                    //Console.WriteLine("Writing throttle profile buffer:");
+                    //for (int i = 0; i < buffer.Length; i++)
+                    //{
+                    //    Console.WriteLine($"{i} {buffer[i]}");
+                    //}
                     await proxy.WriteValueAsync(buffer, new Dictionary<string, object>());
                 }
             }

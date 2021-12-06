@@ -1,0 +1,32 @@
+<mat-card class="section-container">
+    <mat-card-content>
+        <div gdColumns="repeat({{dto.length}}, 1fr)" gdGap="1em">
+            <div gdRows="max-content max-content max-content">
+                <ng-container *ngFor="let practiceSessionCarId of dto">
+                    <div>
+                        {{practiceSessionCarId.carId}}
+                    </div>
+                    <div>
+                        {{practiceSessionCarId.laps}}
+                    </div>
+                    <div>
+                        {{practiceSessionCarId.bestLapTime}}
+                    </div>
+                    <div>
+                        {{practiceSessionCarId.bestSpeedTrap}}
+                    </div>
+                    <div gdColumns="max-content max-content max-content" gdGap="1em">
+                        <div>Lap</div>
+                        <div>Lap time</div>
+                        <div>Speed trap</div>
+                        <ng-container *ngFor="let practiceSessionLapDto of practiceSessionCarId.latestLaps">
+                            <div>{{practiceSessionLapDto.lap}}</div>
+                            <div>{{practiceSessionLapDto.lapTime}}</div>
+                            <div>{{practiceSessionLapDto.speedTrap}}</div>
+                        </ng-container>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>

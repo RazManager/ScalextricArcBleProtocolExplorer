@@ -35,6 +35,8 @@ import { LogResolver } from './views/log/log-resolver.service';
 import { LogComponent } from './views/log/log.component';
 import { SlotResolver } from './views/slot/slot-resolver.service';
 import { SlotComponent } from './views/slot/slot.component';
+import { PracticeSessionResolver } from './views/practice-session/practice-session-resolver.service';
+import { PracticeSessionComponent } from './views/practice-session/practice-session.component';
 import { SystemInformationResolver } from './views/system-information/system-information-resolver.service';
 import { SystemInformationComponent } from './views/system-information/system-information.component';
 import { ThrottleResolver } from './views/throttle/throttle-resolver.service';
@@ -52,6 +54,7 @@ import { TrackComponent } from './views/track/track.component';
         CommandComponent,
         GattCharacteristicComponent,
         LogComponent,
+        PracticeSessionComponent,
         SlotComponent,
         SystemInformationComponent,
         ThrottleComponent,
@@ -88,6 +91,7 @@ import { TrackComponent } from './views/track/track.component';
         CommandResolver,
         GattCharacteristicResolver,
         LogResolver,
+        PracticeSessionResolver,
         SlotResolver,
         SystemInformationResolver,
         ThrottleResolver,

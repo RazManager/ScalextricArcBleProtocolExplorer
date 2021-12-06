@@ -7,7 +7,7 @@ export class SlotDto {
     public timestampPitlane2!: number | null;
     public timestampStartFinishPitlaneInterval1!: number | null;
     public timestampStartFinishPitlaneInterval2!: number | null;
-    public laptime!: number | null;
+    public lapTime!: number | null;
     public refreshRate!: number | null;    
 }
 

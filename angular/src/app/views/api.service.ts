@@ -11,6 +11,7 @@ import { CommandDto } from './command/command.dto';
 import { ConnectionDto } from './connection/connection.dto';
 import { GattCharacteristicDto } from './gatt-characteristic/gatt-characteristic.dto';
 import { LogDto } from './log/log.dto';
+import { PracticeSessionCarIdDto } from './practice-session/practice-session.dto';
 import { SlotDto } from './slot/slot.dto';
 import { SystemInformationDto } from './system-information/system-information.dto';
 import { ThrottleDto } from './throttle/throttle.dto';
@@ -84,6 +85,14 @@ export class ApiService extends CommonBaseService {
     }
 
 
+    public getPracticeSessionCarIds(): Observable<PracticeSessionCarIdDto[]> {
+        this.busyService.begin(this);
+        return this.httpClient.get<PracticeSessionCarIdDto[]>(`${this.serviceUrl}/practice-session-car-ids`)
+                              .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
+                                    finalize(() => this.busyService.end(this)));
+    }
+    
+    
     public getSlots(): Observable<SlotDto[]> {
         this.busyService.begin(this);
         return this.httpClient.get<SlotDto[]>(`${this.serviceUrl}/slots`)

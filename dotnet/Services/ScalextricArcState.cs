@@ -19,6 +19,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public ThrottleProfileState[] ThrottleProfileStates { get; init; } = new ThrottleProfileState[6];
         public TrackState TrackState { get; set; }
 
+
         public ScalextricArcState(IHubContext<Hubs.CarIdHub, Hubs.ICarIdHub> carIdHubContext,
                                   Channel<CarIdState> carIdStateChannel, 
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
@@ -28,7 +29,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                   IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
                                   IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> throttleProfileHubContext,
                                   Channel<ThrottleProfileState> throttleProfileStateChannel,
-                                  IHubContext<Hubs.TrackHub, Hubs.ITrackHub> trackHubContext)
+                                  IHubContext<Hubs.TrackHub, Hubs.ITrackHub> trackHubContext,
+                                  PracticeSessionState practiceSessionState)
         {
             CarIdState = new CarIdState(carIdHubContext, carIdStateChannel);
 
@@ -38,7 +40,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
-                SlotStates[i] = new SlotState(slotHubContext) { CarId = (byte)(i + 1) };
+                SlotStates[i] = new SlotState(slotHubContext, practiceSessionState) { CarId = (byte)(i + 1) };
             }
 
             ThrottleState = new ThrottleState(throttleHubContext);
@@ -313,10 +315,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
         [Required]
         public ConnectionStateType State { get; set; }
 
-        public async Task SetAsync(ConnectionStateType state)
+        public Task SetAsync(ConnectionStateType state)
         {
             State = state;
-            await _hubContext.Clients.All.ChangedState(this);
+            return _hubContext.Clients.All.ChangedState(this);
         }
     }
 
@@ -347,10 +349,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
     public class SlotState
     {
         private readonly IHubContext<Hubs.SlotHub, Hubs.ISlotHub> _hubContext;
+        private readonly PracticeSessionState _practiceSessionState;
 
-        public SlotState(IHubContext<Hubs.SlotHub, Hubs.ISlotHub> hubContext)
+        public SlotState(IHubContext<Hubs.SlotHub, Hubs.ISlotHub> hubContext,
+                         PracticeSessionState practiceSessionState)
         {
             _hubContext = hubContext;
+            _practiceSessionState = practiceSessionState;
         }
 
         public byte? PacketSequence { get; set; } = null;
@@ -389,7 +394,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public uint? Laptime
+        public uint? LapTime
         {
             get
             {
@@ -477,7 +482,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public void Set
+        public async Task SetAsync
         (
             byte packetSequence,
             uint timestampTrack1,
@@ -503,7 +508,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            _hubContext.Clients.All.ChangedState(this);
+            if (TimestampStartFinish1.HasValue && TimestampStartFinish1.Value < timestampTrack1 ||
+                TimestampStartFinish2.HasValue && TimestampStartFinish2.Value < timestampTrack2)
+            {
+                await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
+            }
+
+            await _hubContext.Clients.All.ChangedState(this);
         }
     }
 
@@ -580,7 +591,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
-        public void Set
+        public Task SetAsync
         (
             byte packetSequence,
             byte picVersion,
@@ -658,7 +669,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
             TimeStampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            _hubContext.Clients.All.ChangedState(this);
+            return _hubContext.Clients.All.ChangedState(this);
         }
     }
 
@@ -713,33 +724,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte? Track1 { get; set; }
         public byte? Track2 { get; set; }
         public uint? Timestamp { get; set; }
-        private uint? TimestampPrevious { get; set; }
-        private DateTimeOffset? TimeStampRefreshRateLast { get; set; }
-        private DateTimeOffset? TimeStampRefreshRatePrevious { get; set; }
-
-        public uint? TimestampInterval
-        {
-            get
-            {
-                if (Timestamp.HasValue && TimestampPrevious.HasValue)
-                {
-                    return Timestamp.Value - TimestampPrevious.Value;
-                }
-                return null;
-            }
-        }
-
-        public int? RefreshRate
-        {
-            get
-            {
-                if (TimeStampRefreshRateLast.HasValue && TimeStampRefreshRatePrevious.HasValue)
-                {
-                    return (int)(TimeStampRefreshRateLast.Value - TimeStampRefreshRatePrevious.Value).TotalMilliseconds;
-                }
-                return null;
-            }
-        }
 
         public void Set
         (
@@ -752,10 +736,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             PacketSequence = packetSequence;
             Track1 = track1;
             Track2 = track2;
-            TimestampPrevious = Timestamp;
             Timestamp = timestamp;
-            TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
-            TimeStampRefreshRateLast = DateTimeOffset.UtcNow;
 
             _hubContext.Clients.All.ChangedState(this);
         }

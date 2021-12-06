@@ -1,0 +1,27 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using ScalextricArcBleProtocolExplorer.Services;
+using System.Collections.Generic;
+
+
+namespace ScalextricArcBleProtocolExplorer.ApiControllers
+{
+    [ApiController]
+    [Route("api/practice-session-car-ids")]
+    public class PracticeSessionController : ControllerBase
+    {
+        private readonly PracticeSessionState _practiceSessionState;
+
+
+        public PracticeSessionController(PracticeSessionState practiceSessionState)
+        {
+            _practiceSessionState = practiceSessionState;
+        }
+
+
+        [HttpGet]
+        public IEnumerable<PracticeSessionCarId> Get()
+        {
+            return _practiceSessionState.CarIds;
+        }
+    }
+}

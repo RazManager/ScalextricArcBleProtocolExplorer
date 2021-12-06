@@ -10,7 +10,7 @@
             <div class="mat-caption" style="text-align: center;">Start/Finish 2<br>(1/100s)</div>
             <div class="mat-caption" style="text-align: center;">Pitlane 2<br>(1/100s)</div>
             <div class="mat-caption" style="text-align: center;">S/F-Pitlane interval 2<br>(1/100s)</div>
-            <div class="mat-caption" style="text-align: center;">Laptime<br>(1/100s)</div>
+            <div class="mat-caption" style="text-align: center;">Lap time<br>(1/100s)</div>
             <div class="mat-caption" style="text-align: center;">Measured refresh rate<br>(ms)</div>
 
             <ng-container *ngFor="let slot of dto">
@@ -22,7 +22,7 @@
                 <div style="justify-self: right;">{{slot.timestampStartFinish2}}</div>
                 <div style="justify-self: right;">{{slot.timestampPitlane2}}</div>
                 <div style="justify-self: right;">{{slot.timestampStartFinishPitlaneInterval2}}</div>
-                <div style="justify-self: right;">{{slot.laptime}}</div>
+                <div style="justify-self: right;">{{slot.lapTime}}</div>
                 <div style="justify-self: right;">{{slot.refreshRate}}</div>
             </ng-container>
         </div>
