@@ -470,6 +470,63 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
         }
 
+        public uint? SpeedTrap
+        {
+            get
+            {
+                int lane = 0;
+                uint? end = null;
+                if (TimestampPitlane1.HasValue && TimestampPitlane2.HasValue)
+                {
+                    if (TimestampPitlane1.Value > TimestampPitlane2.Value)
+                    {
+                        lane = 1;
+                        end = TimestampPitlane1.Value;
+                    }
+                    else
+                    {
+                        lane = 2;
+                        end = TimestampPitlane2.Value;
+                    }
+                }
+                else if (TimestampPitlane1.HasValue)
+                {
+                    lane = 1;
+                    end = TimestampPitlane1.Value;
+                }
+                else if (TimestampPitlane2.HasValue)
+                {
+                    lane = 2;
+                    end = TimestampPitlane2.Value;
+                }
+
+                if (end.HasValue)
+                {
+                    switch (lane)
+                    {
+                        case 1:
+                            if (TimestampStartFinish1.HasValue)
+                            {
+                                return end - TimestampStartFinish1;
+                            }
+                            break;
+
+                        case 2:
+                            if (TimestampStartFinish2.HasValue)
+                            {
+                                return end - TimestampStartFinish2;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                return null;
+            }
+        }
+
         public int? RefreshRate
         {
             get
@@ -494,20 +551,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
             PacketSequence = packetSequence;
 
             var timestampStartFinishUpdated = false;
-            if (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1)
+            if (timestampTrack1 > 0 && (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1))
             {
                 TimestampStartFinish1Previous = TimestampStartFinish1;
                 TimestampStartFinish1 = timestampTrack1;
-                timestampStartFinishUpdated = timestampTrack1 > 0;
+                timestampStartFinishUpdated = true;
             }
-            if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
+            if (timestampTrack2 > 0 && (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2))
             {
                 TimestampStartFinish2Previous = TimestampStartFinish2;
                 TimestampStartFinish2 = timestampTrack2;
-                timestampStartFinishUpdated = timestampTrack2 > 0;
+                timestampStartFinishUpdated = true;
             }
-            TimestampPitlane1 = timestampPitlane1;
-            TimestampPitlane2 = timestampPitlane2;
+
+            var timestampPitlaneUpdated = false;
+            if (timestampPitlane1 > 0 && (!TimestampPitlane1.HasValue || TimestampPitlane1.Value != timestampPitlane1))
+            {
+                TimestampPitlane1 = timestampPitlane1;
+                timestampPitlaneUpdated = true;
+            }
+            if (timestampPitlane2 > 0 && (!TimestampPitlane2.HasValue || TimestampPitlane2.Value != timestampPitlane2))
+            {
+                TimestampPitlane2 = timestampPitlane2;
+                timestampPitlaneUpdated = true;
+            }
 
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
@@ -515,6 +582,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
             if (timestampStartFinishUpdated)
             {
                 await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
+            }
+
+            if (timestampPitlaneUpdated)
+            {
+                await _practiceSessionState.SetSpeedTrapAsync(CarId, SpeedTrap);
             }
 
             await _hubContext.Clients.All.ChangedState(this);

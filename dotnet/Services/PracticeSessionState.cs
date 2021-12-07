@@ -12,8 +12,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
         [Required]
         public byte CarId { get; init; }
         public int? Laps { get; set; }
-        public double? BestLapTime { get; set; }
-        public uint? BestSpeedTrap { get; set; }
+        public double? FastestLapTime { get; set; }
+        public uint? FastestSpeedTrap { get; set; }
         public Queue<PracticeSessionLap> LatestLaps { get; set; } = new Queue<PracticeSessionLap>();
     }
 
@@ -77,8 +77,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 CarId = practiceSessionCarId.CarId,
                 Laps = practiceSessionCarId.Laps,
-                FastestLapTime = practiceSessionCarId.BestLapTime.HasValue ? practiceSessionCarId.BestLapTime.Value.ToString("F2", CultureInfo.InvariantCulture) : null,
-                FastestSpeedTrap = practiceSessionCarId.BestSpeedTrap,
+                FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? practiceSessionCarId.FastestLapTime.Value.ToString("F2", CultureInfo.InvariantCulture) : null,
+                FastestSpeedTrap = practiceSessionCarId.FastestSpeedTrap,
                 LatestLaps = practiceSessionCarId.LatestLaps.OrderByDescending(x => x.Lap).Select(x => new PracticeSessionLapDto
                 {
                     Lap = x.Lap,
@@ -87,7 +87,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 })
             };
         }
-
 
         public void Reset()
         {
@@ -122,9 +121,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     System.Console.WriteLine($"practiceSessionCarId.Laps={practiceSessionCarId}");
                 }
 
-                if (!practiceSessionCarId.BestLapTime.HasValue || practiceSessionCarId.BestLapTime / 100.0 < lapTime / 100.0)
+                if (!practiceSessionCarId.FastestLapTime.HasValue || practiceSessionCarId.FastestLapTime / 100.0 > lapTime / 100.0)
                 {
-                    practiceSessionCarId.BestLapTime = lapTime / 100.0;
+                    practiceSessionCarId.FastestLapTime = lapTime / 100.0;
                 }
 
                 practiceSessionCarId.LatestLaps.Enqueue(new PracticeSessionLap
@@ -136,6 +135,23 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 {
                     practiceSessionCarId.LatestLaps.Dequeue();
                 }
+                await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+            }
+        }
+
+        public async Task SetSpeedTrapAsync(byte carId, uint? speedTrap)
+        {
+            System.Console.WriteLine($"SetSpeedTrapAsync carId={carId} speedTrap={speedTrap}");
+
+            var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
+            if (practiceSessionCarId is not null)
+            {
+                if (!practiceSessionCarId.FastestSpeedTrap.HasValue || practiceSessionCarId.FastestSpeedTrap > speedTrap)
+                {
+                    practiceSessionCarId.FastestLapTime = speedTrap;
+                }
+
+                practiceSessionCarId.LatestLaps.ElementAt(0).SpeedTrap = speedTrap;
                 await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
         }

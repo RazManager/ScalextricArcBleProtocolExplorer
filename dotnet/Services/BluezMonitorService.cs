@@ -714,10 +714,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         _logger.LogInformation("Connection to Scalextric ARC has been completed.");
                         await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
 
-                        Console.WriteLine("Before scalextricArcProxy.GetRSSIAsync");
-                        var rssi = await scalextricArcProxy.GetRSSIAsync();
-                        Console.WriteLine("After scalextricArcProxy.GetRSSIAsync");
-                        _logger.LogInformation($"RSSI={rssi}");
+                        try
+                        {
+                            var rssi = await scalextricArcProxy.GetRSSIAsync();
+                            _logger.LogInformation($"RSSI={rssi}");
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.LogError(exception, $"Could not get RSSI: {exception.Message}");
+                        }
                     }
                 }
                 catch (Exception exception)
