@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,6 +26,25 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
+    public class PracticeSessionCarIdDto
+    {
+        [Required]
+        public byte CarId { get; init; }
+        public int? Laps { get; set; }
+        public string? FastestLapTime { get; set; }
+        public uint? FastestSpeedTrap { get; set; }
+        public IEnumerable<PracticeSessionLapDto> LatestLaps { get; set; } = new List<PracticeSessionLapDto>();
+    }
+
+
+    public class PracticeSessionLapDto
+    {
+        public int Lap { get; set; }
+        public string? LapTime { get; set; }
+        public uint? SpeedTrap { get; set; }
+    }
+
+
     public class PracticeSessionState
     {
         private readonly IHubContext<Hubs.PracticeSessionHub, Hubs.IPracticeSessionHub> _hubContext;
@@ -44,7 +64,30 @@ namespace ScalextricArcBleProtocolExplorer.Services
             CarIds = carIds;
         }
 
-        public IEnumerable<PracticeSessionCarId> CarIds { get; set; }
+        private IEnumerable<PracticeSessionCarId> CarIds { get; set; }
+
+        public IEnumerable<PracticeSessionCarIdDto> MapPracticeSessionCarIds()
+        {
+            return CarIds.Select(x => MapPracticeSessionCarId(x));
+        }
+
+        public PracticeSessionCarIdDto MapPracticeSessionCarId(PracticeSessionCarId practiceSessionCarId)
+        {
+            return new PracticeSessionCarIdDto
+            {
+                CarId = practiceSessionCarId.CarId,
+                Laps = practiceSessionCarId.Laps,
+                FastestLapTime = practiceSessionCarId.BestLapTime.HasValue ? practiceSessionCarId.BestLapTime.Value.ToString("F2", CultureInfo.InvariantCulture) : null,
+                FastestSpeedTrap = practiceSessionCarId.BestSpeedTrap,
+                LatestLaps = practiceSessionCarId.LatestLaps.OrderByDescending(x => x.Lap).Select(x => new PracticeSessionLapDto
+                {
+                    Lap = x.Lap,
+                    LapTime = x.LapTime.HasValue ? x.LapTime.Value.ToString("F2", CultureInfo.InvariantCulture) : null,
+                    SpeedTrap = x.SpeedTrap
+                })
+            };
+        }
+
 
         public void Reset()
         {
@@ -56,7 +99,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     CarId = (byte)(i + 1)
                 };
                 carIds.Add(practiceSessionCarId);
-                _hubContext.Clients.All.ChangedState(practiceSessionCarId);
+                _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
             CarIds = carIds;
         }
@@ -71,10 +114,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (!practiceSessionCarId.Laps.HasValue || !lapTime.HasValue)
                 {
                     practiceSessionCarId.Laps = 0;
+                    System.Console.WriteLine($"practiceSessionCarId.Laps set to 0");
                 }
                 else
                 {
                     practiceSessionCarId.Laps++;
+                    System.Console.WriteLine($"practiceSessionCarId.Laps={practiceSessionCarId}");
                 }
 
                 if (!practiceSessionCarId.BestLapTime.HasValue || practiceSessionCarId.BestLapTime / 100.0 < lapTime / 100.0)
@@ -91,7 +136,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 {
                     practiceSessionCarId.LatestLaps.Dequeue();
                 }
-                await _hubContext.Clients.All.ChangedState(practiceSessionCarId);
+                await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
         }
     }

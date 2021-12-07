@@ -7,7 +7,7 @@ namespace ScalextricArcBleProtocolExplorer.Hubs
 {
     public interface IPracticeSessionHub
     {
-        Task ChangedState(PracticeSessionCarId dto);
+        Task ChangedState(PracticeSessionCarIdDto dto);
     }
 
 

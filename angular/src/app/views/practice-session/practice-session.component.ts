@@ -46,9 +46,4 @@ export class PracticeSessionComponent
             }
         });
     }
-
-
-    public latestLaps(carId: number): PracticeSessionLapDto[] {
-        return this.dto.find(x => x.carId === carId)!.latestLaps.sort((a,b) => 0 - (a.lap > b.lap ? 1 : -1));
-    }
 }

@@ -405,9 +405,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 try
                 {
-                    Console.WriteLine($"CreateProxy before CreateProxy<bluez.DBus.IDevice1>({bluezService}, {objectPath}) ...");
                     scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
-                    Console.WriteLine($"CreateProxy after...");
 
                     if (await scalextricArcProxy.GetConnectedAsync())
                     {
@@ -441,13 +439,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         if (success)
                         {
                             scalextricArcObjectPath = objectPath;
+                            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
                         }
                         else
                         {
                             _logger.LogInformation("Could not connect to Scalextric ARC.");
                         }
                     }
-                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
 
                     if (scalextricArcObjectPath != null)
                     {
@@ -469,8 +467,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 throw new Exception("Scalextric ARC services could not be resolved");
                             }
                         }
-
-
 
                         //Console.WriteLine("Bluez objects and interfaces");
                         //foreach (var item in _bluezObjectPathInterfaces)
@@ -717,6 +713,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         _logger.LogInformation("Connection to Scalextric ARC has been completed.");
                         await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
+
+                        Console.WriteLine("Before scalextricArcProxy.GetRSSIAsync");
+                        var rssi = await scalextricArcProxy.GetRSSIAsync();
+                        Console.WriteLine("After scalextricArcProxy.GetRSSIAsync");
+                        _logger.LogInformation($"RSSI={rssi}");
                     }
                 }
                 catch (Exception exception)

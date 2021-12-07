@@ -19,9 +19,9 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
 
 
         [HttpGet]
-        public IEnumerable<PracticeSessionCarId> Get()
+        public IEnumerable<PracticeSessionCarIdDto> Get()
         {
-            return _practiceSessionState.CarIds;
+            return _practiceSessionState.MapPracticeSessionCarIds();
         }
     }
 }

@@ -7,16 +7,16 @@
                         <div style="margin-bottom: 1em; font-size: xx-large;">{{practiceSessionCarId.carId}}</div>
                         <div class="mat-caption">Laps</div>
                         <div style="margin-bottom: 1em;">{{practiceSessionCarId.laps}}</div>
-                        <div class="mat-caption">Best lap time</div>
-                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.bestLapTime}}</div>
-                        <div class="mat-caption">Best speed trap</div>
-                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.bestSpeedTrap}}</div>
+                        <div class="mat-caption">Fastest lap time</div>
+                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.fastestLapTime}}</div>
+                        <div class="mat-caption">Fastest speed trap</div>
+                        <div style="margin-bottom: 1em;">{{practiceSessionCarId.fastestSpeedTrap}}</div>
                     </div>
                     <div gdColumns="max-content max-content max-content" style="column-gap: 1em; justify-items: end;">
                         <div class="mat-caption">Lap</div>
                         <div class="mat-caption">Lap<br>time</div>
                         <div class="mat-caption">Speed<br>trap</div>
-                        <ng-container *ngFor="let practiceSessionLapDto of latestLaps(practiceSessionCarId.carId)">
+                        <ng-container *ngFor="let practiceSessionLapDto of practiceSessionCarId.latestLaps">
                             <div>{{practiceSessionLapDto.lap}}</div>
                             <div>{{practiceSessionLapDto.lapTime}}</div>
                             <div>{{practiceSessionLapDto.speedTrap}}</div>
