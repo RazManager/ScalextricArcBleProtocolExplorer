@@ -148,10 +148,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 if (!practiceSessionCarId.FastestSpeedTrap.HasValue || practiceSessionCarId.FastestSpeedTrap > speedTrap)
                 {
-                    practiceSessionCarId.FastestLapTime = speedTrap;
+                    practiceSessionCarId.FastestSpeedTrap = speedTrap;
                 }
 
-                practiceSessionCarId.LatestLaps.ElementAt(0).SpeedTrap = speedTrap;
+                practiceSessionCarId.LatestLaps.ElementAt(practiceSessionCarId.LatestLaps.Count - 1).SpeedTrap = speedTrap;
                 await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
         }
