@@ -551,26 +551,40 @@ namespace ScalextricArcBleProtocolExplorer.Services
             PacketSequence = packetSequence;
 
             var timestampStartFinishUpdated = false;
-            if (timestampTrack1 > 0 && (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1))
+            if (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1)
             {
-                TimestampStartFinish1Previous = TimestampStartFinish1;
+                if (timestampTrack1 == 0)
+                {
+                    TimestampStartFinish1Previous = null;
+                }
+                else
+                {
+                    TimestampStartFinish1Previous = TimestampStartFinish1;
+                }
                 TimestampStartFinish1 = timestampTrack1;
                 timestampStartFinishUpdated = true;
             }
             if (timestampTrack2 > 0 && (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2))
             {
-                TimestampStartFinish2Previous = TimestampStartFinish2;
+                if (timestampTrack1 == 0)
+                {
+                    TimestampStartFinish2Previous = null;
+                }
+                else
+                {
+                    TimestampStartFinish2Previous = TimestampStartFinish2;
+                }
                 TimestampStartFinish2 = timestampTrack2;
                 timestampStartFinishUpdated = true;
             }
 
             var timestampPitlaneUpdated = false;
-            if (timestampPitlane1 > 0 && (!TimestampPitlane1.HasValue || TimestampPitlane1.Value != timestampPitlane1))
+            if (!TimestampPitlane1.HasValue || TimestampPitlane1.Value != timestampPitlane1)
             {
                 TimestampPitlane1 = timestampPitlane1;
                 timestampPitlaneUpdated = true;
             }
-            if (timestampPitlane2 > 0 && (!TimestampPitlane2.HasValue || TimestampPitlane2.Value != timestampPitlane2))
+            if (!TimestampPitlane2.HasValue || TimestampPitlane2.Value != timestampPitlane2)
             {
                 TimestampPitlane2 = timestampPitlane2;
                 timestampPitlaneUpdated = true;
@@ -579,14 +593,21 @@ namespace ScalextricArcBleProtocolExplorer.Services
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            if (timestampStartFinishUpdated)
+            if (timestampTrack1 == 0 && timestampTrack2 == 0)
             {
-                await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
+                await _practiceSessionState.ResetAsync();
             }
-
-            if (timestampPitlaneUpdated)
+            else
             {
-                await _practiceSessionState.SetSpeedTrapAsync(CarId, SpeedTrap);
+                if (timestampStartFinishUpdated)
+                {
+                    await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
+                }
+
+                if (timestampPitlaneUpdated)
+                {
+                    await _practiceSessionState.SetSpeedTrapAsync(CarId, SpeedTrap);
+                }
             }
 
             await _hubContext.Clients.All.ChangedState(this);

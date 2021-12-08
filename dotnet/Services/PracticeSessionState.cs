@@ -91,7 +91,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             };
         }
 
-        public void Reset()
+        public async Task ResetAsync()
         {
             var carIds = new List<PracticeSessionCarId>();
             for (byte i = 0; i < 6; i++)
@@ -101,7 +101,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     CarId = (byte)(i + 1)
                 };
                 carIds.Add(practiceSessionCarId);
-                _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
             CarIds = carIds;
         }
