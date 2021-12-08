@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
@@ -50,11 +52,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
     public class PracticeSessionState
     {
         private readonly IHubContext<Hubs.PracticeSessionHub, Hubs.IPracticeSessionHub> _hubContext;
+        private readonly ILogger<PracticeSessionState> _logger;
 
-        public PracticeSessionState(IHubContext<Hubs.PracticeSessionHub, Hubs.IPracticeSessionHub> hubContext)
+        public PracticeSessionState(IHubContext<Hubs.PracticeSessionHub, Hubs.IPracticeSessionHub> hubContext,
+                                    ILogger<PracticeSessionState> logger)
         {
             _hubContext = hubContext;
-
+            _logger = logger;
             var carIds = new List<PracticeSessionCarId>();
             for (byte i = 0; i < 6; i++)
             {
@@ -93,6 +97,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public async Task ResetAsync()
         {
+            Console.WriteLine("ResetAsync");
+
             var carIds = new List<PracticeSessionCarId>();
             for (byte i = 0; i < 6; i++)
             {
@@ -108,56 +114,72 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public async Task SetLapTimeAsync(byte carId, uint? lapTime)
         {
-            System.Console.WriteLine($"SetLapTimeAsync carId={carId} lapTime={ lapTime}");
-
-            var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
-            if (practiceSessionCarId is not null)
+            try
             {
-                practiceSessionCarId.AnalogPitstop = true;
+                Console.WriteLine($"SetLapTimeAsync carId={carId} lapTime={lapTime}");
 
-                if (!practiceSessionCarId.Laps.HasValue || !lapTime.HasValue)
+                var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
+                if (practiceSessionCarId is not null)
                 {
-                    practiceSessionCarId.Laps = 0;
-                    System.Console.WriteLine($"practiceSessionCarId.Laps set to 0");
-                }
-                else
-                {
-                    practiceSessionCarId.Laps++;
-                    System.Console.WriteLine($"practiceSessionCarId.Laps={practiceSessionCarId}");
-                }
+                    practiceSessionCarId.AnalogPitstop = true;
 
-                if (!practiceSessionCarId.FastestLapTime.HasValue || practiceSessionCarId.FastestLapTime.Value > lapTime)
-                {
-                    practiceSessionCarId.FastestLapTime = lapTime;
-                }
+                    if (!practiceSessionCarId.Laps.HasValue || !lapTime.HasValue)
+                    {
+                        practiceSessionCarId.Laps = 0;
+                        System.Console.WriteLine($"practiceSessionCarId.Laps set to 0");
+                    }
+                    else
+                    {
+                        practiceSessionCarId.Laps++;
+                        System.Console.WriteLine($"practiceSessionCarId.Laps={practiceSessionCarId}");
+                    }
 
-                practiceSessionCarId.LatestLaps.Enqueue(new PracticeSessionLap
-                {
-                    Lap = practiceSessionCarId.Laps.Value,
-                    LapTime = lapTime
-                });
-                while (practiceSessionCarId.LatestLaps.Count > 5)
-                {
-                    practiceSessionCarId.LatestLaps.Dequeue();
+                    if (!practiceSessionCarId.FastestLapTime.HasValue || practiceSessionCarId.FastestLapTime.Value > lapTime)
+                    {
+                        practiceSessionCarId.FastestLapTime = lapTime;
+                    }
+
+                    practiceSessionCarId.LatestLaps.Enqueue(new PracticeSessionLap
+                    {
+                        Lap = practiceSessionCarId.Laps.Value,
+                        LapTime = lapTime
+                    });
+                    while (practiceSessionCarId.LatestLaps.Count > 5)
+                    {
+                        practiceSessionCarId.LatestLaps.Dequeue();
+                    }
+                    await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
                 }
-                await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, exception.Message);
             }
         }
 
         public async Task SetSpeedTrapAsync(byte carId, uint? speedTrap)
         {
-            var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
-            if (practiceSessionCarId is not null)
+            try
             {
-                practiceSessionCarId.AnalogPitstop = false;
+                Console.WriteLine($"SetSpeedTrapAsync carId={carId} speedTrap={speedTrap}");
 
-                if (!practiceSessionCarId.FastestSpeedTrap.HasValue || practiceSessionCarId.FastestSpeedTrap > speedTrap)
+                var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
+                if (practiceSessionCarId is not null)
                 {
-                    practiceSessionCarId.FastestSpeedTrap = speedTrap;
-                }
+                    practiceSessionCarId.AnalogPitstop = false;
 
-                practiceSessionCarId.LatestLaps.ElementAt(practiceSessionCarId.LatestLaps.Count - 1).SpeedTrap = speedTrap;
-                await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                    if (!practiceSessionCarId.FastestSpeedTrap.HasValue || practiceSessionCarId.FastestSpeedTrap > speedTrap)
+                    {
+                        practiceSessionCarId.FastestSpeedTrap = speedTrap;
+                    }
+
+                    practiceSessionCarId.LatestLaps.ElementAt(practiceSessionCarId.LatestLaps.Count - 1).SpeedTrap = speedTrap;
+                    await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, exception.Message);
             }
         }
     }

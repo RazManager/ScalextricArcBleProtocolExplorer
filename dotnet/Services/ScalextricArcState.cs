@@ -564,9 +564,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 TimestampStartFinish1 = timestampTrack1;
                 timestampStartFinishUpdated = true;
             }
-            if (timestampTrack2 > 0 && (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2))
+            if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
-                if (timestampTrack1 == 0)
+                if (timestampTrack2 == 0)
                 {
                     TimestampStartFinish2Previous = null;
                 }
