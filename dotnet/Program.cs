@@ -55,7 +55,8 @@ builder.Services.AddSingleton(serviceProvider =>
 builder.Services.AddSingleton(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.PracticeSessionState
     (
-        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.PracticeSessionHub, ScalextricArcBleProtocolExplorer.Hubs.IPracticeSessionHub>>()
+        serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.PracticeSessionHub, ScalextricArcBleProtocolExplorer.Hubs.IPracticeSessionHub>>(),
+        serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.PracticeSessionState>>()
     )
 );
 
