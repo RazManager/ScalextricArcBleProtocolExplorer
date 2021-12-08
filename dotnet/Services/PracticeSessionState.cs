@@ -59,18 +59,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             _hubContext = hubContext;
             _logger = logger;
-            var carIds = new List<PracticeSessionCarId>();
+            CarIds = new List<PracticeSessionCarId>();
             for (byte i = 0; i < 6; i++)
             {
-                carIds.Add(new PracticeSessionCarId
+                CarIds.Add(new PracticeSessionCarId
                 {
                     CarId = (byte)(i + 1)
                 });
             }
-            CarIds = carIds;
         }
 
-        private IEnumerable<PracticeSessionCarId> CarIds { get; set; }
+        private List<PracticeSessionCarId> CarIds { get; set; }
 
         public IEnumerable<PracticeSessionCarIdDto> MapPracticeSessionCarIds()
         {
@@ -95,18 +94,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
             };
         }
 
-        public async Task ResetAsync(byte carId)
+        public async Task ResetAsync()
         {
-            Console.WriteLine($"ResetAsync carId={carId}");
+            Console.WriteLine($"ResetAsync");
 
-            var practiceSessionCarId = new PracticeSessionCarId
+            CarIds = new List<PracticeSessionCarId>();
+            for (byte i = 0; i < 6; i++)
             {
-                CarId = carId
-            };
-            var previous = CarIds.SingleOrDefault(x => x.CarId == carId);
-            if (previous is not null)
-            {
-                previous = practiceSessionCarId;
+                var practiceSessionCarId = new PracticeSessionCarId
+                {
+                    CarId = (byte)(i + 1)
+                };
+                CarIds.Add(practiceSessionCarId);
                 await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
         }

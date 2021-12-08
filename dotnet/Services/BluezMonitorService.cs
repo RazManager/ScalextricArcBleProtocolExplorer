@@ -892,6 +892,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 if (_commandCharacteristicProxy is not null)
                 {
+                    Console.WriteLine($"Command: {(byte)commandState.Command} {commandState.Command}");
                     var value = new byte[20];
                     value[0] = (byte)commandState.Command;
                     value[1] = (byte)(commandState.PowerMultiplier1 + (commandState.Ghost1 ? 128 : 0));
@@ -983,11 +984,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Index % 16 == 15)
                 {
                     buffer[0] = (byte)(item.Index / 16);
-                    //Console.WriteLine("Writing throttle profile buffer:");
-                    //for (int i = 0; i < buffer.Length; i++)
-                    //{
-                    //    Console.WriteLine($"{i} {buffer[i]}");
-                    //}
+                    Console.WriteLine("Writing throttle profile buffer:");
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        Console.WriteLine($"{i} {buffer[i]}");
+                    }
                     await proxy.WriteValueAsync(buffer, new Dictionary<string, object>());
                 }
             }

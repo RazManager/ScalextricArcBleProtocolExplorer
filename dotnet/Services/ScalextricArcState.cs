@@ -34,7 +34,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             CarIdState = new CarIdState(carIdHubContext, carIdStateChannel);
 
-            CommandState = new CommandState(commandHubContext, commandStateChannel);
+            CommandState = new CommandState(commandHubContext, commandStateChannel, practiceSessionState);
 
             ConnectionState = new ConnectionState(connectionHubContext);
 
@@ -208,12 +208,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
     {
         private readonly IHubContext<Hubs.CommandHub, Hubs.ICommandHub> _hubContext;
         private readonly Channel<CommandState> _channel;
+        private readonly PracticeSessionState _practiceSessionState;
 
         public CommandState(IHubContext<Hubs.CommandHub, Hubs.ICommandHub> hubContext,
-                            Channel<CommandState> channel)
+                            Channel<CommandState> channel,
+                            PracticeSessionState practiceSessionState)
         {
             _hubContext = hubContext;
             _channel = channel;
+            _practiceSessionState = practiceSessionState;
         }
 
         public async Task SetAsync
@@ -290,6 +293,25 @@ namespace ScalextricArcBleProtocolExplorer.Services
             }
 
             await _hubContext.Clients.All.ChangedState(this);
+
+            switch (command)
+            {
+                case CommandType.NoPowerTimerStopped:
+                    await _practiceSessionState.ResetAsync();
+                    break;
+                case CommandType.NoPowerTimerTicking:
+                    break;
+                case CommandType.PowerOnRaceTrigger:
+                    break;
+                case CommandType.PowerOnRacing:
+                    break;
+                case CommandType.PowerOnTimerHalt:
+                    break;
+                case CommandType.NoPowerRebootPic18:
+                    break;
+                default:
+                    break;
+            }            
         }
     }
 
@@ -560,9 +582,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 else
                 {
                     TimestampStartFinish1Previous = TimestampStartFinish1;
+                    timestampStartFinishUpdated = true;
                 }
                 TimestampStartFinish1 = timestampTrack1;
-                timestampStartFinishUpdated = true;
             }
             if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
@@ -573,9 +595,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 else
                 {
                     TimestampStartFinish2Previous = TimestampStartFinish2;
+                    timestampStartFinishUpdated = true;
                 }
                 TimestampStartFinish2 = timestampTrack2;
-                timestampStartFinishUpdated = true;
             }
 
             var timestampPitlaneUpdated = false;
@@ -593,21 +615,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
             TimestampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            if (timestampTrack1 == 0 && timestampTrack2 == 0)
+            if (timestampStartFinishUpdated)
             {
-                await _practiceSessionState.ResetAsync(CarId);
+                await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
             }
-            else
-            {
-                if (timestampStartFinishUpdated)
-                {
-                    await _practiceSessionState.SetLapTimeAsync(CarId, LapTime);
-                }
 
-                if (timestampPitlaneUpdated)
-                {
-                    await _practiceSessionState.SetSpeedTrapAsync(CarId, SpeedTrap);
-                }
+            if (timestampPitlaneUpdated)
+            {
+                await _practiceSessionState.SetSpeedTrapAsync(CarId, SpeedTrap);
             }
 
             await _hubContext.Clients.All.ChangedState(this);
