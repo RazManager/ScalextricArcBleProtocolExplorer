@@ -595,7 +595,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             if (timestampTrack1 == 0 && timestampTrack2 == 0)
             {
-                await _practiceSessionState.ResetAsync();
+                await _practiceSessionState.ResetAsync(CarId);
             }
             else
             {

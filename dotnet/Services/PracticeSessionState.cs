@@ -95,21 +95,20 @@ namespace ScalextricArcBleProtocolExplorer.Services
             };
         }
 
-        public async Task ResetAsync()
+        public async Task ResetAsync(byte carId)
         {
-            Console.WriteLine("ResetAsync");
+            Console.WriteLine($"ResetAsync carId={carId}");
 
-            var carIds = new List<PracticeSessionCarId>();
-            for (byte i = 0; i < 6; i++)
+            var practiceSessionCarId = new PracticeSessionCarId
             {
-                var practiceSessionCarId = new PracticeSessionCarId
-                {
-                    CarId = (byte)(i + 1)
-                };
-                carIds.Add(practiceSessionCarId);
+                CarId = carId
+            };
+            var previous = CarIds.SingleOrDefault(x => x.CarId == carId);
+            if (previous is not null)
+            {
+                previous = practiceSessionCarId;
                 await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
             }
-            CarIds = carIds;
         }
 
         public async Task SetLapTimeAsync(byte carId, uint? lapTime)
