@@ -3,6 +3,7 @@ export class PracticeSessionCarIdDto {
     public laps!: number | null;
     public fastestLapTime!: string | null;
     public fastestSpeedTrap!: number | null;
+    public analogPitstop!: boolean;
     public latestLaps!: PracticeSessionLapDto[]
 }
 

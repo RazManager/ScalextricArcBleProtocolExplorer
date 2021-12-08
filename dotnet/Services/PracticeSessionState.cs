@@ -14,6 +14,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public int? Laps { get; set; }
         public double? FastestLapTime { get; set; }
         public uint? FastestSpeedTrap { get; set; }
+        public bool AnalogPitstop { get; set; } = false;
         public Queue<PracticeSessionLap> LatestLaps { get; set; } = new Queue<PracticeSessionLap>();
     }
 
@@ -33,6 +34,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public int? Laps { get; set; }
         public string? FastestLapTime { get; set; }
         public uint? FastestSpeedTrap { get; set; }
+        public bool AnalogPitstop { get; set; } = false;
         public IEnumerable<PracticeSessionLapDto> LatestLaps { get; set; } = new List<PracticeSessionLapDto>();
     }
 
@@ -77,12 +79,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 CarId = practiceSessionCarId.CarId,
                 Laps = practiceSessionCarId.Laps,
-                FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? practiceSessionCarId.FastestLapTime.Value.ToString("F2", CultureInfo.InvariantCulture) : null,
+                FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? (practiceSessionCarId.FastestLapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
                 FastestSpeedTrap = practiceSessionCarId.FastestSpeedTrap,
+                AnalogPitstop = practiceSessionCarId.AnalogPitstop,
                 LatestLaps = practiceSessionCarId.LatestLaps.OrderByDescending(x => x.Lap).Select(x => new PracticeSessionLapDto
                 {
                     Lap = x.Lap,
-                    LapTime = x.LapTime.HasValue ? x.LapTime.Value.ToString("F2", CultureInfo.InvariantCulture) : null,
+                    LapTime = x.LapTime.HasValue ? (x.LapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
                     SpeedTrap = x.SpeedTrap
                 })
             };
@@ -110,6 +113,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
             if (practiceSessionCarId is not null)
             {
+                practiceSessionCarId.AnalogPitstop = true;
+
                 if (!practiceSessionCarId.Laps.HasValue || !lapTime.HasValue)
                 {
                     practiceSessionCarId.Laps = 0;
@@ -121,15 +126,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     System.Console.WriteLine($"practiceSessionCarId.Laps={practiceSessionCarId}");
                 }
 
-                if (!practiceSessionCarId.FastestLapTime.HasValue || practiceSessionCarId.FastestLapTime / 100.0 > lapTime / 100.0)
+                if (!practiceSessionCarId.FastestLapTime.HasValue || practiceSessionCarId.FastestLapTime.Value > lapTime)
                 {
-                    practiceSessionCarId.FastestLapTime = lapTime / 100.0;
+                    practiceSessionCarId.FastestLapTime = lapTime;
                 }
 
                 practiceSessionCarId.LatestLaps.Enqueue(new PracticeSessionLap
                 {
                     Lap = practiceSessionCarId.Laps.Value,
-                    LapTime = lapTime / 100.0
+                    LapTime = lapTime
                 });
                 while (practiceSessionCarId.LatestLaps.Count > 5)
                 {
@@ -141,11 +146,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public async Task SetSpeedTrapAsync(byte carId, uint? speedTrap)
         {
-            System.Console.WriteLine($"SetSpeedTrapAsync carId={carId} speedTrap={speedTrap}");
-
             var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
             if (practiceSessionCarId is not null)
             {
+                practiceSessionCarId.AnalogPitstop = false;
+
                 if (!practiceSessionCarId.FastestSpeedTrap.HasValue || practiceSessionCarId.FastestSpeedTrap > speedTrap)
                 {
                     practiceSessionCarId.FastestSpeedTrap = speedTrap;

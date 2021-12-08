@@ -23,6 +23,12 @@
                 <div style="margin-bottom: 1em;">{{practiceSessionCarId.fastestSpeedTrap}}</div>
             </ng-container>
             <ng-container *ngFor="let practiceSessionCarId of dto">
+                <div class="mat-caption">Analog "pitstop"</div>
+            </ng-container>
+            <ng-container *ngFor="let practiceSessionCarId of dto">
+                <div style="margin-bottom: 1em;"><mat-checkbox [checked]="practiceSessionCarId.analogPitstop" disabled></mat-checkbox></div>
+            </ng-container>
+            <ng-container *ngFor="let practiceSessionCarId of dto">
                 <div gdColumns="max-content max-content max-content" style="column-gap: 1em; justify-items: end;">
                     <div class="mat-caption">Lap</div>
                     <div class="mat-caption">Lap<br>time</div>
