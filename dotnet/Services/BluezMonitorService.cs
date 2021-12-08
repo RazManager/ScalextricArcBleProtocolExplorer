@@ -984,11 +984,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 if (item.Index % 16 == 15)
                 {
                     buffer[0] = (byte)(item.Index / 16);
-                    Console.WriteLine("Writing throttle profile buffer:");
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        Console.WriteLine($"{i} {buffer[i]}");
-                    }
+                    //Console.WriteLine("Writing throttle profile buffer:");
+                    //for (int i = 0; i < buffer.Length; i++)
+                    //{
+                    //    Console.WriteLine($"{i} {buffer[i]}");
+                    //}
                     await proxy.WriteValueAsync(buffer, new Dictionary<string, object>());
                 }
             }

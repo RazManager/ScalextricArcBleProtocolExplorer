@@ -582,9 +582,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 else
                 {
                     TimestampStartFinish1Previous = TimestampStartFinish1;
-                    timestampStartFinishUpdated = true;
+                    
                 }
                 TimestampStartFinish1 = timestampTrack1;
+                timestampStartFinishUpdated = timestampTrack1 > 0;
             }
             if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
             {
@@ -595,21 +596,21 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 else
                 {
                     TimestampStartFinish2Previous = TimestampStartFinish2;
-                    timestampStartFinishUpdated = true;
                 }
                 TimestampStartFinish2 = timestampTrack2;
+                timestampStartFinishUpdated = timestampTrack1 > 0;
             }
 
             var timestampPitlaneUpdated = false;
             if (!TimestampPitlane1.HasValue || TimestampPitlane1.Value != timestampPitlane1)
             {
                 TimestampPitlane1 = timestampPitlane1;
-                timestampPitlaneUpdated = true;
+                timestampPitlaneUpdated = timestampPitlane1 > 0;
             }
             if (!TimestampPitlane2.HasValue || TimestampPitlane2.Value != timestampPitlane2)
             {
                 TimestampPitlane2 = timestampPitlane2;
-                timestampPitlaneUpdated = true;
+                timestampPitlaneUpdated = timestampPitlane2 > 0;
             }
 
             TimestampRefreshRatePrevious = TimestampRefreshRateLast;
