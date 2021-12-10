@@ -32,7 +32,7 @@ export class SlotComponent
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                this.dto = (<SlotDto[]>data['result']).sort(x => x.carId);
+                this.dto = (<SlotDto[]>data['result']).sort((a, b) => a.carId - b.carId);
 
                 this.observersService
                 .onChangedState

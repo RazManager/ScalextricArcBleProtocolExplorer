@@ -32,14 +32,18 @@ export class PracticeSessionComponent
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                this.dto = (<PracticeSessionCarIdDto[]>data['result']).sort(x => x.carId);
+                const testUnsorted = (<PracticeSessionCarIdDto[]>data['result']);
+                console.log("testUnsorted", testUnsorted.map(x => x.carId).join(", "));
+                const testSorted = (<PracticeSessionCarIdDto[]>data['result']);
+                console.log("testSorted", testSorted.map(x => x.carId).join(", "));
+                this.dto = (<PracticeSessionCarIdDto[]>data['result']).sort((a, b) => a.carId - b.carId);
+                console.log("dto", this.dto.map(x => x.carId).join(", "));
 
                 this.observersService
                 .onChangedState
                 .subscribe((dto: PracticeSessionCarIdDto) => {
                     console.log('PracticeSessionCarIdDto', dto);                
                     this.dto[dto.carId - 1] = dto;
-                    //dto.latestLaps.sort((a,b) => 0 - (a.lap > b.lap ? 1 : -1));
                 });
 
                 this.observersService.observe();

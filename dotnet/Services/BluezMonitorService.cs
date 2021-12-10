@@ -329,24 +329,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 }
                 catch (Tmds.DBus.DBusException exception)
                 {
-                    switch (exception.ErrorName)
-                    {
-                        case "org.bluez.Error.NotReady":
-                            _logger.LogError(exception, exception.ErrorName);
-                            break;
-
-                        case "org.bluez.Error.Failed":
-                            _logger.LogError(exception, exception.ErrorName);
-                            break;
-
-                        default:
-                            _logger.LogError(exception, exception.Message);
-                            break;
-                    }
+                    _logger.LogError(exception, $"{exception.ErrorName}, {exception.ErrorMessage}");
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, exception.GetType().FullName);
                     _logger.LogError(exception, exception.Message);
                 }
 
@@ -420,15 +406,13 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         {
                             try
                             {
-                                Console.WriteLine($"ConnectAsync before {i} attempt(s).");
                                 await scalextricArcProxy.ConnectAsync();
-                                Console.WriteLine($"ConnectAsync after {i} attempt(s).");
                                 success = true;
                                 break;
                             }
                             catch (Tmds.DBus.DBusException exception)
                             {
-                                Console.WriteLine($"ConnectAsync exception: {exception.ErrorName}, {exception.ErrorMessage}");
+                                _logger.LogInformation($"Connection attempt {i} failed: {exception.ErrorName}, {exception.ErrorMessage}");
                                 await Task.Delay(TimeSpan.FromSeconds(5));
                             }
                             catch (Exception)
@@ -440,6 +424,31 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         {
                             scalextricArcObjectPath = objectPath;
                             await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
+
+                            _logger.LogInformation("Conneced to Scalextric ARC.");
+
+                            var deviceProperties = await scalextricArcProxy.GetAllAsync();
+                            _logger.LogInformation($"Address={deviceProperties.Address}");
+                            _logger.LogInformation($"AddressType={deviceProperties.AddressType}");
+                            _logger.LogInformation($"Name={deviceProperties.Name}");
+                            _logger.LogInformation($"Alias={deviceProperties.Alias}");
+                            _logger.LogInformation($"Class={deviceProperties.Class}");
+                            _logger.LogInformation($"Appearance={deviceProperties.Appearance}");
+                            _logger.LogInformation($"Icon={deviceProperties.Icon}");
+                            _logger.LogInformation($"Paired={deviceProperties.Paired}");
+                            _logger.LogInformation($"Trusted={deviceProperties.Trusted}");
+                            _logger.LogInformation($"Blocked={deviceProperties.Blocked}");
+                            _logger.LogInformation($"LegacyPairing={deviceProperties.LegacyPairing}");
+                            _logger.LogInformation($"RSSI={deviceProperties.RSSI}");
+                            _logger.LogInformation($"Connected={deviceProperties.Connected}");
+                            _logger.LogInformation($"UUIDs={string.Join(", ", deviceProperties.UUIDs)}");
+                            _logger.LogInformation($"Modalias={deviceProperties.Modalias}");
+                            _logger.LogInformation($"Adapter={deviceProperties.Adapter}");
+                            _logger.LogInformation($"TxPower={deviceProperties.TxPower}");
+                            _logger.LogInformation($"ServicesResolved={deviceProperties.ServicesResolved}");
+                            _logger.LogInformation($"WakeAllowed={deviceProperties.WakeAllowed}");
+                            //public IDictionary<ushort, object>? ManufacturerData
+                            //public IDictionary<string, object>? ServiceData
                         }
                         else
                         {
@@ -714,15 +723,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         _logger.LogInformation("Connection to Scalextric ARC has been completed.");
                         await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
 
-                        try
-                        {
-                            var rssi = await scalextricArcProxy.GetRSSIAsync();
-                            _logger.LogInformation($"RSSI={rssi}");
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.LogError(exception, $"Could not get RSSI: {exception.Message}");
-                        }
+                        //try
+                        //{
+                        //    var rssi = await scalextricArcProxy.GetRSSIAsync();
+                        //    _logger.LogInformation($"RSSI={rssi}");
+                        //}
+                        //catch (Exception exception)
+                        //{
+                        //    _logger.LogError(exception, $"Could not get RSSI: {exception.Message}");
+                        //}
                     }
                 }
                 catch (Exception exception)

@@ -35,7 +35,7 @@ export class ThrottleProfileComponent
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                this.dto = (<ThrottleProfileDto[]>data['result']).sort(x => x.carId);
+                this.dto = (<ThrottleProfileDto[]>data['result']).sort((a, b) => a.carId - b.carId);
 
                 this.observersService
                 .onChangedState

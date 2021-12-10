@@ -14,11 +14,9 @@ export abstract class ObserversBaseService implements OnDestroy {
 
     constructor(@Inject(OBSERVERS_SERVICE_PART_URL) servicePartUrl: string) {
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl(
-                environment.apiBaseUrl + servicePartUrl,
-            )
-            .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Trace)
+            .withUrl(environment.apiBaseUrl + servicePartUrl)
+            .withAutomaticReconnect(new RetryPolicy())
+            .configureLogging(signalR.LogLevel.Debug)
             .build();    
     }
 
@@ -41,4 +39,14 @@ export abstract class ObserversBaseService implements OnDestroy {
 
 
     public abstract registerHandlers(): void;
+}
+
+
+class RetryPolicy implements signalR.IRetryPolicy {
+    public nextRetryDelayInMilliseconds(retryContext: signalR.RetryContext): number | null {
+        if (retryContext.previousRetryCount < 5) {
+            return retryContext.previousRetryCount * 1000;
+        }
+        return 30000;
+    }
 }
