@@ -383,12 +383,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public byte? PacketSequence { get; set; } = null;
         [Required]
         public byte CarId { get; init; }
-        public uint? TimestampStartFinish1 { get; set; } = null;
+        public uint TimestampStartFinish1 { get; set; }
         private uint? TimestampStartFinish1Previous { get; set; } = null;
-        public uint? TimestampStartFinish2 { get; set; } = null;
+        public uint TimestampStartFinish2 { get; set; }
         private uint? TimestampStartFinish2Previous { get; set; } = null;
-        public uint? TimestampPitlane1 { get; set; } = null;
-        public uint? TimestampPitlane2 { get; set; } = null;
+        public uint TimestampPitlane1 { get; set; } 
+        public uint TimestampPitlane2 { get; set; }
         private DateTimeOffset? TimestampRefreshRateLast { get; set; } = null;
         private DateTimeOffset? TimestampRefreshRatePrevious { get; set; } = null;
 
@@ -396,9 +396,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             get
             {
-                if (TimestampStartFinish1.HasValue && TimestampPitlane1.HasValue && TimestampStartFinish1.Value < TimestampPitlane1.Value)
+                if (TimestampStartFinish1 > 0 && TimestampPitlane1 > 0 && TimestampStartFinish1 < TimestampPitlane1)
                 {
-                    return TimestampPitlane1.Value - TimestampStartFinish1.Value;
+                    return TimestampPitlane1 - TimestampStartFinish1;
                 }
                 return null;
             }
@@ -408,9 +408,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             get
             {
-                if (TimestampStartFinish2.HasValue && TimestampPitlane2.HasValue && TimestampStartFinish2.Value < TimestampPitlane2.Value)
+                if (TimestampStartFinish2 > 0 && TimestampPitlane2 > 0 && TimestampStartFinish2 < TimestampPitlane2)
                 {
-                    return TimestampPitlane2.Value - TimestampStartFinish2.Value;
+                    return TimestampPitlane2 - TimestampStartFinish2;
                 }
                 return null;
             }
@@ -422,60 +422,60 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 int lane = 0;
                 uint? last = null;
-                if (TimestampStartFinish1.HasValue && TimestampStartFinish2.HasValue)
+                if (TimestampStartFinish1 > 0 && TimestampStartFinish2 > 0)
                 {
-                    if (TimestampStartFinish1.Value > TimestampStartFinish2.Value)
+                    if (TimestampStartFinish1 > TimestampStartFinish2)
                     {
                         lane = 1;
-                        last = TimestampStartFinish1.Value;
+                        last = TimestampStartFinish1;
                     }
                     else
                     {
                         lane = 2;
-                        last = TimestampStartFinish2.Value;
+                        last = TimestampStartFinish2;
                     }
                 }
-                else if (TimestampStartFinish1.HasValue)
+                else if (TimestampStartFinish1 > 0)
                 {
                     lane = 1;
-                    last = TimestampStartFinish1.Value;
+                    last = TimestampStartFinish1;
                 }
-                else if (TimestampStartFinish2.HasValue)
+                else if (TimestampStartFinish2 > 0)
                 {
                     lane = 2;
-                    last = TimestampStartFinish2.Value;
+                    last = TimestampStartFinish2;
                 }
 
                 uint? previous = null;
                 switch (lane)
                 {
                     case 1:
-                        if (TimestampStartFinish1Previous.HasValue && TimestampStartFinish2.HasValue)
+                        if (TimestampStartFinish1Previous.HasValue && TimestampStartFinish2 > 0)
                         {
-                            previous = Math.Max(TimestampStartFinish1Previous.Value, TimestampStartFinish2.Value);
+                            previous = Math.Max(TimestampStartFinish1Previous.Value, TimestampStartFinish2);
                         }
                         else if (TimestampStartFinish1Previous.HasValue)
                         {
                             previous = TimestampStartFinish1Previous.Value;
                         }
-                        else if (TimestampStartFinish2.HasValue)
+                        else if (TimestampStartFinish2 > 0)
                         {
-                            previous = TimestampStartFinish2.Value;
+                            previous = TimestampStartFinish2;
                         }
                         break;
 
                     case 2:
-                        if (TimestampStartFinish2Previous.HasValue && TimestampStartFinish1.HasValue)
+                        if (TimestampStartFinish2Previous.HasValue && TimestampStartFinish1 > 0)
                         {
-                            previous = Math.Max(TimestampStartFinish2Previous.Value, TimestampStartFinish1.Value);
+                            previous = Math.Max(TimestampStartFinish2Previous.Value, TimestampStartFinish1);
                         }
                         else if (TimestampStartFinish2Previous.HasValue)
                         {
                             previous = TimestampStartFinish2Previous.Value;
                         }
-                        else if (TimestampStartFinish1.HasValue)
+                        else if (TimestampStartFinish1 > 0)
                         {
-                            previous = TimestampStartFinish1.Value;
+                            previous = TimestampStartFinish1;
                         }
                         break;
 
@@ -498,28 +498,28 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 int lane = 0;
                 uint? end = null;
-                if (TimestampPitlane1.HasValue && TimestampPitlane2.HasValue)
+                if (TimestampPitlane1 > 0 && TimestampPitlane2 > 0)
                 {
-                    if (TimestampPitlane1.Value > TimestampPitlane2.Value)
+                    if (TimestampPitlane1 > TimestampPitlane2)
                     {
                         lane = 1;
-                        end = TimestampPitlane1.Value;
+                        end = TimestampPitlane1;
                     }
                     else
                     {
                         lane = 2;
-                        end = TimestampPitlane2.Value;
+                        end = TimestampPitlane2;
                     }
                 }
-                else if (TimestampPitlane1.HasValue)
+                else if (TimestampPitlane1 > 0)
                 {
                     lane = 1;
-                    end = TimestampPitlane1.Value;
+                    end = TimestampPitlane1;
                 }
-                else if (TimestampPitlane2.HasValue)
+                else if (TimestampPitlane2 > 0)
                 {
                     lane = 2;
-                    end = TimestampPitlane2.Value;
+                    end = TimestampPitlane2;
                 }
 
                 if (end.HasValue)
@@ -527,14 +527,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     switch (lane)
                     {
                         case 1:
-                            if (TimestampStartFinish1.HasValue)
+                            if (TimestampStartFinish1 > 0)
                             {
                                 return end - TimestampStartFinish1;
                             }
                             break;
 
                         case 2:
-                            if (TimestampStartFinish2.HasValue)
+                            if (TimestampStartFinish2 > 0)
                             {
                                 return end - TimestampStartFinish2;
                             }
@@ -573,41 +573,40 @@ namespace ScalextricArcBleProtocolExplorer.Services
             PacketSequence = packetSequence;
 
             var timestampStartFinishUpdated = false;
-            if (!TimestampStartFinish1.HasValue || TimestampStartFinish1.Value != timestampTrack1)
+            if (TimestampStartFinish1 != timestampTrack1)
             {
-                if (timestampTrack1 == 0)
+                if (timestampTrack1 > 0 && TimestampStartFinish1 > 0)
                 {
-                    TimestampStartFinish1Previous = null;
+                    TimestampStartFinish1Previous = TimestampStartFinish1;                    
                 }
                 else
                 {
-                    TimestampStartFinish1Previous = TimestampStartFinish1;
-                    
+                    TimestampStartFinish1Previous = null;
                 }
                 TimestampStartFinish1 = timestampTrack1;
                 timestampStartFinishUpdated = timestampTrack1 > 0;
             }
-            if (!TimestampStartFinish2.HasValue || TimestampStartFinish2.Value != timestampTrack2)
+            if (TimestampStartFinish2 != timestampTrack2)
             {
-                if (timestampTrack2 == 0)
+                if (timestampTrack2 > 0 && TimestampStartFinish2 > 0)
                 {
-                    TimestampStartFinish2Previous = null;
+                    TimestampStartFinish2Previous = TimestampStartFinish2;                    
                 }
                 else
                 {
-                    TimestampStartFinish2Previous = TimestampStartFinish2;
+                    TimestampStartFinish2Previous = null;
                 }
                 TimestampStartFinish2 = timestampTrack2;
-                timestampStartFinishUpdated = timestampTrack1 > 0;
+                timestampStartFinishUpdated = timestampTrack2 > 0;
             }
 
             var timestampPitlaneUpdated = false;
-            if (!TimestampPitlane1.HasValue || TimestampPitlane1.Value != timestampPitlane1)
+            if (TimestampPitlane1 != timestampPitlane1)
             {
                 TimestampPitlane1 = timestampPitlane1;
                 timestampPitlaneUpdated = timestampPitlane1 > 0;
             }
-            if (!TimestampPitlane2.HasValue || TimestampPitlane2.Value != timestampPitlane2)
+            if (TimestampPitlane2 != timestampPitlane2)
             {
                 TimestampPitlane2 = timestampPitlane2;
                 timestampPitlaneUpdated = timestampPitlane2 > 0;

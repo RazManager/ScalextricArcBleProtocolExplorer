@@ -96,8 +96,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public async Task ResetAsync()
         {
-            Console.WriteLine($"ResetAsync");
-
             CarIds = new List<PracticeSessionCarId>();
             for (byte i = 0; i < 6; i++)
             {
@@ -114,8 +112,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             try
             {
-                Console.WriteLine($"SetLapTimeAsync carId={carId} lapTime={lapTime}");
-
                 var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
                 if (practiceSessionCarId is not null)
                 {
@@ -124,12 +120,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     if (!practiceSessionCarId.Laps.HasValue || !lapTime.HasValue)
                     {
                         practiceSessionCarId.Laps = 0;
-                        System.Console.WriteLine($"practiceSessionCarId.Laps set to 0");
                     }
                     else
                     {
                         practiceSessionCarId.Laps++;
-                        System.Console.WriteLine($"practiceSessionCarId.Laps={practiceSessionCarId}");
                     }
 
                     if (!practiceSessionCarId.FastestLapTime.HasValue || practiceSessionCarId.FastestLapTime.Value > lapTime)
@@ -159,8 +153,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
         {
             try
             {
-                Console.WriteLine($"SetSpeedTrapAsync carId={carId} speedTrap={speedTrap}");
-
                 var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
                 if (practiceSessionCarId is not null)
                 {
