@@ -85,6 +85,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly Channel<ThrottleProfileState> _throttleProfileStateChannel;
         private readonly ILogger<BluezMonitorService> _logger;
 
+        private bool _discoveryStarted = false;
+
 
         public BluezMonitorService(ScalextricArcState scalextricArcState,
                                    Channel<CarIdState> carIdStateChannel,
@@ -136,6 +138,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 scalextricArcProxy = null;
                 _slotCharacteristicWatchTask = null;
                 _throttleCharacteristicWatchTask = null;
+                _discoveryStarted = false;
 
                 try
                 {
@@ -289,6 +292,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 //adapter.SetDiscoveryFilterAsync
                                 _logger.LogInformation("Starting Bluetooth device discovery.");
                                 await bluezAdapterProxy.StartDiscoveryAsync();
+                                _discoveryStarted = true;
                             }
                             await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Discovering);
                         }
@@ -297,8 +301,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             //Console.WriteLine("Bluetooth device discovery not needed, device already found.");
                             if (await bluezAdapterProxy.GetDiscoveringAsync())
                             {
-                                _logger.LogInformation("Stopping Bluetooth device discovery.");
-                                await bluezAdapterProxy.StopDiscoveryAsync();
+                                if (_discoveryStarted)
+                                {
+                                    _logger.LogInformation("Stopping Bluetooth device discovery.");
+                                    await bluezAdapterProxy.StopDiscoveryAsync();
+                                }
                                 await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
                             }
 
@@ -442,22 +449,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         _logger.LogInformation($"Alias={deviceProperties.Alias}");
                         _logger.LogInformation($"Class={deviceProperties.Class}");
                         _logger.LogInformation($"Appearance={deviceProperties.Appearance}");
-                        _logger.LogInformation($"Icon={deviceProperties.Icon}");
                         _logger.LogInformation($"Paired={deviceProperties.Paired}");
                         _logger.LogInformation($"Trusted={deviceProperties.Trusted}");
                         _logger.LogInformation($"Blocked={deviceProperties.Blocked}");
                         _logger.LogInformation($"LegacyPairing={deviceProperties.LegacyPairing}");
                         _logger.LogInformation($"RSSI={deviceProperties.RSSI}");
-                        _logger.LogInformation($"Connected={deviceProperties.Connected}");
-                        _logger.LogInformation($"UUIDs={string.Join(", ", deviceProperties.UUIDs)}");
-                        _logger.LogInformation($"Modalias={deviceProperties.Modalias}");
+                        //_logger.LogInformation($"Connected={deviceProperties.Connected}");
+                        //_logger.LogInformation($"UUIDs={string.Join(", ", deviceProperties.UUIDs)}");
                         _logger.LogInformation($"Adapter={deviceProperties.Adapter}");
                         _logger.LogInformation($"TxPower={deviceProperties.TxPower}");
-                        _logger.LogInformation($"ServicesResolved={deviceProperties.ServicesResolved}");
+                        //_logger.LogInformation($"ServicesResolved={deviceProperties.ServicesResolved}");
                         _logger.LogInformation($"WakeAllowed={deviceProperties.WakeAllowed}");
                         //public IDictionary<ushort, object>? ManufacturerData
                         //public IDictionary<string, object>? ServiceData
-
 
                         if (!await scalextricArcProxy.GetServicesResolvedAsync())
                         {
