@@ -12,6 +12,12 @@ using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var snap = System.Environment.GetEnvironmentVariable("SNAP");
+if (!string.IsNullOrEmpty(snap))
+{
+    builder.Host.UseContentRoot(snap);
+}
+
 builder.Host.ConfigureLogging(loggingBuilder =>
 {
     loggingBuilder.AddProvider(new ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerProvider());
@@ -19,7 +25,7 @@ builder.Host.ConfigureLogging(loggingBuilder =>
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(8080);
+    options.ListenAnyIP(3301);
 });
 
 builder.Services.AddSingleton(serviceProvider =>
@@ -131,7 +137,7 @@ app.Use(async (context, next) =>
     }
 });
 
-var snap = System.Environment.GetEnvironmentVariable("SNAP");
+//snap = System.Environment.GetEnvironmentVariable("SNAP");
 if (string.IsNullOrEmpty(snap))
 {
     app.UseFileServer();

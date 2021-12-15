@@ -13,6 +13,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
     {
         [Required]
         public byte CarId { get; init; }
+        public bool ControllerOn { get; set; } = false;
         public int? Laps { get; set; }
         public double? FastestLapTime { get; set; }
         public uint? FastestSpeedTrap { get; set; }
@@ -165,6 +166,46 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                     practiceSessionCarId.LatestLaps.ElementAt(practiceSessionCarId.LatestLaps.Count - 1).SpeedTrap = speedTrap;
                     await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, exception.Message);
+            }
+        }
+
+        public async Task SetCtrlVersionAsync
+        (
+            byte ctrlVersion1,
+            byte ctrlVersion2,
+            byte ctrlVersion3,
+            byte ctrlVersion4,
+            byte ctrlVersion5,
+            byte ctrlVersion6
+        )
+        {
+            await SetCtrlVersionCarIdAsync(1, ctrlVersion1);
+            await SetCtrlVersionCarIdAsync(2, ctrlVersion2);
+            await SetCtrlVersionCarIdAsync(3, ctrlVersion3);
+            await SetCtrlVersionCarIdAsync(4, ctrlVersion4);
+            await SetCtrlVersionCarIdAsync(5, ctrlVersion5);
+            await SetCtrlVersionCarIdAsync(6, ctrlVersion6);
+            //return Task.CompletedTask;
+        }
+
+        private async Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion)
+        {
+            try
+            {
+                var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
+                if (practiceSessionCarId is not null)
+                {
+                    var controllerOn = ctrlVersion < 255;
+                    if (practiceSessionCarId.ControllerOn != controllerOn)
+                    {
+                        practiceSessionCarId.ControllerOn = controllerOn;
+                        await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                    }
                 }
             }
             catch (Exception exception)
