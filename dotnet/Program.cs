@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Channels;
+using System.Linq;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,10 +98,9 @@ builder.Services.AddSignalR()
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddCors();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 }
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
@@ -131,7 +131,20 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseFileServer();
+var snap = System.Environment.GetEnvironmentVariable("SNAP");
+if (string.IsNullOrEmpty(snap))
+{
+    app.UseFileServer();
+}
+else
+{
+    app.UseFileServer(new FileServerOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(System.IO.Path.Combine(snap, "wwwroot")),
+        RequestPath = "",
+        EnableDirectoryBrowsing = true
+    });
+}
 
 app.UseRouting();
 
@@ -148,5 +161,44 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub>("hubs/throttle-profile");
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.TrackHub>("hubs/track");
 });
+
+foreach (System.Collections.DictionaryEntry de in System.Environment.GetEnvironmentVariables())
+{
+    app.Logger.LogInformation($"{de.Key.ToString()}={de.Value.ToString()}");
+}
+
+// app.Logger.LogInformation($"ContentRootPath={app.Environment.ContentRootPath}");
+// foreach (var f in System.IO.Directory.GetFiles(app.Environment.ContentRootPath))
+// {
+//     app.Logger.LogInformation(f);
+// }
+
+app.Logger.LogInformation($"ContentRootPath={app.Environment.ContentRootPath}");
+app.Logger.LogInformation($"WebRootPath={app.Environment.WebRootPath}");
+
+
+// var snap = System.Environment.GetEnvironmentVariable("SNAP");
+// if (!string.IsNullOrEmpty(snap))
+// {
+//     app.Environment.ContentRootPath = snap;
+//     app.Logger.LogInformation($"ContentRootPath={app.Environment.ContentRootPath}");
+//     foreach (var f in System.IO.Directory.GetFiles(app.Environment.ContentRootPath))
+//     {
+//         app.Logger.LogInformation(f);
+//     }
+
+//     app.Environment.WebRootPath = $"{snap}/wwwroot";
+//     app.Logger.LogInformation($"WebRootPath={app.Environment.WebRootPath}");
+//     if (!string.IsNullOrEmpty(app.Environment.WebRootPath))
+//     {
+//         foreach (var f in System.IO.Directory.GetFiles(app.Environment.WebRootPath))
+//         {
+//             app.Logger.LogInformation(f);
+//         }
+//     }
+
+// }
+
+
 
 app.Run();
