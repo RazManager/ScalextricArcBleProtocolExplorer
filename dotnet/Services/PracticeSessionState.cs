@@ -34,6 +34,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
     {
         [Required]
         public byte CarId { get; init; }
+        public bool ControllerOn { get; set; } = false;
         public int? Laps { get; set; }
         public string? FastestLapTime { get; set; }
         public uint? FastestSpeedTrap { get; set; }
@@ -82,6 +83,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             return new PracticeSessionCarIdDto
             {
                 CarId = practiceSessionCarId.CarId,
+                ControllerOn = practiceSessionCarId.ControllerOn,
                 Laps = practiceSessionCarId.Laps,
                 FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? (practiceSessionCarId.FastestLapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
                 FastestSpeedTrap = practiceSessionCarId.FastestSpeedTrap,

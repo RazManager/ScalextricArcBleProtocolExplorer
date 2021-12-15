@@ -1,34 +1,35 @@
 <mat-card class="section-container">
     <mat-card-content>
-        <div gdColumns="repeat({{dto.length}}, max-content)" style="column-gap: 2em; justify-items: center;">
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+        <div *ngIf="practiceSessionCarIds.length === 0">No controllers are connected.</div>
+        <div gdColumns="repeat({{practiceSessionCarIds.length}}, max-content)" style="column-gap: 2em; justify-items: center;">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div style="margin-bottom: 1em; font-size: xx-large;">{{practiceSessionCarId.carId}}</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div class="mat-caption">Laps</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div style="margin-bottom: 1em;">{{practiceSessionCarId.laps}}</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div class="mat-caption">Fastest lap time</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div style="margin-bottom: 1em;">{{practiceSessionCarId.fastestLapTime}}</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div class="mat-caption">Fastest speed trap</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div style="margin-bottom: 1em;">{{practiceSessionCarId.fastestSpeedTrap}}</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div class="mat-caption">Analog "pitstop"</div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div style="margin-bottom: 1em;"><mat-checkbox [checked]="practiceSessionCarId.analogPitstop" disabled></mat-checkbox></div>
             </ng-container>
-            <ng-container *ngFor="let practiceSessionCarId of dto">
+            <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div gdColumns="max-content max-content max-content" style="column-gap: 1em; justify-items: end;">
                     <div class="mat-caption">Lap</div>
                     <div class="mat-caption">Lap<br>time</div>

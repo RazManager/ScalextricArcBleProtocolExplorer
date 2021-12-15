@@ -10,12 +10,19 @@ using System.Threading.Channels;
 using System.Linq;
 
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder;
 
 var snap = System.Environment.GetEnvironmentVariable("SNAP");
-if (!string.IsNullOrEmpty(snap))
+if (string.IsNullOrEmpty(snap))
 {
-    builder.Host.UseContentRoot(snap);
+    builder = WebApplication.CreateBuilder();
+}
+else
+{
+    builder = WebApplication.CreateBuilder(new WebApplicationOptions
+    {
+        ContentRootPath = snap
+    });
 }
 
 builder.Host.ConfigureLogging(loggingBuilder =>
@@ -137,20 +144,22 @@ app.Use(async (context, next) =>
     }
 });
 
+app.UseFileServer();
+
 //snap = System.Environment.GetEnvironmentVariable("SNAP");
-if (string.IsNullOrEmpty(snap))
-{
-    app.UseFileServer();
-}
-else
-{
-    app.UseFileServer(new FileServerOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(System.IO.Path.Combine(snap, "wwwroot")),
-        RequestPath = "",
-        EnableDirectoryBrowsing = true
-    });
-}
+// if (string.IsNullOrEmpty(snap))
+// {
+//     app.UseFileServer();
+// }
+// else
+// {
+//     app.UseFileServer(new FileServerOptions
+//     {
+//         FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(System.IO.Path.Combine(snap, "wwwroot")),
+//         RequestPath = "",
+//         EnableDirectoryBrowsing = true
+//     });
+// }
 
 app.UseRouting();
 
@@ -168,10 +177,10 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ScalextricArcBleProtocolExplorer.Hubs.TrackHub>("hubs/track");
 });
 
-foreach (System.Collections.DictionaryEntry de in System.Environment.GetEnvironmentVariables())
-{
-    app.Logger.LogInformation($"{de.Key.ToString()}={de.Value.ToString()}");
-}
+// foreach (System.Collections.DictionaryEntry de in System.Environment.GetEnvironmentVariables())
+// {
+//     app.Logger.LogInformation($"{de.Key.ToString()}={de.Value.ToString()}");
+// }
 
 // app.Logger.LogInformation($"ContentRootPath={app.Environment.ContentRootPath}");
 // foreach (var f in System.IO.Directory.GetFiles(app.Environment.ContentRootPath))

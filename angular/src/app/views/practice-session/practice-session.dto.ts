@@ -1,5 +1,6 @@
 export class PracticeSessionCarIdDto {
     public carId!: number;
+    public controllerOn!: boolean;
     public laps!: number | null;
     public fastestLapTime!: string | null;
     public fastestSpeedTrap!: number | null;

@@ -17,7 +17,7 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 export class PracticeSessionComponent
         extends CommonBaseComponent
         implements OnInit {
-    public dto!: PracticeSessionCarIdDto[];
+    private dto!: PracticeSessionCarIdDto[];
 
 
     constructor(snackBar: MatSnackBar,
@@ -32,12 +32,7 @@ export class PracticeSessionComponent
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                const testUnsorted = (<PracticeSessionCarIdDto[]>data['result']);
-                console.log("testUnsorted", testUnsorted.map(x => x.carId).join(", "));
-                const testSorted = (<PracticeSessionCarIdDto[]>data['result']);
-                console.log("testSorted", testSorted.map(x => x.carId).join(", "));
                 this.dto = (<PracticeSessionCarIdDto[]>data['result']).sort((a, b) => a.carId - b.carId);
-                console.log("dto", this.dto.map(x => x.carId).join(", "));
 
                 this.observersService
                 .onChangedState
@@ -49,5 +44,10 @@ export class PracticeSessionComponent
                 this.observersService.observe();
             }
         });
+    }
+
+
+    public get practiceSessionCarIds(): PracticeSessionCarIdDto[] {
+        return this.dto.filter(x => x.controllerOn);
     }
 }

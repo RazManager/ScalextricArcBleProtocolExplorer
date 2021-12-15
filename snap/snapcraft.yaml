@@ -27,7 +27,7 @@ parts:
 apps:
   scalextric-arc-ble-protocol-explorer:
     command: ScalextricArcBleProtocolExplorer
-    # daemon: simple
+    daemon: simple
     plugs:
       - network-bind
       - bluez
