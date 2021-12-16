@@ -51,6 +51,11 @@ export class CommandComponent
     }
 
 
+    public dirtyChanged(): void {
+        this.dirty = true;
+    }
+
+
     public write(): void {
         this.apiService.postCommand(this.dto)
         .subscribe({
