@@ -299,14 +299,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         else
                         {
                             //Console.WriteLine("Bluetooth device discovery not needed, device already found.");
-                            if (await bluezAdapterProxy.GetDiscoveringAsync())
+                            if (scalextricArcProxy is not null && await bluezAdapterProxy.GetDiscoveringAsync() && _discoveryStarted)
                             {
-                                if (_discoveryStarted)
-                                {
-                                    _logger.LogInformation("Stopping Bluetooth device discovery.");
-                                    await bluezAdapterProxy.StopDiscoveryAsync();
-                                }
-                                await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
+                                _logger.LogInformation("Stopping Bluetooth device discovery.");
+                                await bluezAdapterProxy.StopDiscoveryAsync();
+                                //await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
                             }
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
@@ -349,11 +346,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
-            Console.WriteLine($"{args.objectPath} added with the following interfaces...");
-            foreach (var iface in args.interfaces)
-            {
-                Console.WriteLine(iface.Key);
-            }
+            Console.WriteLine($"{args.objectPath} added...");
+            // Console.WriteLine($"{args.objectPath} added with the following interfaces...");
+            // foreach (var iface in args.interfaces)
+            // {
+            //     Console.WriteLine(iface.Key);
+            // }
 
             if (args.interfaces.Keys.Any(x => x.StartsWith(bluezService)))
             {
