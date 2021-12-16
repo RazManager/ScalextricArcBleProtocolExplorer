@@ -20,9 +20,9 @@ export class CommandComponent
         extends CommonBaseComponent
         implements OnInit {
     public dto!: CommandDto;
-            
-            
+    public dirty: boolean = false;
 
+    
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
                 toolbarService: CommonToolbarService,
@@ -56,6 +56,7 @@ export class CommandComponent
         .subscribe({
             next: () => {
                 this.snackBarOpen("Command written.");
+                this.dirty = false;
              },
             error: (err: ApiErrorResponse) => this.onError(err)
         });

@@ -14,14 +14,14 @@ architectures:
     run-on: amd64
 
 parts:
-  part-scalextric-arc-ble-protocol-explorer:
+  scalextric-arc-ble-protocol-explorer:
     plugin: dump
     source: scalextric-arc-ble-protocol-explorer-linux-x64.tar.gz
 
 apps:
-  part-scalextric-arc-ble-protocol-explorer:
+  scalextric-arc-ble-protocol-explorer:
     command: ScalextricArcBleProtocolExplorer
     # daemon: simple
     plugs:
-      - bluez
       - network-bind
+      - bluez

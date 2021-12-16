@@ -731,7 +731,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, exception.GetType().FullName);
                     _logger.LogError(exception, exception.Message);
                 }
             }

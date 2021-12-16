@@ -79,7 +79,7 @@
             <mat-radio-button value="PowerOnTimerHalt">PowerOnTimerHalt</mat-radio-button>
         </mat-radio-group>
 
-        <button mat-raised-button color="primary" style="margin-top: 2em;" (click)="write()">
+        <button mat-raised-button color="primary" style="margin-top: 2em;" [disabled]="dirty" (click)="write()">
             WRITE
         </button>
     </mat-card-content>

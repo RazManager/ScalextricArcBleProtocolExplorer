@@ -11,21 +11,15 @@ confinement: devmode # use 'strict' once you have the right plugs and slots
 
 architectures:
   - build-on: amd64
-    run-on:
-      - amd64
-      - arm64
-      - armhf
+    run-on: arm64
 
 parts:
-  part-scalextric-arc-ble-protocol-explorer:
+  scalextric-arc-ble-protocol-explorer:
     plugin: dump
-    source:
-      - on amd64: scalextric-arc-ble-protocol-explorer-linux-x64.tar.gz
-      - on arm64: scalextric-arc-ble-protocol-explorer-linux-arm64.tar.gz
-      - on armhf: scalextric-arc-ble-protocol-explorer-linux-arm.tar.gz
+    source: scalextric-arc-ble-protocol-explorer-linux-arm64.tar.gz
 
 apps:
-  part-scalextric-arc-ble-protocol-explorer:
+  scalextric-arc-ble-protocol-explorer:
     command: ScalextricArcBleProtocolExplorer
     # daemon: simple
     plugs:
