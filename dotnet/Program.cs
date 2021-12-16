@@ -94,6 +94,7 @@ builder.Services.AddSingleton(serviceProvider =>
 builder.Services.AddSingleton<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService>(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService(serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>>())
 );
+builder.Services.AddHttpClient<ScalextricArcBleProtocolExplorer.ApiControllers.SystemInformationController>();
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerService>();
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
 
