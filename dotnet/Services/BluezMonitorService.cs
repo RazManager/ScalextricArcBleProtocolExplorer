@@ -9,7 +9,6 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
-using static bluez.DBus.GattCharacteristic1Extensions;
 using static ScalextricArcBleProtocolExplorer.Services.ConnectionState;
 
 
@@ -142,44 +141,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                 try
                 {
-                    //var services = await Tmds.DBus.Connection.System.ListServicesAsync();
-                    //Console.WriteLine($"Number of services: {services.Length}");
-                    //foreach (var service in services)
-                    //{
-                    //    Console.WriteLine(service);
-                    //}
-
-                    var activatableServices = await Tmds.DBus.Connection.System.ListActivatableServicesAsync();
-                    // Console.WriteLine($"Number of activatable services: {activatableServices.Length}");
-                    // foreach (var activatableService in activatableServices)
-                    // {
-                    //     Console.WriteLine(activatableService);
-                    // }
-
-                    if (activatableServices.SingleOrDefault(x => x == bluezService) is null)
-                    {
-                        _logger.LogError($"{bluezService} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
-                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
-                        return;
-                    }
-
-                    var isServiceActive = await Tmds.DBus.Connection.System.IsServiceActiveAsync(bluezService);
-                    if (!isServiceActive)
-                    {
-                        _logger.LogInformation($"Starting {bluezService}.");
-                        var serviceStartResult = await Tmds.DBus.Connection.System.ActivateServiceAsync(bluezService);
-                        switch (serviceStartResult)
-                        {
-                            case Tmds.DBus.ServiceStartResult.Started:
-                                _logger.LogInformation($"{bluezService} started.");
-                                break;
-                            case Tmds.DBus.ServiceStartResult.AlreadyRunning:
-                                _logger.LogInformation($"{bluezService} was already running.");
-                                break;
-                        }
-                    }
-                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
-
                     // Find all D-Bus objects and their interfaces
                     var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(bluezService, Tmds.DBus.ObjectPath.Root);
                     var dBusObjects = await objectManager.GetManagedObjectsAsync();
@@ -188,23 +149,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         InterfaceAdded((dBusObject.Key, dBusObject.Value));
                     }
 
-                    // Console.WriteLine("bluezObjectPathInterfaces:");
-                    // foreach (var objectPathKp in _bluezObjectPathInterfaces)
-                    // {
-                    //     Console.WriteLine(objectPathKp.Key);
-                    //     foreach (var bluezInterfaceMetadata in objectPathKp.Value)
-                    //     {
-                    //         Console.WriteLine($"    {bluezInterfaceMetadata.BluezInterface} {bluezInterfaceMetadata.DeviceName}");
-                    //     }
-                    // }
-
                     var bluezAdapterObjectPathKp = _bluezObjectPathInterfaces.SingleOrDefault(x => x.Value.Any(i => i.BluezInterface == bluezAdapterInterface));
                     if (string.IsNullOrEmpty(bluezAdapterObjectPathKp.Key.ToString()))
                     {
-                        _logger.LogError($"{bluezAdapterInterface} does not exist. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        _logger.LogError($"{bluezAdapterInterface} does not exist. Please install BlueZ for the needed Bluetooth Low Energy functionality, and then re-start this application.");
                         await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
                         return;
                     }
+
+                    var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezService, bluezAdapterObjectPathKp.Key);
 
                     if (watchInterfacesAddedTask is not null)
                     {
@@ -230,9 +183,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     );
 
-                    var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezService, bluezAdapterObjectPathKp.Key);
-
-                    _logger.LogInformation("Bluez initialization done. Trying to find a Scalextric ARC device.");
+                    _logger.LogInformation("BlueZ initialization done. Trying to find a Scalextric ARC device...");
+                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
@@ -289,21 +241,35 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                             else
                             {
-                                //adapter.SetDiscoveryFilterAsync
+                                var discoveryProperties = new Dictionary<string, object>
+                                {
+                                    {
+                                        "UUIDs",
+                                        new string[] { "00003b08-0000-1000-8000-00805f9b34fb" }
+                                    }
+                                };
+                                await bluezAdapterProxy.SetDiscoveryFilterAsync(discoveryProperties);
                                 _logger.LogInformation("Starting Bluetooth device discovery.");
                                 await bluezAdapterProxy.StartDiscoveryAsync();
                                 _discoveryStarted = true;
+
+                                //Name=Scalextric ARC
+                                //Alias=Scalextric ARC
+                                //Appearance=833
+                                //Values for property=UUIDs:
+                                //00003b08-0000-1000-8000-00805f9b34fb
+                                //0000180a-0000-1000-8000-00805f9b34fb
                             }
                             await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Discovering);
                         }
                         else
                         {
-                            //Console.WriteLine("Bluetooth device discovery not needed, device already found.");
+                            // Bluetooth device discovery not needed, device already found.
                             if (scalextricArcProxy is not null && await bluezAdapterProxy.GetDiscoveringAsync() && _discoveryStarted)
                             {
                                 _logger.LogInformation("Stopping Bluetooth device discovery.");
                                 await bluezAdapterProxy.StopDiscoveryAsync();
-                                //await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
+                                await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
                             }
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
@@ -315,8 +281,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 await ScalextricArcChangedAsync(scalextricArcObjectPathKps.First().Key);
                             }
                         }
-
-                        //_logger.LogInformation("BluezMonitorService is running...");
 
                         await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
                     }
@@ -346,7 +310,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
-            Console.WriteLine($"{args.objectPath} added...");
+            Console.WriteLine($"{args.objectPath} added.");
             // Console.WriteLine($"{args.objectPath} added with the following interfaces...");
             // foreach (var iface in args.interfaces)
             // {
@@ -384,7 +348,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private void InterfaceRemoved((Tmds.DBus.ObjectPath objectPath, string[] interfaces) args)
         {
-            Console.WriteLine($"{args.objectPath} removed...");
+            Console.WriteLine($"{args.objectPath} removed.");
             _bluezObjectPathInterfaces.TryRemove(args.objectPath, out IEnumerable<BluezInterfaceMetadata>? bluezInterfaceMetadata);
         }
 
@@ -447,17 +411,17 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         _logger.LogInformation($"Alias={deviceProperties.Alias}");
                         _logger.LogInformation($"Class={deviceProperties.Class}");
                         _logger.LogInformation($"Appearance={deviceProperties.Appearance}");
-                        _logger.LogInformation($"Paired={deviceProperties.Paired}");
-                        _logger.LogInformation($"Trusted={deviceProperties.Trusted}");
-                        _logger.LogInformation($"Blocked={deviceProperties.Blocked}");
-                        _logger.LogInformation($"LegacyPairing={deviceProperties.LegacyPairing}");
+                        //_logger.LogInformation($"Paired={deviceProperties.Paired}");
+                        //_logger.LogInformation($"Trusted={deviceProperties.Trusted}");
+                        //_logger.LogInformation($"Blocked={deviceProperties.Blocked}");
+                        //_logger.LogInformation($"LegacyPairing={deviceProperties.LegacyPairing}");
                         _logger.LogInformation($"RSSI={deviceProperties.RSSI}");
                         //_logger.LogInformation($"Connected={deviceProperties.Connected}");
-                        //_logger.LogInformation($"UUIDs={string.Join(", ", deviceProperties.UUIDs)}");
+                        _logger.LogInformation($"UUIDs={string.Join(", ", deviceProperties.UUIDs!)}");
                         _logger.LogInformation($"Adapter={deviceProperties.Adapter}");
                         _logger.LogInformation($"TxPower={deviceProperties.TxPower}");
                         //_logger.LogInformation($"ServicesResolved={deviceProperties.ServicesResolved}");
-                        _logger.LogInformation($"WakeAllowed={deviceProperties.WakeAllowed}");
+                        //_logger.LogInformation($"WakeAllowed={deviceProperties.WakeAllowed}");
                         //public IDictionary<ushort, object>? ManufacturerData
                         //public IDictionary<string, object>? ServiceData
 
@@ -864,7 +828,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 break;
 
                             default:
-                                Console.WriteLine($"{prop.Key}={prop.Value}");
+                                Console.WriteLine($"{prop.Key}=#{prop.Value}#");
                                 break;
                         }
                     }
