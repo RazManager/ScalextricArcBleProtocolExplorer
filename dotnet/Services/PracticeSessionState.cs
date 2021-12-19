@@ -157,7 +157,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             try
             {
                 var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
-                if (practiceSessionCarId is not null)
+                if (practiceSessionCarId is not null && practiceSessionCarId.LatestLaps.Count > 0)
                 {
                     practiceSessionCarId.AnalogPitstop = false;
 
