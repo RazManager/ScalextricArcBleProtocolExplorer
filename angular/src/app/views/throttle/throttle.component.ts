@@ -37,7 +37,6 @@ export class ThrottleComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: ThrottleDto) => {
-                    console.log('ThrottleDto', dto);
                     this.dto = dto;
                 });
 

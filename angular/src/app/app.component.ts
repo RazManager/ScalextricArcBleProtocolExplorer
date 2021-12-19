@@ -66,7 +66,6 @@ export class AppComponent implements OnInit {
         this.connectionObserversService
             .onChangedState
             .subscribe((dto: ConnectionDto) => {
-                console.log('ConnectionDto', dto);
                 this.connection = dto;
             });
 
@@ -75,7 +74,6 @@ export class AppComponent implements OnInit {
         this.commandObserversService
             .onChangedState
             .subscribe((dto: CommandDto) => {
-                console.log('CommandDto', dto);
                 this.command = dto;
             });
 

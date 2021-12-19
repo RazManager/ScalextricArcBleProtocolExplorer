@@ -37,7 +37,6 @@ export class PracticeSessionComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: PracticeSessionCarIdDto) => {
-                    console.log('PracticeSessionCarIdDto', dto);                
                     this.dto[dto.carId - 1] = dto;
                 });
 

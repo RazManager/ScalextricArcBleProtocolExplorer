@@ -37,7 +37,6 @@ export class TrackComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: TrackDto) => {
-                    console.log('TrackDto', dto);
                     this.dto = dto;
                 });
 

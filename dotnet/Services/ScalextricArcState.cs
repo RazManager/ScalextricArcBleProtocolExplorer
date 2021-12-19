@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Text.Json;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -30,13 +33,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                   IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> throttleProfileHubContext,
                                   Channel<ThrottleProfileState> throttleProfileStateChannel,
                                   IHubContext<Hubs.TrackHub, Hubs.ITrackHub> trackHubContext,
-                                  PracticeSessionState practiceSessionState)
+                                  PracticeSessionState practiceSessionState,
+                                  ILogger<ScalextricArcState> logger)
         {
             CarIdState = new CarIdState(carIdHubContext, carIdStateChannel);
 
             CommandState = new CommandState(commandHubContext, commandStateChannel, practiceSessionState);
 
-            ConnectionState = new ConnectionState(connectionHubContext);
+            ConnectionState = new ConnectionState(connectionHubContext, logger);
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
@@ -316,16 +320,56 @@ namespace ScalextricArcBleProtocolExplorer.Services
     }
 
 
-    public class ConnectionState
+    public class ConnectionDto
+    {
+        [Required]
+        public bool Connect { get; set; } = true;
+    }
+
+    public class ConnectionState : ConnectionDto
     {
         private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
+        private readonly string _configurationFilename = "";
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
 
-        public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext)
+        public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext,
+                               ILogger<ScalextricArcState> logger)
         {
             _hubContext = hubContext;
+
+            try
+            {
+                var snapUserCommon = Environment.GetEnvironmentVariable("SNAP_USER_COMMON");
+                if (!string.IsNullOrEmpty(snapUserCommon))
+                {
+                    _configurationFilename = $"{snapUserCommon}/";
+                }
+                _configurationFilename += "connection.configuration.json";
+                //_logger.LogInformation($"_configurationFilename={_configurationFilename}");
+
+                try
+                {
+                    var dto = JsonSerializer.Deserialize<ConnectionDto>(File.ReadAllText(_configurationFilename), _jsonSerializerOptions);
+                    if (dto is not null)
+                    {
+                        Connect = dto.Connect;
+                    }
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                }
+            }
+            catch (Exception exception)
+            {
+                logger.LogCritical(exception, exception.Message);
+                throw;
+            }
         }
 
-        public enum ConnectionStateType
+        public enum BluetoothConnectionStateType
         {
             Disabled,
             Enabled,
@@ -335,12 +379,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
         [Required]
-        public ConnectionStateType State { get; set; }
+        public BluetoothConnectionStateType BluetoothConnectionState { get; set; }
 
-        public Task SetAsync(ConnectionStateType state)
+        public Task SetBluetoothStateAsync(BluetoothConnectionStateType bluetoothConnectionState)
         {
-            State = state;
+            BluetoothConnectionState = bluetoothConnectionState;
             return _hubContext.Clients.All.ChangedState(this);
+        }
+
+        public async Task SetConnectAsync(bool connect)
+        {
+            Connect = connect;
+            File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectionDto {  Connect = connect }, _jsonSerializerOptions));
+            await _hubContext.Clients.All.ChangedState(this);
         }
     }
 

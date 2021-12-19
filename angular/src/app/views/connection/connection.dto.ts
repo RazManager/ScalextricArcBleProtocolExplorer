@@ -1,4 +1,4 @@
-export enum ConnectionStateType {
+export enum BluetoothConnectionStateType {
     Disabled = "Disabled",
     Enabled = "Enabled",
     Discovering = "Discovering",
@@ -8,5 +8,6 @@ export enum ConnectionStateType {
 
 
 export class ConnectionDto {
-    public state!: ConnectionStateType;
+    public connect!: boolean;
+    public bluetoothConnectionState!: BluetoothConnectionStateType;
 }

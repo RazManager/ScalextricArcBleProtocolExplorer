@@ -40,7 +40,6 @@ export class ThrottleProfileComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: ThrottleProfileDto) => {
-                    console.log('ThrottleProfileDto', dto);                
                     this.dto[dto.carId - 1] = dto;
                 });
 
@@ -51,7 +50,7 @@ export class ThrottleProfileComponent
 
 
     public write(carId: number): void {
-        this.apiService.postThrottleProfile(this.dto[carId - 1])
+        this.apiService.putThrottleProfile(this.dto[carId - 1])
         .subscribe({
             next: () => {
                 this.snackBarOpen("Throttle profile written for ID=" + carId + ".");

@@ -122,7 +122,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Task? watchInterfacesAddedTask = null;
             Task? watchInterfacesRemovedTask = null;
 
-            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
+            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
 
             if (Environment.OSVersion.Platform != PlatformID.Unix)
             {
@@ -260,7 +260,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 //00003b08-0000-1000-8000-00805f9b34fb
                                 //0000180a-0000-1000-8000-00805f9b34fb
                             }
-                            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Discovering);
+                            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Discovering);
                         }
                         else
                         {
@@ -390,7 +390,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         if (success)
                         {
                             scalextricArcObjectPath = objectPath;
-                            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
+                            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Connected);
                             _logger.LogInformation("Connected to Scalextric ARC.");
                         }
                         else
@@ -688,7 +688,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             _scalextricArcState.GattCharacteristics.Add(gattCharacteristic);
                         }
 
-                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
+                        await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Initialized);
                         _logger.LogInformation("Scalextric ARC services have been initialized.");
                     }
                 }

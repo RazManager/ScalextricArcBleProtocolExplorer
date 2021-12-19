@@ -7,39 +7,39 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 import { ApiErrorResponse } from 'src/lib/common/common-base.service';
 
 import { ApiService } from '../api.service';
-import { CarIdDto } from './car-id.dto';
-import { CarIdObserversService } from './car-id-observers.service';
+import { ConnectionDto } from './connection.dto';
+import { ConnectionObserversService } from './connection-observers.service';
 
 
 @Component({
-    templateUrl: './car-id.component.html',
-    providers: [ CarIdObserversService ]
+    templateUrl: './connection.component.html',
+    providers: [ ConnectionObserversService ]
 
 })
-export class CarIdComponent
+export class ConnectionComponent
         extends CommonBaseComponent
         implements OnInit {
-    public dto!: CarIdDto;
-                       
+    public dto!: ConnectionDto;
+
 
     constructor(snackBar: MatSnackBar,
                 private readonly route: ActivatedRoute,
                 toolbarService: CommonToolbarService,
-                private readonly observersService: CarIdObserversService,
+                private readonly observersService: ConnectionObserversService,
                 private readonly apiService: ApiService) {
         super(snackBar);
-        toolbarService.header = "Car ID";
+        toolbarService.header = "Connection";
     }
 
 
     public ngOnInit(): void {
         this.route.data.subscribe({
             next: (data: Data) => {
-                this.dto = <CarIdDto>data['result'];
+                this.dto = <ConnectionDto>data['result'];
 
                 this.observersService
                 .onChangedState
-                .subscribe((dto: CarIdDto) => {
+                .subscribe((dto: ConnectionDto) => {
                     this.dto = dto;
                 });
 
@@ -49,12 +49,17 @@ export class CarIdComponent
     }
 
 
-    public write(carId: number): void {
-        this.dto.carId = carId;
-        this.apiService.putCarId(this.dto)
+    public change(): void {
+        this.apiService.putConnection(this.dto)
         .subscribe({
             next: () => {
-                this.snackBarOpen("Car ID written.");
+                if (this.dto.connect) {
+                    this.snackBarOpen("Connecting...");
+                }
+                else {
+                    this.snackBarOpen("Disconnecting...");
+                }
+
              },
             error: (err: ApiErrorResponse) => this.onError(err)
         });
