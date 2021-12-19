@@ -123,7 +123,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Task? watchInterfacesAddedTask = null;
             Task? watchInterfacesRemovedTask = null;
 
-            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
+            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
 
             if (Environment.OSVersion.Platform != PlatformID.Unix)
             {
@@ -159,7 +159,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     if (activatableServices.SingleOrDefault(x => x == bluezService) is null)
                     {
                         _logger.LogError($"{bluezService} is not an \"activateable\" D-Bus service. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
-                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
+                        await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
                         return;
                     }
 
@@ -178,7 +178,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 break;
                         }
                     }
-                    await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
+                    await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
 
                     // Find all D-Bus objects and their interfaces
                     var objectManager = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IObjectManager>(bluezService, Tmds.DBus.ObjectPath.Root);
@@ -202,7 +202,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     if (string.IsNullOrEmpty(bluezAdapterObjectPathKp.Key.ToString()))
                     {
                         _logger.LogError($"{bluezAdapterInterface} does not exist. Please install bluez for the needed Bluetooth Low Energy functionality, and then re-start this application.");
-                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Disabled);
+                        await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
                         return;
                     }
 
@@ -294,7 +294,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 await bluezAdapterProxy.StartDiscoveryAsync();
                                 _discoveryStarted = true;
                             }
-                            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Discovering);
+                            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Discovering);
                         }
                         else
                         {
@@ -306,7 +306,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                     _logger.LogInformation("Stopping Bluetooth device discovery.");
                                     await bluezAdapterProxy.StopDiscoveryAsync();
                                 }
-                                await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
+                                await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
                             }
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
@@ -429,7 +429,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         if (success)
                         {
                             scalextricArcObjectPath = objectPath;
-                            await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Connected);
+                            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Connected);
                             _logger.LogInformation("Connected to Scalextric ARC.");
                         }
                         else
@@ -725,7 +725,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             _scalextricArcState.GattCharacteristics.Add(gattCharacteristic);
                         }
 
-                        await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Initialized);
+                        await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Initialized);
                         _logger.LogInformation("Scalextric ARC services have been initialized.");
                     }
                 }

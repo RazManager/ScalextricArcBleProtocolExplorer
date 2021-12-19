@@ -12,6 +12,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
@@ -29,6 +30,8 @@ import { CarIdResolver } from './views/car-id/car-id-resolver.service';
 import { CarIdComponent } from './views/car-id/car-id.component';
 import { CommandResolver } from './views/command/command-resolver.service';
 import { CommandComponent } from './views/command/command.component';
+import { ConnectionResolver } from './views/connection/connection-resolver.service';
+import { ConnectionComponent } from './views/connection/connection.component';
 import { GattCharacteristicResolver } from './views/gatt-characteristic/gatt-characteristic-resolver.service';
 import { GattCharacteristicComponent } from './views/gatt-characteristic/gatt-characteristic.component';
 import { LogResolver } from './views/log/log-resolver.service';
@@ -52,6 +55,7 @@ import { TrackComponent } from './views/track/track.component';
         AppComponent,
         CarIdComponent,
         CommandComponent,
+        ConnectionComponent,
         GattCharacteristicComponent,
         LogComponent,
         PracticeSessionComponent,
@@ -74,6 +78,7 @@ import { TrackComponent } from './views/track/track.component';
         MatProgressSpinnerModule,
         MatRadioModule,
         MatSidenavModule,
+        MatSlideToggleModule,
         MatSliderModule,
         MatSnackBarModule,
         MatTableModule,
@@ -89,6 +94,7 @@ import { TrackComponent } from './views/track/track.component';
         ApiService,
         CarIdResolver,
         CommandResolver,
+        ConnectionResolver,
         GattCharacteristicResolver,
         LogResolver,
         PracticeSessionResolver,

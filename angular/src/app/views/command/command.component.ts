@@ -41,7 +41,6 @@ export class CommandComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: CommandDto) => {
-                    console.log('SlotDto', dto);                
                     this.dto = dto;
                 });
 
@@ -57,7 +56,7 @@ export class CommandComponent
 
 
     public write(): void {
-        this.apiService.postCommand(this.dto)
+        this.apiService.putCommand(this.dto)
         .subscribe({
             next: () => {
                 this.snackBarOpen("Command written.");

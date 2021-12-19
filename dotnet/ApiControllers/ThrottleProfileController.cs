@@ -26,7 +26,7 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
         }
 
 
-        [HttpPost]
+        [HttpPut]
         public Task PostAsync([FromBody][Required] ThrottleProfileDto dto)
         {
             return _scalextricArcState.ThrottleProfileStates[dto.CarId - 1].SetAsync(dto.Values);

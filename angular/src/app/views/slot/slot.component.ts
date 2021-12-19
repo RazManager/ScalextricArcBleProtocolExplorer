@@ -37,7 +37,6 @@ export class SlotComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: SlotDto) => {
-                    console.log('SlotDto', dto);                
                     this.dto[dto.carId - 1] = dto;
                 });
 

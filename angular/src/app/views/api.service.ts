@@ -35,9 +35,9 @@ export class ApiService extends CommonBaseService {
     }
 
 
-    public postCarId(dto: CarIdDto): Observable<void> {
+    public putCarId(dto: CarIdDto): Observable<void> {
         this.busyService.begin(this);
-        return this.httpClient.post(`${this.serviceUrl}/car-id`, dto)
+        return this.httpClient.put(`${this.serviceUrl}/car-id`, dto)
                               .pipe(map(() => {}),
                                     catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));
@@ -52,9 +52,9 @@ export class ApiService extends CommonBaseService {
     }
 
 
-    public postCommand(dto: CommandDto): Observable<void> {
+    public putCommand(dto: CommandDto): Observable<void> {
         this.busyService.begin(this);
-        return this.httpClient.post(`${this.serviceUrl}/command`, dto)
+        return this.httpClient.put(`${this.serviceUrl}/command`, dto)
                               .pipe(map(() => {}),
                                     catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));
@@ -65,6 +65,15 @@ export class ApiService extends CommonBaseService {
         this.busyService.begin(this);
         return this.httpClient.get<ConnectionDto>(`${this.serviceUrl}/connection`)
                               .pipe(catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
+                                    finalize(() => this.busyService.end(this)));
+    }
+
+
+    public putConnection(dto: ConnectionDto): Observable<void> {
+        this.busyService.begin(this);
+        return this.httpClient.put(`${this.serviceUrl}/connection`, dto)
+                              .pipe(map(() => {}),
+                                    catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));
     }
 
@@ -125,9 +134,9 @@ export class ApiService extends CommonBaseService {
     }
 
 
-    public postThrottleProfile(dto: ThrottleProfileDto): Observable<void> {
+    public putThrottleProfile(dto: ThrottleProfileDto): Observable<void> {
         this.busyService.begin(this);
-        return this.httpClient.post(`${this.serviceUrl}/throttle-profiles`, dto)
+        return this.httpClient.put(`${this.serviceUrl}/throttle-profiles`, dto)
                               .pipe(map(() => {}),
                                     catchError((err: HttpErrorResponse) => throwError(() => this.getApiError(err))),
                                     finalize(() => this.busyService.end(this)));

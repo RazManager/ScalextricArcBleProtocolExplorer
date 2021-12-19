@@ -41,7 +41,6 @@ export class LogComponent
                 this.observersService
                 .onChangedState
                 .subscribe((dto: LogDto) => {
-                    console.log('SlotDto', dto);                
                     this.items.push(dto);
                     this.dataSource = new MatTableDataSource<LogDto>(this.items);    
                 });

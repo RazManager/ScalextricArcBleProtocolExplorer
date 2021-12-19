@@ -3,7 +3,6 @@ import * as signalR from "@microsoft/signalr";
 
 import { environment } from 'src/environments/environment';
 
-
 export const OBSERVERS_SERVICE_PART_URL = new InjectionToken<string>('ObserversServicePartUrl');
 
 
@@ -16,7 +15,6 @@ export abstract class ObserversBaseService implements OnDestroy {
         this.hubConnection = new signalR.HubConnectionBuilder()
             .withUrl(environment.apiBaseUrl + servicePartUrl)
             .withAutomaticReconnect(new RetryPolicy())
-            .configureLogging(signalR.LogLevel.Debug)
             .build();    
     }
 

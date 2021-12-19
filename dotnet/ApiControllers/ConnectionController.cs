@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ScalextricArcBleProtocolExplorer.Services;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 
 namespace ScalextricArcBleProtocolExplorer.ApiControllers
@@ -21,6 +23,13 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
         public ConnectionState Get()
         {
             return _scalextricArcState.ConnectionState;
+        }
+
+
+        [HttpPut]
+        public Task PostAsync([FromBody][Required] ConnectionDto dto)
+        {
+            return _scalextricArcState.ConnectionState.SetConnectAsync(dto.Connect);
         }
     }
 }

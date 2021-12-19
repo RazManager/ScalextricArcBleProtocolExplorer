@@ -86,7 +86,8 @@ builder.Services.AddSingleton(serviceProvider =>
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleProfileHub>>(),
         serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ThrottleProfileState>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.TrackHub, ScalextricArcBleProtocolExplorer.Hubs.ITrackHub>>(),
-        serviceProvider.GetRequiredService<ScalextricArcBleProtocolExplorer.Services.PracticeSessionState>()
+        serviceProvider.GetRequiredService<ScalextricArcBleProtocolExplorer.Services.PracticeSessionState>(),
+        serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.ScalextricArcState>>()
     )
 );
 
