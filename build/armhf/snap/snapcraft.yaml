@@ -7,27 +7,21 @@ description:
 version: "0.1"
 base: core20
 grade: devel # must be 'stable' to release into candidate/stable channels
-confinement: devmode # use 'strict' once you have the right plugs and slots
+confinement: strict # use 'strict' once you have the right plugs and slots
 
 architectures:
   - build-on: amd64
-    run-on:
-      - amd64
-      - arm64
-      - armhf
+    run-on: armhf
 
 parts:
-  part-scalextric-arc-ble-protocol-explorer:
+  scalextric-arc-ble-protocol-explorer:
     plugin: dump
-    source:
-      - on amd64: scalextric-arc-ble-protocol-explorer-linux-x64.tar.gz
-      - on arm64: scalextric-arc-ble-protocol-explorer-linux-arm64.tar.gz
-      - on armhf: scalextric-arc-ble-protocol-explorer-linux-arm.tar.gz
+    source: scalextric-arc-ble-protocol-explorer-linux-arm.tar.gz
 
 apps:
-  part-scalextric-arc-ble-protocol-explorer:
+  scalextric-arc-ble-protocol-explorer:
     command: ScalextricArcBleProtocolExplorer
-    # daemon: simple
+    daemon: simple
     plugs:
       - network-bind
       - bluez

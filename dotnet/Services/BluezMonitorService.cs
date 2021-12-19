@@ -237,7 +237,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (await bluezAdapterProxy.GetDiscoveringAsync())
                             {
-                                _logger.LogInformation("Bluetooth device discovery already started.");
+                                _logger.LogInformation("Searching...");
                             }
                             else
                             {
@@ -269,7 +269,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             {
                                 _logger.LogInformation("Stopping Bluetooth device discovery.");
                                 await bluezAdapterProxy.StopDiscoveryAsync();
-                                await _scalextricArcState.ConnectionState.SetAsync(ConnectionStateType.Enabled);
                             }
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
@@ -449,6 +448,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         //{
                         //    Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                         //}
+
+                        _scalextricArcState.GattCharacteristics = new();
 
                         foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
