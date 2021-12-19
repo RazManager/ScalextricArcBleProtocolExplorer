@@ -389,9 +389,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public async Task SetConnectAsync(bool connect)
         {
+            Console.WriteLine($"SetConnectAsync: {connect}");
             Connect = connect;
             File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectionDto {  Connect = connect }, _jsonSerializerOptions));
-            await _hubContext.Clients.All.ChangedState(this);
+            await _hubContext.Clients.All.ChangedState(this);           
         }
     }
 
