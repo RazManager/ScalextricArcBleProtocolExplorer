@@ -1,10 +1,25 @@
 <mat-card class="section-container">
-    <mat-card-content>
-        <div *ngIf="dto.bluetoothConnectionState === 'Disabled'"><mat-icon>bluetooth_disabled</mat-icon>Bluetooth disabled or not used</div>
-        <div *ngIf="dto.bluetoothConnectionState === 'Enabled'"><mat-icon>bluetooth</mat-icon>Bluetooth enabled</div>
-        <div *ngIf="dto.bluetoothConnectionState === 'Discovering'"><mat-icon>bluetooth_searching</mat-icon>Searching for a Scalextric ARC device...</div>
-        <div *ngIf="dto.bluetoothConnectionState === 'Connected'"><mat-icon>bluetooth_connected</mat-icon>Connected to Scalextric ARC device, retrieving information from the device...</div>
-        <div *ngIf="dto.bluetoothConnectionState === 'Initialized'"><mat-icon>bluetooth_drive</mat-icon>Connection to a Scalextric ARC device is fully initialized</div>
+    <mat-card-content gdColumns="max-content" gdGap="2em">
+        <div *ngIf="dto.bluetoothConnectionState === 'Disabled'">
+            <mat-icon>bluetooth_disabled</mat-icon>
+            <span>Bluetooth disabled or not used</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Enabled'">
+            <mat-icon>bluetooth</mat-icon>
+            <span>Bluetooth enabled</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Discovering'">
+            <mat-icon>bluetooth_searching</mat-icon>
+            <span>Searching for a Scalextric ARC device...</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Connected'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
+            <mat-icon>bluetooth_connected</mat-icon>
+            <span>Connected to Scalextric ARC device, retrieving information from the device...</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Initialized'">
+            <mat-icon>bluetooth_drive</mat-icon>
+            <span>Connection to a Scalextric ARC device is fully initialized</span>
+        </div>    
 
         <mat-slide-toggle [(ngModel)]="dto.connect" [ngModelOptions]="{standalone: true}" (change)="change()">Connect</mat-slide-toggle>
     </mat-card-content>
