@@ -27,7 +27,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                   Channel<CarIdState> carIdStateChannel, 
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
                                   Channel<CommandState> commandStateChannel,
-                                  IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,                                  
+                                  IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
+                                  Channel<ConnectionDto> connectionChannel,
                                   IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
                                   IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
                                   IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> throttleProfileHubContext,
@@ -40,7 +41,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             CommandState = new CommandState(commandHubContext, commandStateChannel, practiceSessionState);
 
-            ConnectionState = new ConnectionState(connectionHubContext, logger);
+            ConnectionState = new ConnectionState(connectionHubContext, connectionChannel, logger);
 
             for (byte i = 0; i < SlotStates.Length; i++)
             {
@@ -329,6 +330,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
     public class ConnectionState : ConnectionDto
     {
         private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
+        private readonly Channel<ConnectionDto> _channel;
         private readonly string _configurationFilename = "";
         private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -336,10 +338,11 @@ namespace ScalextricArcBleProtocolExplorer.Services
         };
 
         public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext,
+                               Channel<ConnectionDto> channel,
                                ILogger<ScalextricArcState> logger)
         {
             _hubContext = hubContext;
-
+            _channel = channel;
             try
             {
                 var snapUserCommon = Environment.GetEnvironmentVariable("SNAP_USER_COMMON");
@@ -392,6 +395,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             Console.WriteLine($"SetConnectAsync: {connect}");
             Connect = connect;
             File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectionDto {  Connect = connect }, _jsonSerializerOptions));
+            await _channel.Writer.WriteAsync(new ConnectionDto { Connect = connect });
             await _hubContext.Clients.All.ChangedState(this);           
         }
     }

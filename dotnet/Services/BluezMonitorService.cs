@@ -82,6 +82,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly ScalextricArcState _scalextricArcState;
         private readonly Channel<CarIdState> _carIdStateChannel;
         private readonly Channel<CommandState> _commandStateChannel;
+        private readonly Channel<ConnectionDto> _connectionChannel;
         private readonly Channel<ThrottleProfileState> _throttleProfileStateChannel;
         private readonly ILogger<BluezMonitorService> _logger;
 
@@ -90,6 +91,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private Task? _carIdTask;
         private Task? _commandTask;
         private Task? _throttleProfileTask;
+        private Task? _connectionTask;
 
 
         private bool _discoveryStarted = false;
@@ -98,12 +100,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
         public BluezMonitorService(ScalextricArcState scalextricArcState,
                                    Channel<CarIdState> carIdStateChannel,
                                    Channel<CommandState> commandStateChannel,
+                                   Channel<ConnectionDto> connectionChannel,
                                    Channel<ThrottleProfileState> throttleProfileStateChannel,
                                    ILogger<BluezMonitorService> logger)
         {
             _scalextricArcState = scalextricArcState;
             _carIdStateChannel = carIdStateChannel;
             _commandStateChannel = commandStateChannel;
+            _connectionChannel = connectionChannel;
             _throttleProfileStateChannel = throttleProfileStateChannel;
             _logger = logger;
         }
@@ -111,10 +115,19 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            var resetResult = _cancellationTokenSource.TryReset();
+            Console.WriteLine($"resetResult={resetResult}");
+
             _bluezDiscoveryTask = BluezDiscoveryAsync(_cancellationTokenSource.Token);
             _carIdTask = CarIdAsync(_cancellationTokenSource.Token);
             _commandTask = CommandAsync(_cancellationTokenSource.Token);
             _throttleProfileTask = ThrottleProfileAsync(_cancellationTokenSource.Token);
+
+            if (_connectionTask is null)
+            {
+                _connectionTask = ConnectionAsync(cancellationToken);
+            }
+
             return Task.CompletedTask;
         }
 
@@ -315,6 +328,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                 await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
             }
+
+            await ResetAsync();
         }
 
 
@@ -378,7 +393,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     }
                     else
                     {
-                        _logger.LogInformation("Connecting to Scalextric ARC...");
+                        _logger.LogInformation($"Connecting to Scalextric ARC... {await _scalextricArcProxy.GetAddressAsync()} #{await _scalextricArcProxy.GetNameAsync()}#");
                         bool success = false;
                         for (int i = 1; i <= 5; i++)
                         {
@@ -390,7 +405,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                             catch (Tmds.DBus.DBusException exception)
                             {
-                                _logger.LogInformation($"Connection attempt {i} failed: {exception.ErrorName}, {exception.ErrorMessage}");
+                                _logger.LogInformation($"Connection attempt {i}(5) failed: {exception.ErrorName}, {exception.ErrorMessage}");
                                 await Task.Delay(TimeSpan.FromSeconds(5));
                             }
                             catch (Exception)
@@ -406,9 +421,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                         else
                         {
-                            await ResetAsync();
                             await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
                             _logger.LogInformation("Could not connect to Scalextric ARC.");
+                            await ResetAsync();
                         }
                     }
 
@@ -452,9 +467,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (!await _scalextricArcProxy.GetServicesResolvedAsync())
                             {
-                                await ResetAsync();
                                 await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
                                 throw new Exception("Scalextric ARC services could not be resolved");
+                                await ResetAsync();
                             }
                         }
 
@@ -783,6 +798,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 _scalextricArcProxy = null;
             }
 
+            Console.WriteLine($"_bluezAdapterProxy is not null: {_bluezAdapterProxy is not null}   _scalextricArcObjectPath.HasValue: {_scalextricArcObjectPath.HasValue}");
             if (_bluezAdapterProxy is not null && _scalextricArcObjectPath.HasValue)
             {
                 try
@@ -982,6 +998,23 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     value[18] = commandState.Brake6;
                     value[19] = (byte)((commandState.Kers1 ? 1 : 0) + (commandState.Kers2 ? 2 : 0) + (commandState.Kers3 ? 4 : 0) + (commandState.Kers4 ? 8 : 0) + (commandState.Kers5 ? 16 : 0) + (commandState.Kers6 ? 32 : 0));
                     await _commandCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
+                }
+            }
+        }
+
+
+        private async Task ConnectionAsync(CancellationToken cancellationToken)
+        {
+            await foreach (var connectionDto in _connectionChannel.Reader.ReadAllAsync(cancellationToken))
+            {
+                Console.WriteLine($"ConnectionAsync: {connectionDto.Connect}");
+                if (connectionDto.Connect)
+                {
+                    await StartAsync(cancellationToken);
+                }
+                else
+                {
+                    await StopAsync(cancellationToken);
                 }
             }
         }
