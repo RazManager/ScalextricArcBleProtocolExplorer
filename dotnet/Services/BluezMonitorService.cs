@@ -29,8 +29,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
         private ConcurrentDictionary<Tmds.DBus.ObjectPath, IEnumerable<BluezInterfaceMetadata>> _bluezObjectPathInterfaces = new();
-        private Tmds.DBus.ObjectPath? scalextricArcObjectPath = null;
-        private bluez.DBus.IDevice1? scalextricArcProxy = null;
+        private bluez.DBus.IAdapter1? _bluezAdapterProxy = null;
+        private Tmds.DBus.ObjectPath? _scalextricArcObjectPath = null;
+        private bluez.DBus.IDevice1? _scalextricArcProxy = null;
 
         private const string manufacturerNameCharacteristicUuid = "00002a29-0000-1000-8000-00805f9b34fb";
         private const string modelNumberCharacteristicUuid = "00002a24-0000-1000-8000-00805f9b34fb";
@@ -183,8 +184,8 @@ namespace ScalextricArcBleProtocolExplorer.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 _bluezObjectPathInterfaces = new();
-                scalextricArcObjectPath = null;
-                scalextricArcProxy = null;
+                _scalextricArcObjectPath = null;
+                _scalextricArcProxy = null;
                 _slotCharacteristicWatchTask = null;
                 _throttleCharacteristicWatchTask = null;
                 _discoveryStarted = false;
@@ -207,7 +208,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         return;
                     }
 
-                    var bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezService, bluezAdapterObjectPathKp.Key);
+                    _bluezAdapterProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IAdapter1>(bluezService, bluezAdapterObjectPathKp.Key);
 
                     if (watchInterfacesAddedTask is not null)
                     {
@@ -242,9 +243,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
-                            Reset();
+                            await ResetAsync();
 
-                            if (await bluezAdapterProxy.GetDiscoveringAsync())
+                            if (await _bluezAdapterProxy.GetDiscoveringAsync())
                             {
                                 _logger.LogInformation("Searching...");
                             }
@@ -257,9 +258,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                         new string[] { "00003b08-0000-1000-8000-00805f9b34fb" }
                                     }
                                 };
-                                await bluezAdapterProxy.SetDiscoveryFilterAsync(discoveryProperties);
+                                await _bluezAdapterProxy.SetDiscoveryFilterAsync(discoveryProperties);
                                 _logger.LogInformation("Starting Bluetooth device discovery.");
-                                await bluezAdapterProxy.StartDiscoveryAsync();
+                                await _bluezAdapterProxy.StartDiscoveryAsync();
                                 _discoveryStarted = true;
 
                                 //Name=Scalextric ARC
@@ -274,10 +275,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         else
                         {
                             // Bluetooth device discovery not needed, device already found.
-                            if (scalextricArcProxy is not null && await bluezAdapterProxy.GetDiscoveringAsync() && _discoveryStarted)
+                            if (_scalextricArcProxy is not null && await _bluezAdapterProxy.GetDiscoveringAsync() && _discoveryStarted)
                             {
                                 _logger.LogInformation("Stopping Bluetooth device discovery.");
-                                await bluezAdapterProxy.StopDiscoveryAsync();
+                                await _bluezAdapterProxy.StopDiscoveryAsync();
                             }
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
@@ -364,26 +365,26 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
         private async Task ScalextricArcChangedAsync(Tmds.DBus.ObjectPath objectPath)
         {
-            if (scalextricArcObjectPath is null)
+            if (_scalextricArcObjectPath is null)
             {
                 try
                 {
-                    scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
+                    _scalextricArcProxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IDevice1>(bluezService, objectPath);
 
-                    if (await scalextricArcProxy.GetConnectedAsync())
+                    if (await _scalextricArcProxy.GetConnectedAsync())
                     {
                         _logger.LogInformation("Scalextric ARC already connected.");
-                        scalextricArcObjectPath = objectPath;
+                        _scalextricArcObjectPath = objectPath;
                     }
                     else
                     {
-                        _logger.LogInformation("Connecting to Scalextric ARC.");
+                        _logger.LogInformation("Connecting to Scalextric ARC...");
                         bool success = false;
                         for (int i = 1; i <= 5; i++)
                         {
                             try
                             {
-                                await scalextricArcProxy.ConnectAsync();
+                                await _scalextricArcProxy.ConnectAsync();
                                 success = true;
                                 break;
                             }
@@ -399,23 +400,23 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                         if (success)
                         {
-                            scalextricArcObjectPath = objectPath;
+                            _scalextricArcObjectPath = objectPath;
                             await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Connected);
                             _logger.LogInformation("Connected to Scalextric ARC.");
                         }
                         else
                         {
-                            Reset();
+                            await ResetAsync();
                             await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
                             _logger.LogInformation("Could not connect to Scalextric ARC.");
                         }
                     }
 
-                    if (scalextricArcObjectPath != null)
+                    if (_scalextricArcObjectPath != null)
                     {
                         _logger.LogInformation("Initiating Scalextric ARC services.");
 
-                        var deviceProperties = await scalextricArcProxy.GetAllAsync();
+                        var deviceProperties = await _scalextricArcProxy.GetAllAsync();
                         _logger.LogInformation($"Address={deviceProperties.Address}");
                         _logger.LogInformation($"AddressType={deviceProperties.AddressType}");
                         _logger.LogInformation($"Name={deviceProperties.Name}");
@@ -436,12 +437,12 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         //public IDictionary<ushort, object>? ManufacturerData
                         //public IDictionary<string, object>? ServiceData
 
-                        if (!await scalextricArcProxy.GetServicesResolvedAsync())
+                        if (!await _scalextricArcProxy.GetServicesResolvedAsync())
                         {
-                            _logger.LogInformation("Waiting for Scalextric ARC services to be resolved.");
+                            _logger.LogInformation("Waiting for Scalextric ARC services to be resolved...");
                             for (int i = 1; i <= 5; i++)
                             {
-                                if (await scalextricArcProxy.GetServicesResolvedAsync())
+                                if (await _scalextricArcProxy.GetServicesResolvedAsync())
                                 {
                                     break;
                                 }
@@ -449,9 +450,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 await Task.Delay(TimeSpan.FromSeconds(5));
                             }
 
-                            if (!await scalextricArcProxy.GetServicesResolvedAsync())
+                            if (!await _scalextricArcProxy.GetServicesResolvedAsync())
                             {
-                                Reset();
+                                await ResetAsync();
                                 await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
                                 throw new Exception("Scalextric ARC services could not be resolved");
                             }
@@ -465,7 +466,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         _scalextricArcState.GattCharacteristics = new();
 
-                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
+                        foreach (var item in _bluezObjectPathInterfaces.Where(x => x.Key.ToString().StartsWith(_scalextricArcObjectPath.ToString()!) && x.Value.Any(i => i.BluezInterface == bluezGattCharacteristicInterface)).OrderBy(x => x.Key))
                         {
                             var proxy = Tmds.DBus.Connection.System.CreateProxy<bluez.DBus.IGattCharacteristic1>(bluezService, item.Key);
                             var properties = await proxy.GetAllAsync();
@@ -714,7 +715,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        private void Reset()
+        private async Task ResetAsync()
         {
             _carIdCharacteristicProxy = null;
 
@@ -751,13 +752,52 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
             _trackCharacteristicProxy = null;
 
-            if (scalextricArcProxy is not null)
+            if (_scalextricArcProxy is not null)
             {
-                _logger.LogInformation("Scalextric ARC disconnected.");
-                scalextricArcProxy = null;
+                if (await _scalextricArcProxy.GetConnectedAsync())
+                {
+                    try
+                    {
+                        _logger.LogInformation("Disconnecting Scalextric ARC...");
+                        await _scalextricArcProxy.DisconnectAsync();                        
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(exception, exception.Message);
+                    }
+                    _logger.LogInformation("Scalextric ARC disconnected.");
+                }
+
+                try
+                {
+                    _logger.LogInformation("Cancelling paring for Scalextric ARC...");
+                    await _scalextricArcProxy.CancelPairingAsync();
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, exception.Message);
+                }
+                _logger.LogInformation("Scalextric ARC pairing cancelled.");
+
+
+                _scalextricArcProxy = null;
             }
 
-            scalextricArcObjectPath = null;
+            if (_bluezAdapterProxy is not null && _scalextricArcObjectPath.HasValue)
+            {
+                try
+                {
+                    _logger.LogInformation("Removing for Scalextric ARC...");
+                    await _bluezAdapterProxy.RemoveDeviceAsync(_scalextricArcObjectPath.Value);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, exception.Message);
+                }
+                _logger.LogInformation("Scalextric ARC removed.");
+            }
+
+            _scalextricArcObjectPath = null;
         }
 
 
