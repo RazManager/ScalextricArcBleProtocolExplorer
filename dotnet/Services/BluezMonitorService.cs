@@ -86,7 +86,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         private readonly Channel<ThrottleProfileState> _throttleProfileStateChannel;
         private readonly ILogger<BluezMonitorService> _logger;
 
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource? _cancellationTokenSource;
         private Task? _bluezDiscoveryTask;
         private Task? _carIdTask;
         private Task? _commandTask;
@@ -113,71 +113,79 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var resetResult = _cancellationTokenSource.TryReset();
-            Console.WriteLine($"resetResult={resetResult}");
+            if (_scalextricArcState.ConnectionState.Connect)
+            {
+                _cancellationTokenSource = new CancellationTokenSource();
 
-            _bluezDiscoveryTask = BluezDiscoveryAsync(_cancellationTokenSource.Token);
-            _carIdTask = CarIdAsync(_cancellationTokenSource.Token);
-            _commandTask = CommandAsync(_cancellationTokenSource.Token);
-            _throttleProfileTask = ThrottleProfileAsync(_cancellationTokenSource.Token);
+                _bluezDiscoveryTask = BluezDiscoveryAsync(_cancellationTokenSource.Token);
+                _carIdTask = CarIdAsync(_cancellationTokenSource.Token);
+                _commandTask = CommandAsync(_cancellationTokenSource.Token);
+                _throttleProfileTask = ThrottleProfileAsync(_cancellationTokenSource.Token);
+            }
+            else
+            {
+                await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
+            }
 
             if (_connectionTask is null)
             {
                 _connectionTask = ConnectionAsync(cancellationToken);
             }
-
-            return Task.CompletedTask;
         }
 
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
-            _cancellationTokenSource.Cancel();
+            if (_cancellationTokenSource is not null)
+            {
+                _cancellationTokenSource.Cancel();
 
-            if (_bluezDiscoveryTask is not null)
-            {
-                try
+                if (_bluezDiscoveryTask is not null)
                 {
-                    _bluezDiscoveryTask.Wait();
+                    try
+                    {
+                        _bluezDiscoveryTask.Wait();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-                catch (Exception)
+                if (_carIdTask is not null)
                 {
+                    try
+                    {
+                        _carIdTask.Wait();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-            }
-            if (_carIdTask is not null)
-            {
-                try
+                if (_commandTask is not null)
                 {
-                    _carIdTask.Wait();
+                    try
+                    {
+                        _commandTask.Wait();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-                catch (Exception)
+                if (_throttleProfileTask is not null)
                 {
+                    try
+                    {
+                        _throttleProfileTask.Wait();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-            }
-            if (_commandTask is not null)
-            {
-                try
-                {
-                    _commandTask.Wait();
-                }
-                catch (Exception)
-                {
-                }
-            }
-            if (_throttleProfileTask is not null)
-            {
-                try
-                {
-                    _throttleProfileTask.Wait();
-                }
-                catch (Exception)
-                {
-                }
+                Console.WriteLine("Tasks have been completed.");
             }
 
-            return Task.CompletedTask;
+            await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
         }
 
 
@@ -216,7 +224,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     var bluezAdapterObjectPathKp = _bluezObjectPathInterfaces.SingleOrDefault(x => x.Value.Any(i => i.BluezInterface == bluezAdapterInterface));
                     if (string.IsNullOrEmpty(bluezAdapterObjectPathKp.Key.ToString()))
                     {
-                        _logger.LogError($"{bluezAdapterInterface} does not exist. Please install BlueZ for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        _logger.LogCritical($"{bluezAdapterInterface} does not exist. Please install BlueZ for the needed Bluetooth Low Energy functionality, and then re-start this application.");
                         await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
                         return;
                     }
@@ -247,7 +255,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         }
                     );
 
-                    _logger.LogInformation("BlueZ initialization done. Trying to find a Scalextric ARC device...");
+                    _logger.LogInformation("BlueZ initialization done. Trying to find a Scalextric ARC powerbase...");
                     await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
 
                     while (!cancellationToken.IsCancellationRequested)
@@ -256,7 +264,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
-                            await ResetAsync();
+                            await ResetAsync(_scalextricArcObjectPath);
 
                             if (await _bluezAdapterProxy.GetDiscoveringAsync())
                             {
@@ -296,15 +304,18 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                             if (scalextricArcObjectPathKps.Count() >= 2)
                             {
-                                _logger.LogInformation($"{scalextricArcObjectPathKps.Count()} Scalextric ARC powerbases found. No new connections will be attempted until there's only 1 available.");
+                                _logger.LogInformation($"{scalextricArcObjectPathKps.Count()} Scalextric ARC powerbases found.");
                             }
-                            else
-                            {
-                                await ScalextricArcChangedAsync(scalextricArcObjectPathKps.First().Key);
-                            }
+                            await ScalextricArcChangedAsync(scalextricArcObjectPathKps.First().Key, cancellationToken);
                         }
 
-                        await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                        }
+                        catch (TaskCanceledException)
+                        {                            
+                        }
                     }
 
                     if (watchInterfacesAddedTask is not null)
@@ -326,10 +337,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     _logger.LogError(exception, exception.Message);
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {                            
+                }
             }
 
-            await ResetAsync();
+            await ResetAsync(_scalextricArcObjectPath);
         }
 
 
@@ -378,7 +395,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        private async Task ScalextricArcChangedAsync(Tmds.DBus.ObjectPath objectPath)
+        private async Task ScalextricArcChangedAsync(Tmds.DBus.ObjectPath objectPath, CancellationToken cancellationToken)
         {
             if (_scalextricArcObjectPath is null)
             {
@@ -393,10 +410,15 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     }
                     else
                     {
-                        _logger.LogInformation($"Connecting to Scalextric ARC... {await _scalextricArcProxy.GetAddressAsync()} #{await _scalextricArcProxy.GetNameAsync()}#");
+                        _logger.LogInformation($"Connecting to {(await _scalextricArcProxy.GetNameAsync()).Trim()}... ({await _scalextricArcProxy.GetAddressAsync()})");
                         bool success = false;
                         for (int i = 1; i <= 5; i++)
                         {
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                return;
+                            }
+
                             try
                             {
                                 await _scalextricArcProxy.ConnectAsync();
@@ -405,8 +427,14 @@ namespace ScalextricArcBleProtocolExplorer.Services
                             }
                             catch (Tmds.DBus.DBusException exception)
                             {
-                                _logger.LogInformation($"Connection attempt {i}(5) failed: {exception.ErrorName}, {exception.ErrorMessage}");
-                                await Task.Delay(TimeSpan.FromSeconds(5));
+                                _logger.LogWarning($"Connection attempt {i}(5) failed: {exception.ErrorName}, {exception.ErrorMessage}");
+                                try
+                                {
+                                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                                }
+                                catch (TaskCanceledException)
+                                {                            
+                                }
                             }
                             catch (Exception)
                             {
@@ -422,8 +450,9 @@ namespace ScalextricArcBleProtocolExplorer.Services
                         else
                         {
                             await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
-                            _logger.LogInformation("Could not connect to Scalextric ARC.");
-                            await ResetAsync();
+                            _logger.LogError("Could not connect to Scalextric ARC.");
+                            await ResetAsync(objectPath);
+                            return;
                         }
                     }
 
@@ -454,22 +483,29 @@ namespace ScalextricArcBleProtocolExplorer.Services
 
                         if (!await _scalextricArcProxy.GetServicesResolvedAsync())
                         {
-                            _logger.LogInformation("Waiting for Scalextric ARC services to be resolved...");
                             for (int i = 1; i <= 5; i++)
                             {
+                                _logger.LogInformation("Waiting for Scalextric ARC services to be resolved...");
                                 if (await _scalextricArcProxy.GetServicesResolvedAsync())
                                 {
                                     break;
                                 }
 
-                                await Task.Delay(TimeSpan.FromSeconds(5));
+                                try
+                                {
+                                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                                }
+                                catch (TaskCanceledException)
+                                {                            
+                                }
                             }
 
                             if (!await _scalextricArcProxy.GetServicesResolvedAsync())
                             {
                                 await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Enabled);
-                                throw new Exception("Scalextric ARC services could not be resolved");
-                                await ResetAsync();
+                                _logger.LogWarning("Scalextric ARC services could not be resolved");
+                                await ResetAsync(_scalextricArcObjectPath);
+                                return;
                             }
                         }
 
@@ -730,8 +766,10 @@ namespace ScalextricArcBleProtocolExplorer.Services
         }
 
 
-        private async Task ResetAsync()
+        private async Task ResetAsync(Tmds.DBus.ObjectPath? objectPath)
         {
+            Console.WriteLine("ResetAsync...");
+
             _carIdCharacteristicProxy = null;
 
             _commandCharacteristicProxy = null;
@@ -783,28 +821,16 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     _logger.LogInformation("Scalextric ARC disconnected.");
                 }
 
-                try
-                {
-                    _logger.LogInformation("Cancelling paring for Scalextric ARC...");
-                    await _scalextricArcProxy.CancelPairingAsync();
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(exception, exception.Message);
-                }
-                _logger.LogInformation("Scalextric ARC pairing cancelled.");
-
-
                 _scalextricArcProxy = null;
             }
 
-            Console.WriteLine($"_bluezAdapterProxy is not null: {_bluezAdapterProxy is not null}   _scalextricArcObjectPath.HasValue: {_scalextricArcObjectPath.HasValue}");
-            if (_bluezAdapterProxy is not null && _scalextricArcObjectPath.HasValue)
+            Console.WriteLine($"_bluezAdapterProxy is not null: {_bluezAdapterProxy is not null}   objectPath.HasValue: {objectPath.HasValue}");
+            if (_bluezAdapterProxy is not null && objectPath.HasValue)
             {
                 try
                 {
-                    _logger.LogInformation("Removing for Scalextric ARC...");
-                    await _bluezAdapterProxy.RemoveDeviceAsync(_scalextricArcObjectPath.Value);
+                    _logger.LogInformation("Removing Scalextric ARC...");
+                    await _bluezAdapterProxy.RemoveDeviceAsync(objectPath.Value);
                 }
                 catch (Exception exception)
                 {
