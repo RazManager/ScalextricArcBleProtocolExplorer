@@ -39,7 +39,7 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.CarIdState>(new BoundedChannelOptions(10)
+    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.CarIdState>(new BoundedChannelOptions(10)
     {
         FullMode = BoundedChannelFullMode.DropOldest,
         SingleWriter = false,
@@ -48,7 +48,7 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.CommandState>(new BoundedChannelOptions(10)
+    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.CommandState>(new BoundedChannelOptions(10)
     {
         FullMode = BoundedChannelFullMode.DropOldest,
         SingleWriter = false,
@@ -57,7 +57,7 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ConnectionDto>(new BoundedChannelOptions(10)
+    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectionDto>(new BoundedChannelOptions(10)
     {
         FullMode = BoundedChannelFullMode.DropOldest,
         SingleWriter = false,
@@ -66,7 +66,7 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ThrottleProfileState>(new BoundedChannelOptions(10)
+    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ThrottleProfileState>(new BoundedChannelOptions(10)
     {
         FullMode = BoundedChannelFullMode.DropOldest,
         SingleWriter = false,
@@ -75,37 +75,38 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    new ScalextricArcBleProtocolExplorer.Services.PracticeSessionState
+    new ScalextricArcBleProtocolExplorer.Services.PracticeSession.PracticeSessionState
     (
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.PracticeSessionHub, ScalextricArcBleProtocolExplorer.Hubs.IPracticeSessionHub>>(),
-        serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.PracticeSessionState>>()
+        serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.PracticeSession.PracticeSessionState>>()
     )
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    new ScalextricArcBleProtocolExplorer.Services.ScalextricArcState
+    new ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ScalextricArcState
     (
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.CarIdHub, ScalextricArcBleProtocolExplorer.Hubs.ICarIdHub>>(),
-        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.CarIdState>>(),
+        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.CarIdState>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.CommandHub, ScalextricArcBleProtocolExplorer.Hubs.ICommandHub>>(),
-        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.CommandState>>(),
+        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.CommandState>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub, ScalextricArcBleProtocolExplorer.Hubs.IConnectionHub>>(),
-        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ConnectionDto>>(),
+        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectionDto>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.SlotHub, ScalextricArcBleProtocolExplorer.Hubs.ISlotHub>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleHub>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleProfileHub>>(),
-        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ThrottleProfileState>>(),
+        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ThrottleProfileState>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.TrackHub, ScalextricArcBleProtocolExplorer.Hubs.ITrackHub>>(),
-        serviceProvider.GetRequiredService<ScalextricArcBleProtocolExplorer.Services.PracticeSessionState>(),
-        serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.ScalextricArcState>>()
+        serviceProvider.GetRequiredService<ScalextricArcBleProtocolExplorer.Services.PracticeSession.PracticeSessionState>(),
+        serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ScalextricArcState>>()
     )
 );
 
 builder.Services.AddSingleton<ScalextricArcBleProtocolExplorer.Services.CpuInfo.ICpuInfoService>(serviceProvider =>
     new ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService(serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>>())
 );
+
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerService>();
-builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitorService>();
+builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitor.BluezMonitorService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ScalextricArcBleProtocolExplorer.Services
+namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
 {
     public class PracticeSessionCarId
     {

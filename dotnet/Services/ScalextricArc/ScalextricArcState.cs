@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using ScalextricArcBleProtocolExplorer.Services.PracticeSession;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,7 +10,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 
 
-namespace ScalextricArcBleProtocolExplorer.Services
+namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 {
     public class ScalextricArcState
     {

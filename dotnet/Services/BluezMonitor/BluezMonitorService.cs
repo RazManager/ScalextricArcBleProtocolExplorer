@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ScalextricArcBleProtocolExplorer.Services.ScalextricArc;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,10 +10,10 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
-using static ScalextricArcBleProtocolExplorer.Services.ConnectionState;
+using static ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectionState;
 
 
-namespace ScalextricArcBleProtocolExplorer.Services
+namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
 {
     public class BluezMonitorService : IHostedService
     {
@@ -283,13 +284,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                                 _logger.LogInformation("Starting Bluetooth device discovery.");
                                 await _bluezAdapterProxy.StartDiscoveryAsync();
                                 _discoveryStarted = true;
-
-                                //Name=Scalextric ARC
-                                //Alias=Scalextric ARC
-                                //Appearance=833
-                                //Values for property=UUIDs:
-                                //00003b08-0000-1000-8000-00805f9b34fb
-                                //0000180a-0000-1000-8000-00805f9b34fb
                             }
                             await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Discovering);
                         }
@@ -824,7 +818,6 @@ namespace ScalextricArcBleProtocolExplorer.Services
                 _scalextricArcProxy = null;
             }
 
-            Console.WriteLine($"_bluezAdapterProxy is not null: {_bluezAdapterProxy is not null}   objectPath.HasValue: {objectPath.HasValue}");
             if (_bluezAdapterProxy is not null && objectPath.HasValue)
             {
                 try
@@ -1001,7 +994,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
             {
                 if (_commandCharacteristicProxy is not null)
                 {
-                    Console.WriteLine($"Command: {(byte)commandState.Command} {commandState.Command}");
+                    Console.WriteLine($"Sending command: {(byte)commandState.Command} {commandState.Command}");
                     var value = new byte[20];
                     value[0] = (byte)commandState.Command;
                     value[1] = (byte)(commandState.PowerMultiplier1 + (commandState.Ghost1 ? 128 : 0));
@@ -1024,6 +1017,7 @@ namespace ScalextricArcBleProtocolExplorer.Services
                     value[18] = commandState.Brake6;
                     value[19] = (byte)((commandState.Kers1 ? 1 : 0) + (commandState.Kers2 ? 2 : 0) + (commandState.Kers3 ? 4 : 0) + (commandState.Kers4 ? 8 : 0) + (commandState.Kers5 ? 16 : 0) + (commandState.Kers6 ? 32 : 0));
                     await _commandCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
+                    Console.WriteLine($"Command sent: {(byte)commandState.Command} {commandState.Command}");
                 }
             }
         }
