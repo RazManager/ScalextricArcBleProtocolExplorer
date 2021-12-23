@@ -19,7 +19,12 @@
         <div *ngIf="dto.bluetoothConnectionState === 'Initialized'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
             <mat-icon>bluetooth_drive</mat-icon>
             <span>Connection to a Scalextric ARC powerbase is fully initialized</span>
-        </div>    
+        </div>
+
+        <div style="margin-bottom: 1em">
+            <div class="mat-caption">RSSI</div>
+            <div>{{dto.rssi}}</div>
+        </div>
 
         <mat-slide-toggle [(ngModel)]="dto.connect" [ngModelOptions]="{standalone: true}" (change)="change()">Connect</mat-slide-toggle>
     </mat-card-content>

@@ -71,105 +71,105 @@
         </div>
 
         <mat-radio-group [(ngModel)]="dto.command" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"
-                gdColumns="max-content 1fr max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content" gdGap="1em" style="margin-top: 2em;">
-            <div class="mat-caption">Command</div>
-            <div class="mat-caption">Description</div>
-            <div class="mat-caption" style="grid-column-start: 2; grid-column-end: 4;">Documentation</div>
-            <div class="mat-caption" style="grid-column-start: 4; grid-column-end: 6;">ARC One</div>
-            <div class="mat-caption" style="grid-column-start: 6; grid-column-end: 8;">ARC Air</div>
-            <div class="mat-caption" style="grid-column-start: 8; grid-column-end: 10;">ARC Pro Analog<br>mode</div>
-            <div class="mat-caption" style="grid-column-start: 10; grid-column-end: 12;">ARC Pro Digital<br>mode</div>
+                gdColumns="max-content 1fr max-content max-content max-content max-content max-content max-content max-content max-content max-content max-content" gdGap="1em" style="justify-items: center; margin-top: 2em;">
+            <div class="mat-caption" style="justify-self: self-start;">Command</div>
+            <div class="mat-caption" style="justify-self: self-start;">Description</div>
+            <div class="mat-caption" style="grid-column-start: 3; grid-column-end: 5;">Documentation</div>
+            <div class="mat-caption" style="grid-column-start: 5; grid-column-end: 7;">ARC One</div>
+            <div class="mat-caption" style="grid-column-start: 7; grid-column-end: 9;">ARC Air</div>
+            <div class="mat-caption" style="grid-column-start: 9; grid-column-end: 11;">ARC Pro Analog</div>
+            <div class="mat-caption" style="grid-column-start: 11; grid-column-end: 13;">ARC Pro Digital</div>
 
             <div></div>
             <div></div>
-            <div>Power</div>
-            <div>Timer</div>
-            <div>Power</div>
-            <div>Timer</div>
-            <div>Power</div>
-            <div>Timer</div>
-            <div>Power</div>
-            <div>Timer</div>
-            <div>Power</div>
-            <div>Timer</div>
+            <div class="mat-caption">Power</div>
+            <div class="mat-caption">Timer</div>
+            <div class="mat-caption">Power</div>
+            <div class="mat-caption">Timer</div>
+            <div class="mat-caption">Power</div>
+            <div class="mat-caption">Timer</div>
+            <div class="mat-caption">Power</div>
+            <div class="mat-caption">Timer</div>
+            <div class="mat-caption">Power</div>
+            <div class="mat-caption">Timer</div>
 
-            <mat-radio-button value="NoPowerTimerStopped">NoPowerTimerStopped</mat-radio-button>
-            <div>To control the powerbase track power off and time stamps of characteristic 0x3B0B reset to 0. Usually it is used in save mode.</div>
+            <mat-radio-button value="NoPowerTimerStopped" style="justify-self: self-start;">NoPowerTimerStopped</mat-radio-button>
+            <div style="justify-self: self-start;">To control the powerbase track power off and time stamps of characteristic 0x3B0B reset to 0. Usually it is used in save mode.</div>
             <mat-icon>power_off</mat-icon>
+            <mat-icon>timer_off</mat-icon>
+            <mat-icon>power_on</mat-icon>
+            <div><mat-icon>timer_off</mat-icon><br>Reset</div>
+            <div></div>
+            <div></div>
+            <div>Last throttle<br>value locked</div>
+            <div><mat-icon>timer_off</mat-icon><br>Reset</div>
+            <div>Last throttle<br>value locked</div>
+            <div><mat-icon>timer_off</mat-icon><br>Reset</div>
+
+            <mat-radio-button value="NoPowerTimerTicking" style="justify-self: self-start;">NoPowerTimerTicking</mat-radio-button>
+            <div style="justify-self: self-start;">To control power to track but all speed 0, time stamps zeroed. Usually it is used as ready mode.</div>
+            <mat-icon>power_off</mat-icon>
+            <mat-icon>timer_on</mat-icon>
+            <mat-icon>power_on</mat-icon>
+            <div><mat-icon>timer_off</mat-icon><br>Reset</div>
+            <div></div>
+            <div></div>
+            <mat-icon>power_on</mat-icon>
+            <div><mat-icon>timer_off</mat-icon><br>Reset</div>
+            <mat-icon>power_on</mat-icon>
+            <div><mat-icon>timer_off</mat-icon><br>Reset</div>
+
+            <mat-radio-button value="PowerOnRaceTrigger" style="justify-self: self-start;">PowerOnRaceTrigger</mat-radio-button>
+            <div style="justify-self: self-start;">To control power to track, time stamps halt. Usually it is used as yellow flag status, ready to resume the game from game halt.</div>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_off</mat-icon>
+            <mat-icon>power_on</mat-icon>
             <mat-icon>timer_off</mat-icon>
             <div></div>
             <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_off</mat-icon>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_off</mat-icon>
 
-            <mat-radio-button value="NoPowerTimerTicking">NoPowerTimerTicking</mat-radio-button>
-            <div>To control power to track but all speed 0, time stamps zeroed. Usually it is used as ready mode.</div>
-            <mat-icon>power_off</mat-icon>
+            <mat-radio-button value="PowerOnRacing" style="justify-self: self-start;">PowerOnRacing</mat-radio-button>
+            <div style="justify-self: self-start;">To control power to track, time stamps ticking, power outputs follow the throttle levels and the car power bytes. The time stamps update when cars pass the sensors. Usually it is normal game mode.</div>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_on</mat-icon>
+            <mat-icon>power_on</mat-icon>
             <mat-icon>timer_on</mat-icon>
             <div></div>
             <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_on</mat-icon>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_on</mat-icon>
 
-            <mat-radio-button value="PowerOnRaceTrigger">PowerOnRaceTrigger</mat-radio-button>
-            <div>To control power to track, time stamps halt. Usually it is used as yellow flag status, ready to resume the game from game halt.</div>
+            <mat-radio-button value="PowerOnTimerHalt" style="justify-self: self-start;">PowerOnTimerHalt</mat-radio-button>
+            <div style="justify-self: self-start;">To control power off, but time stamps halt. Usually it is used as game halt mode, for example, players want to halt the game when a car runs out off track.</div>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_off</mat-icon>
             <mat-icon>power_on</mat-icon>
             <mat-icon>timer_off</mat-icon>
             <div></div>
             <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+            <div>Last throttle<br>value locked</div>
+            <mat-icon>timer_off</mat-icon>
+            <div>Last throttle<br>value locked</div>
+            <mat-icon>timer_off</mat-icon>
 
-            <mat-radio-button value="PowerOnRacing">PowerOnRacing</mat-radio-button>
-            <div>To control power to track, time stamps ticking, power outputs follow the throttle levels and the car power bytes. The time stamps update when cars pass the sensors. Usually it is normal game mode.</div>
+            <mat-radio-button value="NoPowerRebootPic18" style="justify-self: self-start;">NoPowerRebootPic18</mat-radio-button>
+            <div style="justify-self: self-start;">DFU on PIC18</div>
+            <mat-icon>power_off</mat-icon>
+            <mat-icon>timer_on</mat-icon>
             <mat-icon>power_on</mat-icon>
             <mat-icon>timer_on</mat-icon>
             <div></div>
             <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-
-            <mat-radio-button value="PowerOnTimerHalt">PowerOnTimerHalt</mat-radio-button>
-            <div>To control power off, but time stamps halt. Usually it is used as game halt mode, for example, players want to halt the game when a car runs out off track.</div>
             <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-
-            <mat-radio-button value="NoPowerRebootPic18">NoPowerRebootPic18</mat-radio-button>
-            <div>DFU on PIC18</div>
-            <mat-icon>power_off</mat-icon>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+            <mat-icon>timer_on</mat-icon>
+            <mat-icon>power_on</mat-icon>
+            <mat-icon>timer_on</mat-icon>
         </mat-radio-group>
 
         <button mat-raised-button color="primary" style="margin-top: 2em;" [disabled]="!dirty" (click)="write()">

@@ -10,4 +10,5 @@ export enum BluetoothConnectionStateType {
 export class ConnectionDto {
     public connect!: boolean;
     public bluetoothConnectionState!: BluetoothConnectionStateType;
+    public rssi!: number | null;
 }

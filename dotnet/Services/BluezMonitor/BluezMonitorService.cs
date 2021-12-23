@@ -19,13 +19,13 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
     {
         public const string bluezService = "org.bluez";
         public const string bluezAdapterInterface = "org.bluez.Adapter1";
+        public const string bluezGattManagerInterface = "org.bluez.GattManager1";
         public const string bluezDeviceInterface = "org.bluez.Device1";
         public const string bluezGattCharacteristicInterface = "org.bluez.GattCharacteristic1";
 
         private class BluezInterfaceMetadata
         {
             public string BluezInterface { get; init; } = null!;
-            public Guid? UUID { get; init; }
             public string? DeviceName { get; init; }
         }
 
@@ -223,9 +223,10 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                     }
 
                     var bluezAdapterObjectPathKp = _bluezObjectPathInterfaces.SingleOrDefault(x => x.Value.Any(i => i.BluezInterface == bluezAdapterInterface));
+
                     if (string.IsNullOrEmpty(bluezAdapterObjectPathKp.Key.ToString()))
                     {
-                        _logger.LogCritical($"{bluezAdapterInterface} does not exist. Please install BlueZ for the needed Bluetooth Low Energy functionality, and then re-start this application.");
+                        _logger.LogCritical($"{bluezAdapterInterface} does not exist. Please install BlueZ (and an adapter for the needed Bluetooth Low Energy functionality), and then re-start this application.");
                         await _scalextricArcState.ConnectionState.SetBluetoothStateAsync(BluetoothConnectionStateType.Disabled);
                         return;
                     }
@@ -261,7 +262,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
 
                     while (!cancellationToken.IsCancellationRequested)
                     {
-                        var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezDeviceInterface && !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName.Trim() == "Scalextric ARC"));
+                        var scalextricArcObjectPathKps = _bluezObjectPathInterfaces.Where(x => x.Value.Any(i => i.BluezInterface == bluezDeviceInterface && !string.IsNullOrEmpty(i.DeviceName) && i.DeviceName == "Scalextric ARC"));
 
                         if (!scalextricArcObjectPathKps.Any())
                         {
@@ -347,34 +348,31 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
             Console.WriteLine($"{args.objectPath} added.");
-            // Console.WriteLine($"{args.objectPath} added with the following interfaces...");
-            // foreach (var iface in args.interfaces)
-            // {
-            //     Console.WriteLine(iface.Key);
-            // }
+            Console.WriteLine($"{args.objectPath} added with the following interfaces...");
+            foreach (var iface in args.interfaces)
+            {
+                Console.WriteLine(iface.Key);
+            }
+
+            //if (item.Key == bluezDeviceInterface)
+            //{
+            LogDBusObject(args.objectPath, args.interfaces);
+            //}
 
             if (args.interfaces.Keys.Any(x => x.StartsWith(bluezService)))
             {
                 var bluezInterfaceMetadata = new List<BluezInterfaceMetadata>();
                 foreach (var item in args.interfaces.Where(x => x.Key.StartsWith(bluezService)))
                 {
-                    if (item.Key == bluezDeviceInterface)
+                    if (item.Key == bluezAdapterInterface && args.interfaces.Any(x => x.Key == bluezGattManagerInterface) ||
+                        item.Key != bluezAdapterInterface)
                     {
-                        LogDBusObject(args.objectPath, args.interfaces);
+                        bluezInterfaceMetadata.Add(new BluezInterfaceMetadata
+                        {
+                            BluezInterface = item.Key,
+                            DeviceName = item.Value.SingleOrDefault(x => item.Key == bluezDeviceInterface && x.Key == "Name").Value?.ToString()?.Trim()
+                        });
                     }
-
-                    Guid? uuid = null;
-                    var uuidStr = item.Value.SingleOrDefault(x => x.Key == "UUID").Value;
-                    if (uuidStr is not null)
-                    {
-                        uuid = new Guid(uuidStr.ToString()!);
-                    }
-                    bluezInterfaceMetadata.Add(new BluezInterfaceMetadata
-                    {
-                        BluezInterface = item.Key,
-                        UUID = uuid,
-                        DeviceName = item.Value.SingleOrDefault(x => item.Key == bluezDeviceInterface && x.Key == "Name").Value?.ToString()?.Trim()
-                    });
                 }
 
                 _bluezObjectPathInterfaces.TryAdd(args.objectPath, bluezInterfaceMetadata);
@@ -508,6 +506,17 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                         //{
                         //    Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                         //}
+
+
+                        try
+                        {
+                            await _scalextricArcState.ConnectionState.SetRssiAsync(await _scalextricArcProxy.GetRSSIAsync());
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.LogWarning($"Could not get RSSI: {exception.Message}");
+                        }
+                        await _scalextricArcProxy.WatchPropertiesAsync(scalextricArcWatchProperties);
 
                         _scalextricArcState.GattCharacteristics = new();
 
@@ -835,6 +844,25 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
             _scalextricArcObjectPath = null;
         }
 
+        private void scalextricArcWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
+        {
+            foreach (var item in propertyChanges.Changed)
+            {
+                Console.WriteLine($"scalextricArcWatchProperties: {item.Key} {item.Value}");
+                if (item.Key == "RSSI")
+                {
+                    //var value = (byte[])item.Value;
+                    //_scalextricArcState.SlotStates[value[1] - 1].SetAsync
+                    //(
+                    //    value[0],
+                    //    (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
+                    //    (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
+                    //    (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
+                    //    (uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)
+                    //).Wait();
+                }
+            }
+        }
 
         private void slotCharacteristicWatchProperties(Tmds.DBus.PropertyChanges propertyChanges)
         {
