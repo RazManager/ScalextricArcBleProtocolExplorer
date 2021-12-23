@@ -57,7 +57,7 @@ builder.Services.AddSingleton(serviceProvider =>
 );
 
 builder.Services.AddSingleton(serviceProvider =>
-    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectionDto>(new BoundedChannelOptions(10)
+    Channel.CreateBounded<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectDto>(new BoundedChannelOptions(10)
     {
         FullMode = BoundedChannelFullMode.DropOldest,
         SingleWriter = false,
@@ -90,7 +90,7 @@ builder.Services.AddSingleton(serviceProvider =>
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.CommandHub, ScalextricArcBleProtocolExplorer.Hubs.ICommandHub>>(),
         serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.CommandState>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ConnectionHub, ScalextricArcBleProtocolExplorer.Hubs.IConnectionHub>>(),
-        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectionDto>>(),
+        serviceProvider.GetRequiredService<Channel<ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectDto>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.SlotHub, ScalextricArcBleProtocolExplorer.Hubs.ISlotHub>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleHub>>(),
         serviceProvider.GetRequiredService<IHubContext<ScalextricArcBleProtocolExplorer.Hubs.ThrottleProfileHub, ScalextricArcBleProtocolExplorer.Hubs.IThrottleProfileHub>>(),

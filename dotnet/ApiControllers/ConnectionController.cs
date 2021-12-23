@@ -20,14 +20,14 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
 
 
         [HttpGet]
-        public ConnectionState Get()
+        public ConnectionDto Get()
         {
-            return _scalextricArcState.ConnectionState;
+            return _scalextricArcState.ConnectionState.MapDto();
         }
 
 
         [HttpPut]
-        public Task PostAsync([FromBody][Required] ConnectionDto dto)
+        public Task PostAsync([FromBody][Required] ConnectDto dto)
         {
             return _scalextricArcState.ConnectionState.SetConnectAsync(dto.Connect);
         }

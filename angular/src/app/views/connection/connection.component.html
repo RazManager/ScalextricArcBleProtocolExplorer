@@ -1,5 +1,7 @@
 <mat-card class="section-container">
     <mat-card-content gdColumns="max-content" gdGap="2em">
+        <mat-slide-toggle [(ngModel)]="dto.connect" [ngModelOptions]="{standalone: true}" (change)="change()">Connect</mat-slide-toggle>
+
         <div *ngIf="dto.bluetoothConnectionState === 'Disabled'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
             <mat-icon>bluetooth_disabled</mat-icon>
             <span>Bluetooth disabled or not used</span>
@@ -21,11 +23,14 @@
             <span>Connection to a Scalextric ARC powerbase is fully initialized</span>
         </div>
 
-        <div style="margin-bottom: 1em">
-            <div class="mat-caption">RSSI</div>
-            <div>{{dto.rssi}}</div>
+        <div>
+            <div class="mat-caption">Bluetooth device properties</div>
+            <div gdColumns="max-content max-content" style="column-gap: 1em;">
+                <ng-container *ngFor="let bluetoothProperty of dto.bluetoothProperties">
+                    <div>{{bluetoothProperty.key}}</div>
+                    <div>{{bluetoothProperty.value}}</div>
+                </ng-container>                
+            </div>
         </div>
-
-        <mat-slide-toggle [(ngModel)]="dto.connect" [ngModelOptions]="{standalone: true}" (change)="change()">Connect</mat-slide-toggle>
     </mat-card-content>
 </mat-card>

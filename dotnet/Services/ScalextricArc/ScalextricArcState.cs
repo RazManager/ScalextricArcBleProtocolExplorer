@@ -8,7 +8,8 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
+using System.Linq;
+using System.Globalization;
 
 namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 {
@@ -29,7 +30,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
                                   IHubContext<Hubs.CommandHub, Hubs.ICommandHub> commandHubContext,
                                   Channel<CommandState> commandStateChannel,
                                   IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> connectionHubContext,
-                                  Channel<ConnectionDto> connectionChannel,
+                                  Channel<ConnectDto> connectionChannel,
                                   IHubContext<Hubs.SlotHub, Hubs.ISlotHub> slotHubContext,
                                   IHubContext<Hubs.ThrottleHub, Hubs.IThrottleHub> throttleHubContext,
                                   IHubContext<Hubs.ThrottleProfileHub, Hubs.IThrottleProfileHub> throttleProfileHubContext,
@@ -322,16 +323,44 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
     }
 
 
-    public class ConnectionDto
+    public enum BluetoothConnectionStateType
+    {
+        Disabled,
+        Enabled,
+        Discovering,
+        Connected,
+        Initialized
+    }
+
+    public class ConnectDto
     {
         [Required]
         public bool Connect { get; set; } = true;
     }
 
-    public class ConnectionState : ConnectionDto
+    public class BluetoothPropertyDto
+    {
+        public string Key { get; set; } = null!;
+        public string? Value { get; set; }
+    }
+
+    public class ConnectionDto
+    {
+        [Required]
+        public bool Connect { get; set; } = true;
+
+        [Required]
+        public BluetoothConnectionStateType BluetoothConnectionState { get; set; }
+
+        [Required]
+        public IEnumerable<BluetoothPropertyDto> BluetoothProperties { get; set; } = new List<BluetoothPropertyDto>();
+    }
+
+
+    public class ConnectionState : ConnectDto
     {
         private readonly IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> _hubContext;
-        private readonly Channel<ConnectionDto> _channel;
+        private readonly Channel<ConnectDto> _channel;
         private readonly string _configurationFilename = "";
         private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -339,7 +368,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         };
 
         public ConnectionState(IHubContext<Hubs.ConnectionHub, Hubs.IConnectionHub> hubContext,
-                               Channel<ConnectionDto> channel,
+                               Channel<ConnectDto> channel,
                                ILogger<ScalextricArcState> logger)
         {
             _hubContext = hubContext;
@@ -356,7 +385,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 
                 try
                 {
-                    var dto = JsonSerializer.Deserialize<ConnectionDto>(File.ReadAllText(_configurationFilename), _jsonSerializerOptions);
+                    var dto = JsonSerializer.Deserialize<ConnectDto>(File.ReadAllText(_configurationFilename), _jsonSerializerOptions);
                     if (dto is not null)
                     {
                         Connect = dto.Connect;
@@ -373,15 +402,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             }
         }
 
-        public enum BluetoothConnectionStateType
-        {
-            Disabled,
-            Enabled,
-            Discovering,
-            Connected,
-            Initialized
-        }
-
         [Required]
         public BluetoothConnectionStateType BluetoothConnectionState { get; set; }
 
@@ -390,23 +410,56 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         public Task SetBluetoothStateAsync(BluetoothConnectionStateType bluetoothConnectionState)
         {
             BluetoothConnectionState = bluetoothConnectionState;
-            return _hubContext.Clients.All.ChangedState(this);
+            return _hubContext.Clients.All.ChangedState(MapDto());
         }
 
         public Task SetBluetoothPropertyAsync(string key, string? value)
         {
             BluetoothProperties[key] = value;
-            return _hubContext.Clients.All.ChangedState(this);
+            return _hubContext.Clients.All.ChangedState(MapDto());
         }
 
         public async Task SetConnectAsync(bool connect)
         {
             Console.WriteLine($"SetConnectAsync: {connect}");
             Connect = connect;
-            File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectionDto {  Connect = connect }, _jsonSerializerOptions));
-            await _channel.Writer.WriteAsync(new ConnectionDto { Connect = connect });
-            await _hubContext.Clients.All.ChangedState(this);           
+            File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectDto {  Connect = connect }, _jsonSerializerOptions));
+            await _channel.Writer.WriteAsync(new ConnectDto { Connect = connect });
+            await _hubContext.Clients.All.ChangedState(MapDto());           
         }
+
+
+        public ConnectionDto MapDto()
+        {
+            return new ConnectionDto
+            {
+                Connect = Connect,
+                BluetoothConnectionState = BluetoothConnectionState,
+                BluetoothProperties = BluetoothProperties.Select(x => new BluetoothPropertyDto { Key = x.Key, Value = x.Value})
+            };
+        }
+
+        public PracticeSessionCarIdDto MapPracticeSessionCarId(PracticeSessionCarId practiceSessionCarId)
+        {
+            return new PracticeSessionCarIdDto
+            {
+                CarId = practiceSessionCarId.CarId,
+                ControllerOn = practiceSessionCarId.ControllerOn,
+                Laps = practiceSessionCarId.Laps,
+                FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? (practiceSessionCarId.FastestLapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
+                FastestSpeedTrap = practiceSessionCarId.FastestSpeedTrap,
+                AnalogPitstop = practiceSessionCarId.AnalogPitstop,
+                LatestLaps = practiceSessionCarId.LatestLaps.OrderByDescending(x => x.Lap).Select(x => new PracticeSessionLapDto
+                {
+                    Lap = x.Lap,
+                    LapTime = x.LapTime.HasValue ? (x.LapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
+                    SpeedTrap = x.SpeedTrap
+                })
+            };
+        }
+
+
+
     }
 
 

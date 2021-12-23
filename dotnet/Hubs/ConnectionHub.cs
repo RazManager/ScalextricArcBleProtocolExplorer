@@ -7,7 +7,7 @@ namespace ScalextricArcBleProtocolExplorer.Hubs
 {
     public interface IConnectionHub
     {
-        Task ChangedState(ConnectionState dto);
+        Task ChangedState(ConnectionDto dto);
     }
 
 

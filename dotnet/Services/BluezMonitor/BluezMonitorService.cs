@@ -83,7 +83,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
         private readonly ScalextricArcState _scalextricArcState;
         private readonly Channel<CarIdState> _carIdStateChannel;
         private readonly Channel<CommandState> _commandStateChannel;
-        private readonly Channel<ConnectionDto> _connectionChannel;
+        private readonly Channel<ConnectDto> _connectionChannel;
         private readonly Channel<ThrottleProfileState> _throttleProfileStateChannel;
         private readonly ILogger<BluezMonitorService> _logger;
 
@@ -101,7 +101,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
         public BluezMonitorService(ScalextricArcState scalextricArcState,
                                    Channel<CarIdState> carIdStateChannel,
                                    Channel<CommandState> commandStateChannel,
-                                   Channel<ConnectionDto> connectionChannel,
+                                   Channel<ConnectDto> connectionChannel,
                                    Channel<ThrottleProfileState> throttleProfileStateChannel,
                                    ILogger<BluezMonitorService> logger)
         {
@@ -837,6 +837,26 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
             foreach (var item in propertyChanges.Changed)
             {
                 Console.WriteLine($"scalextricArcWatchProperties: {item.Key} {item.Value}");
+
+                switch (item.Value)
+                {
+                    case string[]:
+                        _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(item.Key, String.Join(", ", (string[])item.Value)).Wait();
+                        break;
+
+                    case Dictionary<ushort, object>:
+                        break;
+
+                    case Dictionary<string, object>:
+                        break;
+
+                    default:
+                        _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(item.Key, item.Value.ToString()).Wait();
+                        break;
+                }
+
+
+
                 _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(item.Key, item.Value.ToString()).Wait();
             }
         }
