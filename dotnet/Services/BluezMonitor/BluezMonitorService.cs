@@ -354,10 +354,10 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                 Console.WriteLine(iface.Key);
             }
 
-            //if (item.Key == bluezDeviceInterface)
-            //{
-            LogDBusObject(args.objectPath, args.interfaces);
-            //}
+            if (args.interfaces.Any(x => x.Key == bluezDeviceInterface))
+            {
+                LogDBusObject(args.objectPath, args.interfaces);
+            }
 
             if (args.interfaces.Keys.Any(x => x.StartsWith(bluezService)))
             {
@@ -453,25 +453,24 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                         _logger.LogInformation("Initiating Scalextric ARC services.");
 
                         var deviceProperties = await _scalextricArcProxy.GetAllAsync();
-                        _logger.LogInformation($"Address={deviceProperties.Address}");
-                        _logger.LogInformation($"AddressType={deviceProperties.AddressType}");
-                        _logger.LogInformation($"Name={deviceProperties.Name}");
-                        _logger.LogInformation($"Alias={deviceProperties.Alias}");
-                        _logger.LogInformation($"Class={deviceProperties.Class}");
-                        _logger.LogInformation($"Appearance={deviceProperties.Appearance}");
-                        //_logger.LogInformation($"Paired={deviceProperties.Paired}");
-                        //_logger.LogInformation($"Trusted={deviceProperties.Trusted}");
-                        //_logger.LogInformation($"Blocked={deviceProperties.Blocked}");
-                        //_logger.LogInformation($"LegacyPairing={deviceProperties.LegacyPairing}");
-                        _logger.LogInformation($"RSSI={deviceProperties.RSSI}");
-                        //_logger.LogInformation($"Connected={deviceProperties.Connected}");
-                        _logger.LogInformation($"UUIDs={string.Join(", ", deviceProperties.UUIDs!)}");
-                        _logger.LogInformation($"Adapter={deviceProperties.Adapter}");
-                        _logger.LogInformation($"TxPower={deviceProperties.TxPower}");
-                        //_logger.LogInformation($"ServicesResolved={deviceProperties.ServicesResolved}");
-                        //_logger.LogInformation($"WakeAllowed={deviceProperties.WakeAllowed}");
-                        //public IDictionary<ushort, object>? ManufacturerData
-                        //public IDictionary<string, object>? ServiceData
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Address), deviceProperties.Address);
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.AddressType), deviceProperties.AddressType);
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Class), deviceProperties.Class.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Appearance), deviceProperties.Appearance.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Icon), deviceProperties.Icon);
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Paired), deviceProperties.Paired.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Trusted), deviceProperties.Trusted.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Blocked), deviceProperties.Blocked.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.LegacyPairing), deviceProperties.LegacyPairing.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.RSSI), deviceProperties.RSSI.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Connected), deviceProperties.Connected.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.UUIDs), string.Join(", ", deviceProperties.UUIDs!));
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Modalias), deviceProperties.Modalias);
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.Adapter), deviceProperties.Adapter.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.TxPower), deviceProperties.TxPower.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.ServicesResolved), deviceProperties.ServicesResolved.ToString());
+                        await _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(nameof(deviceProperties.WakeAllowed), deviceProperties.WakeAllowed.ToString());
+                        await _scalextricArcProxy.WatchPropertiesAsync(scalextricArcWatchProperties);
 
                         if (!await _scalextricArcProxy.GetServicesResolvedAsync())
                         {
@@ -506,17 +505,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                         //{
                         //    Console.WriteLine($"{item.Key} {string.Join(", ", item.Value.Select(x => x.BluezInterface))}");
                         //}
-
-
-                        try
-                        {
-                            await _scalextricArcState.ConnectionState.SetRssiAsync(await _scalextricArcProxy.GetRSSIAsync());
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.LogWarning($"Could not get RSSI: {exception.Message}");
-                        }
-                        await _scalextricArcProxy.WatchPropertiesAsync(scalextricArcWatchProperties);
 
                         _scalextricArcState.GattCharacteristics = new();
 
@@ -849,18 +837,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
             foreach (var item in propertyChanges.Changed)
             {
                 Console.WriteLine($"scalextricArcWatchProperties: {item.Key} {item.Value}");
-                if (item.Key == "RSSI")
-                {
-                    //var value = (byte[])item.Value;
-                    //_scalextricArcState.SlotStates[value[1] - 1].SetAsync
-                    //(
-                    //    value[0],
-                    //    (uint)(value[2] + value[3] * 256 + value[4] * 65536 + value[5] * 16777216),
-                    //    (uint)(value[6] + value[7] * 256 + value[8] * 65536 + value[9] * 16777216),
-                    //    (uint)(value[10] + value[11] * 256 + value[12] * 65536 + value[13] * 16777216),
-                    //    (uint)(value[14] + value[15] * 256 + value[16] * 65536 + value[17] * 16777216)
-                    //).Wait();
-                }
+                _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(item.Key, item.Value.ToString()).Wait();
             }
         }
 

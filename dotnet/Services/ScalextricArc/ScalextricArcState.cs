@@ -385,7 +385,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         [Required]
         public BluetoothConnectionStateType BluetoothConnectionState { get; set; }
 
-        public short? rssi { get; set; }
+        public Dictionary<string, string?> BluetoothProperties { get; set; } = new();
 
         public Task SetBluetoothStateAsync(BluetoothConnectionStateType bluetoothConnectionState)
         {
@@ -393,9 +393,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             return _hubContext.Clients.All.ChangedState(this);
         }
 
-        public Task SetRssiAsync(short? rssi)
+        public Task SetBluetoothPropertyAsync(string key, string? value)
         {
-            this.rssi = rssi;
+            BluetoothProperties[key] = value;
             return _hubContext.Clients.All.ChangedState(this);
         }
 
