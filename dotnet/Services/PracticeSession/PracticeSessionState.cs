@@ -202,7 +202,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
                 var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
                 if (practiceSessionCarId is not null)
                 {
-                    var controllerOn = ctrlVersion < 255;
+                    var controllerOn = ctrlVersion > 0 && ctrlVersion < 255 ;
                     if (practiceSessionCarId.ControllerOn != controllerOn)
                     {
                         practiceSessionCarId.ControllerOn = controllerOn;

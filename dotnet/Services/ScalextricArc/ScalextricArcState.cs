@@ -417,7 +417,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         {
             BluetoothConnectionState = bluetoothConnectionState;
 
-            if (BluetoothConnectionState != BluetoothConnectionStateType.Connected || BluetoothConnectionState != BluetoothConnectionStateType.Initialized)
+            if (BluetoothConnectionState != BluetoothConnectionStateType.Connected && BluetoothConnectionState != BluetoothConnectionStateType.Initialized)
             {
                 BluetoothProperties = new();
                 ModelNumber = null;
