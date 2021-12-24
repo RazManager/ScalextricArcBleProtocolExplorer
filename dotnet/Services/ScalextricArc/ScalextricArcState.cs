@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Globalization;
 
+
 namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 {
     public class ScalextricArcState
@@ -349,6 +350,8 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         [Required]
         public bool Connect { get; set; } = true;
 
+        public string? ModelNumber { get; set; }
+
         [Required]
         public BluetoothConnectionStateType BluetoothConnectionState { get; set; }
 
@@ -402,6 +405,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             }
         }
 
+        public string? ModelNumber { get; set; }
+
+
         [Required]
         public BluetoothConnectionStateType BluetoothConnectionState { get; set; }
 
@@ -410,6 +416,13 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         public Task SetBluetoothStateAsync(BluetoothConnectionStateType bluetoothConnectionState)
         {
             BluetoothConnectionState = bluetoothConnectionState;
+
+            if (BluetoothConnectionState != BluetoothConnectionStateType.Connected || BluetoothConnectionState != BluetoothConnectionStateType.Initialized)
+            {
+                BluetoothProperties = new();
+                ModelNumber = null;
+            }
+
             return _hubContext.Clients.All.ChangedState(MapDto());
         }
 
@@ -428,12 +441,18 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             await _hubContext.Clients.All.ChangedState(MapDto());           
         }
 
+        public async Task SetModelNumberAsync(string modelNumber)
+        {
+            ModelNumber = modelNumber;
+            await _hubContext.Clients.All.ChangedState(MapDto());
+        }
 
         public ConnectionDto MapDto()
         {
             return new ConnectionDto
             {
                 Connect = Connect,
+                ModelNumber = ModelNumber,
                 BluetoothConnectionState = BluetoothConnectionState,
                 BluetoothProperties = BluetoothProperties.Select(x => new BluetoothPropertyDto { Key = x.Key, Value = x.Value})
             };

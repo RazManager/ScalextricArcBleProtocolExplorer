@@ -25,7 +25,7 @@
 
         <div>
             <div class="mat-caption">Bluetooth device properties</div>
-            <div gdColumns="max-content max-content" style="column-gap: 1em;">
+            <div gdColumns="max-content 1fr" style="column-gap: 1em;">
                 <ng-container *ngFor="let bluetoothProperty of dto.bluetoothProperties">
                     <div>{{bluetoothProperty.key}}</div>
                     <div>{{bluetoothProperty.value}}</div>

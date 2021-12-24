@@ -348,11 +348,11 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
         private void InterfaceAdded((Tmds.DBus.ObjectPath objectPath, IDictionary<string, IDictionary<string, object>> interfaces) args)
         {
             Console.WriteLine($"{args.objectPath} added.");
-            Console.WriteLine($"{args.objectPath} added with the following interfaces...");
-            foreach (var iface in args.interfaces)
-            {
-                Console.WriteLine(iface.Key);
-            }
+            //Console.WriteLine($"{args.objectPath} added with the following interfaces...");
+            //foreach (var iface in args.interfaces)
+            //{
+            //    Console.WriteLine(iface.Key);
+            //}
 
             if (args.interfaces.Any(x => x.Key == bluezDeviceInterface))
             {
@@ -628,6 +628,10 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                                         if (!value.Any(x => x < 32))
                                         {
                                             gattCharacteristic.Value = System.Text.Encoding.UTF8.GetString(value);
+                                            if (properties.UUID == modelNumberCharacteristicUuid)
+                                            {
+                                                await _scalextricArcState.ConnectionState.SetModelNumberAsync(gattCharacteristic.Value);
+                                            }
                                         }
 
                                         if (properties.UUID == carIdCharacteristicUuid)
@@ -854,10 +858,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                         _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(item.Key, item.Value.ToString()).Wait();
                         break;
                 }
-
-
-
-                _scalextricArcState.ConnectionState.SetBluetoothPropertyAsync(item.Key, item.Value.ToString()).Wait();
             }
         }
 
