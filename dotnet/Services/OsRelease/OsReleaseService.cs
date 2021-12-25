@@ -24,8 +24,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.OsRelease
                         var key = osReleaseLine.Substring(0, pos);
                         var value = osReleaseLine.Substring(pos + 1).Replace("\"", "");
 
-                        System.Console.WriteLine($"{key } {value}");
-
                         switch (key)
                         {
                             case "PRETTY_NAME":

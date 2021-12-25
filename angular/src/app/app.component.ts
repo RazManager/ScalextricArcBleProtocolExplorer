@@ -9,9 +9,9 @@ import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-t
 import { CommonBreakpointObserver } from 'src/lib/components/common-breakpointobserver/common-breakpointobserver.service';
 
 import { ApiService } from './views/api.service';
-import { CommandDto } from './views/command/command.dto';
+import { CommandDto, CommandType } from './views/command/command.dto';
 import { CommandObserversService } from './views/command/command-observers.service';
-import { ConnectionDto } from './views/connection/connection.dto';
+import { BluetoothConnectionStateType, ConnectionDto } from './views/connection/connection.dto';
 import { ConnectionObserversService } from './views/connection/connection-observers.service';
 
 
@@ -105,5 +105,103 @@ export class AppComponent implements OnInit {
 
     public menuToggle(): void {
         this.menuService.menuToogle();
-    }    
+    }
+
+
+    public get powerOff(): boolean {
+        if (!this.command || !this.connection || this.connection.bluetoothConnectionState !== BluetoothConnectionStateType.Initialized) {
+            return false;
+        }
+
+        if (this.connection.modelNumber === "Scalextric ARC ONE") {
+            return true;
+        }
+        else {
+            switch (this.command.command) {
+                case CommandType.NoPowerTimerStopped:
+                    return true;
+                case CommandType.NoPowerTimerTicking:
+                    return false;
+                case CommandType.PowerOnRaceTrigger:
+                    return false;
+                case CommandType.PowerOnRacing:
+                    return false;
+                case CommandType.PowerOnTimerHalt:
+                    return true;
+                case CommandType.NoPowerRebootPic18:
+                    return false;                                                     
+            }
+        }
+    }
+
+
+    public get powerOn(): boolean {
+        if (!this.command || !this.connection || this.connection.bluetoothConnectionState !== BluetoothConnectionStateType.Initialized) {
+            return false;
+        }
+
+        if (this.connection.modelNumber === "Scalextric ARC ONE") {
+            return false;
+        }
+        else {
+            switch (this.command.command) {
+                case CommandType.NoPowerTimerStopped:
+                    return false;
+                case CommandType.NoPowerTimerTicking:
+                    return true;
+                case CommandType.PowerOnRaceTrigger:
+                    return true;
+                case CommandType.PowerOnRacing:
+                    return true;
+                case CommandType.PowerOnTimerHalt:
+                    return false;
+                case CommandType.NoPowerRebootPic18:
+                    return true;                                                     
+            }
+        }
+    }
+
+
+    public get timerOff(): boolean {
+        if (!this.command || !this.connection || this.connection.bluetoothConnectionState !== BluetoothConnectionStateType.Initialized) {
+            return false;
+        }
+
+        switch (this.command.command) {
+            case CommandType.NoPowerTimerStopped:
+                return true;
+            case CommandType.NoPowerTimerTicking:
+                return true;
+            case CommandType.PowerOnRaceTrigger:
+                return true;
+            case CommandType.PowerOnRacing:
+                return false;
+            case CommandType.PowerOnTimerHalt:
+                return true;
+            case CommandType.NoPowerRebootPic18:
+                return false;                                                     
+        }
+    }
+
+
+    public get timerOn(): boolean {
+        if (!this.command || !this.connection || this.connection.bluetoothConnectionState !== BluetoothConnectionStateType.Initialized) {
+            return false;
+        }
+
+        switch (this.command.command) {
+            case CommandType.NoPowerTimerStopped:
+                return false;
+            case CommandType.NoPowerTimerTicking:
+                return false;
+            case CommandType.PowerOnRaceTrigger:
+                return false;
+            case CommandType.PowerOnRacing:
+                return true;
+            case CommandType.PowerOnTimerHalt:
+                return false;
+            case CommandType.NoPowerRebootPic18:
+                return true;                                                     
+        }
+    }
 }

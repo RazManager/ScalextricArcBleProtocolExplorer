@@ -186,26 +186,36 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             byte ctrlVersion3,
             byte ctrlVersion4,
             byte ctrlVersion5,
-            byte ctrlVersion6
+            byte ctrlVersion6,
+            bool? isDigital
         )
         {
-            _ = SetCtrlVersionCarIdAsync(1, ctrlVersion1);
-            _ = SetCtrlVersionCarIdAsync(2, ctrlVersion2);
-            _ = SetCtrlVersionCarIdAsync(3, ctrlVersion3);
-            _ = SetCtrlVersionCarIdAsync(4, ctrlVersion4);
-            _ = SetCtrlVersionCarIdAsync(5, ctrlVersion5);
-            _ = SetCtrlVersionCarIdAsync(6, ctrlVersion6);
+            _ = SetCtrlVersionCarIdAsync(1, ctrlVersion1, isDigital);
+            _ = SetCtrlVersionCarIdAsync(2, ctrlVersion2, isDigital);
+            _ = SetCtrlVersionCarIdAsync(3, ctrlVersion3, isDigital);
+            _ = SetCtrlVersionCarIdAsync(4, ctrlVersion4, isDigital);
+            _ = SetCtrlVersionCarIdAsync(5, ctrlVersion5, isDigital);
+            _ = SetCtrlVersionCarIdAsync(6, ctrlVersion6, isDigital);
             return Task.CompletedTask;
         }
 
-        private Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion)
+        private Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion, bool? isDigital)
         {
             try
             {
                 var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
                 if (practiceSessionCarId is not null)
                 {
-                    var controllerOn = ctrlVersion > 0 && ctrlVersion < 255 ;
+                    bool controllerOn;
+                    if (!isDigital.HasValue)
+                    {
+                        controllerOn = false;
+                    }
+                    else
+                    {
+                        controllerOn = ctrlVersion < 255 && (carId <= 2 || isDigital.Value);
+                    }
+
                     if (practiceSessionCarId.ControllerOn != controllerOn)
                     {
                         practiceSessionCarId.ControllerOn = controllerOn;

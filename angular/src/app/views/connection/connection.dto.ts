@@ -9,6 +9,7 @@ export enum BluetoothConnectionStateType {
 
 export class ConnectionDto {
     public connect!: boolean;
+    public modelNumber!: string | null;
     public bluetoothConnectionState!: BluetoothConnectionStateType;
     public bluetoothProperties!: BluetoothPropertyDto[];
 }

@@ -53,6 +53,7 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
     public class SystemInformationDto
     {
         public string? HardwareModel { get; set; }
+        
         public string? HardwareProcessor { get; set; }
 
         public string? SoftwareAssemblyVersion { get; set; } = null!;

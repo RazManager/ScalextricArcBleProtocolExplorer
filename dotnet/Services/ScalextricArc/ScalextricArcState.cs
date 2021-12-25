@@ -920,7 +920,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
             TimeStampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            await _practiceSessionState.SetCtrlVersionAsync(ctrlVersion1, ctrlVersion2, ctrlVersion3, ctrlVersion4, ctrlVersion5, ctrlVersion6);
+            await _practiceSessionState.SetCtrlVersionAsync(ctrlVersion1, ctrlVersion2, ctrlVersion3, ctrlVersion4, ctrlVersion5, ctrlVersion6, isDigital);
             await _hubContext.Clients.All.ChangedState(this);
         }
     }
