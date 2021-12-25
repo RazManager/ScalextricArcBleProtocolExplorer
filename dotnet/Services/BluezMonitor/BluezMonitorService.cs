@@ -763,8 +763,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
 
         private async Task ResetAsync(Tmds.DBus.ObjectPath? objectPath)
         {
-            Console.WriteLine("ResetAsync...");
-
             _carIdCharacteristicProxy = null;
 
             _commandCharacteristicProxy = null;
@@ -840,8 +838,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
         {
             foreach (var item in propertyChanges.Changed)
             {
-                Console.WriteLine($"scalextricArcWatchProperties: {item.Key} {item.Value}");
-
                 switch (item.Value)
                 {
                     case string[]:
@@ -1019,7 +1015,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
             {
                 if (_commandCharacteristicProxy is not null)
                 {
-                    Console.WriteLine($"Sending command: {(byte)commandState.Command} {commandState.Command}");
                     var value = new byte[20];
                     value[0] = (byte)commandState.Command;
                     value[1] = (byte)(commandState.PowerMultiplier1 + (commandState.Ghost1 ? 128 : 0));
@@ -1042,7 +1037,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                     value[18] = commandState.Brake6;
                     value[19] = (byte)((commandState.Kers1 ? 1 : 0) + (commandState.Kers2 ? 2 : 0) + (commandState.Kers3 ? 4 : 0) + (commandState.Kers4 ? 8 : 0) + (commandState.Kers5 ? 16 : 0) + (commandState.Kers6 ? 32 : 0));
                     await _commandCharacteristicProxy.WriteValueAsync(value, new Dictionary<string, object>());
-                    Console.WriteLine($"Command sent: {(byte)commandState.Command} {commandState.Command}");
                 }
             }
         }
@@ -1052,7 +1046,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
         {
             await foreach (var connectionDto in _connectionChannel.Reader.ReadAllAsync(cancellationToken))
             {
-                Console.WriteLine($"ConnectionAsync: {connectionDto.Connect}");
                 if (connectionDto.Connect)
                 {
                     await StartAsync(cancellationToken);

@@ -384,7 +384,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
                     _configurationFilename = $"{snapUserCommon}/";
                 }
                 _configurationFilename += "connection.configuration.json";
-                //_logger.LogInformation($"_configurationFilename={_configurationFilename}");
 
                 try
                 {
@@ -434,7 +433,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 
         public async Task SetConnectAsync(bool connect)
         {
-            Console.WriteLine($"SetConnectAsync: {connect}");
             Connect = connect;
             File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectDto {  Connect = connect }, _jsonSerializerOptions));
             await _channel.Writer.WriteAsync(new ConnectDto { Connect = connect });
