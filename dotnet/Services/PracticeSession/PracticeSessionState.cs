@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
 {
     public class PracticeSessionCarId
@@ -111,7 +112,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             }
         }
 
-        public async Task SetLapTimeAsync(byte carId, uint? lapTime)
+        public Task SetLapTimeAsync(byte carId, uint? lapTime)
         {
             try
             {
@@ -143,16 +144,17 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
                     {
                         practiceSessionCarId.LatestLaps.Dequeue();
                     }
-                    await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                    _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
                 }
             }
             catch (Exception exception)
             {
                 _logger.LogError(exception, exception.Message);
             }
+            return Task.CompletedTask;
         }
 
-        public async Task SetSpeedTrapAsync(byte carId, uint? speedTrap)
+        public Task SetSpeedTrapAsync(byte carId, uint? speedTrap)
         {
             try
             {
@@ -167,16 +169,17 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
                     }
 
                     practiceSessionCarId.LatestLaps.ElementAt(practiceSessionCarId.LatestLaps.Count - 1).SpeedTrap = speedTrap;
-                    await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                    _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
                 }
             }
             catch (Exception exception)
             {
                 _logger.LogError(exception, exception.Message);
             }
+            return Task.CompletedTask;
         }
 
-        public async Task SetCtrlVersionAsync
+        public Task SetCtrlVersionAsync
         (
             byte ctrlVersion1,
             byte ctrlVersion2,
@@ -186,16 +189,16 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             byte ctrlVersion6
         )
         {
-            await SetCtrlVersionCarIdAsync(1, ctrlVersion1);
-            await SetCtrlVersionCarIdAsync(2, ctrlVersion2);
-            await SetCtrlVersionCarIdAsync(3, ctrlVersion3);
-            await SetCtrlVersionCarIdAsync(4, ctrlVersion4);
-            await SetCtrlVersionCarIdAsync(5, ctrlVersion5);
-            await SetCtrlVersionCarIdAsync(6, ctrlVersion6);
-            //return Task.CompletedTask;
+            _ = SetCtrlVersionCarIdAsync(1, ctrlVersion1);
+            _ = SetCtrlVersionCarIdAsync(2, ctrlVersion2);
+            _ = SetCtrlVersionCarIdAsync(3, ctrlVersion3);
+            _ = SetCtrlVersionCarIdAsync(4, ctrlVersion4);
+            _ = SetCtrlVersionCarIdAsync(5, ctrlVersion5);
+            _ = SetCtrlVersionCarIdAsync(6, ctrlVersion6);
+            return Task.CompletedTask;
         }
 
-        private async Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion)
+        private Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion)
         {
             try
             {
@@ -206,7 +209,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
                     if (practiceSessionCarId.ControllerOn != controllerOn)
                     {
                         practiceSessionCarId.ControllerOn = controllerOn;
-                        await _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
+                        _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
                     }
                 }
             }
@@ -214,6 +217,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             {
                 _logger.LogError(exception, exception.Message);
             }
+            return Task.CompletedTask;
         }
     }
 }

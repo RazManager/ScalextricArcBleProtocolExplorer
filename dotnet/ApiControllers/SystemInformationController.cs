@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ScalextricArcBleProtocolExplorer.Services.CpuInfo;
+using ScalextricArcBleProtocolExplorer.Services.OsRelease;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -13,11 +14,14 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
     public class SystemInformationController : ControllerBase
     {
         private readonly ICpuInfoService _cpuInfoService;
+        private readonly IOsReleaseService _osReleaseService;
 
 
-        public SystemInformationController(ICpuInfoService cpuInfoService)
+        public SystemInformationController(ICpuInfoService cpuInfoService,
+                                           IOsReleaseService osReleaseService)
         {
             _cpuInfoService = cpuInfoService;
+            _osReleaseService = osReleaseService;
         }
 
 
@@ -27,10 +31,12 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
             return new SystemInformationDto
             {
                 HardwareModel = _cpuInfoService.CpuInfo.Model,
+                HardwareProcessor = _cpuInfoService.CpuInfo.ModelName,
                 SoftwareAssemblyVersion = System.Reflection.Assembly.GetEntryAssembly()?.GetName()?.Version?.ToString(),
                 SoftwareSnapVersion = Environment.GetEnvironmentVariable("SNAP_VERSION"),
                 SoftwareDotNetVersion = Environment.Version.ToString(),
                 SoftwareOsVersion = $"{Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")})",
+                SoftwareOsReleaseVersion = _osReleaseService.OsRelease.PrettyName,
                 NetworkIpAddresses = string.Join
                 (
                     ", ",
@@ -47,6 +53,7 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
     public class SystemInformationDto
     {
         public string? HardwareModel { get; set; }
+        public string? HardwareProcessor { get; set; }
 
         public string? SoftwareAssemblyVersion { get; set; } = null!;
 
@@ -57,6 +64,8 @@ namespace ScalextricArcBleProtocolExplorer.ApiControllers
 
         [Required]
         public string SoftwareOsVersion { get; set; } = null!;
+
+        public string? SoftwareOsReleaseVersion { get; set; }
 
         [Required]
         public string NetworkIpAddresses { get; set; } = null!;

@@ -30,6 +30,10 @@ namespace ScalextricArcBleProtocolExplorer.Services.CpuInfo
                                 CpuInfo.Model = value;
                                 break;
 
+                            case "model name":
+                                CpuInfo.ModelName = value;
+                                break;
+
                             default:
                                 break;
                         }
@@ -47,5 +51,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.CpuInfo
     public class CpuInfo
     {
         public string? Model { get; set; }
+        public string? ModelName { get; set; }
     }
 }

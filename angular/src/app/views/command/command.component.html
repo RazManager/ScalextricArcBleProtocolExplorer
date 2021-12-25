@@ -70,83 +70,93 @@
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.kers6" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
         </div>
 
-        <mat-radio-group [(ngModel)]="dto.command" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"
-                gdColumns="max-content max-content max-content max-content max-content max-content max-content max-content max-content" gdGap="1em" style="justify-items: center; margin-top: 2em;">
-            <div class="mat-caption" style="justify-self: self-start;">Command</div>
-            <div class="mat-caption" style="grid-column-start: 2; grid-column-end: 4;">ARC One</div>
-            <div class="mat-caption" style="grid-column-start: 4; grid-column-end: 6;">ARC Air</div>
-            <div class="mat-caption" style="grid-column-start: 6; grid-column-end: 8;">ARC Pro Analog</div>
-            <div class="mat-caption" style="grid-column-start: 8; grid-column-end: 10;">ARC Pro Digital</div>
-
-            <div></div>
-            <div class="mat-caption">Power</div>
-            <div class="mat-caption">Timer</div>
-            <div class="mat-caption">Power</div>
-            <div class="mat-caption">Timer</div>
-            <div class="mat-caption">Power</div>
-            <div class="mat-caption">Timer</div>
-            <div class="mat-caption">Power</div>
-            <div class="mat-caption">Timer</div>
-
-            <mat-radio-button value="NoPowerTimerStopped" style="justify-self: self-start;">NoPowerTimerStopped</mat-radio-button>
-            <mat-icon>power_on</mat-icon>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-            <mat-icon>power_off</mat-icon>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-            <div>Last throttle value locked</div>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-            <div>Last throttle value locked</div>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-
-            <mat-radio-button value="NoPowerTimerTicking" style="justify-self: self-start;">NoPowerTimerTicking</mat-radio-button>
-            <mat-icon>power_on</mat-icon>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-            <mat-icon>power_on</mat-icon>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-            <mat-icon>power_on</mat-icon>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-            <mat-icon>power_on</mat-icon>
-            <div><mat-icon>timer_off</mat-icon>Reset</div>
-
-            <mat-radio-button value="PowerOnRaceTrigger" style="justify-self: self-start;">PowerOnRaceTrigger</mat-radio-button>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-
-            <mat-radio-button value="PowerOnRacing" style="justify-self: self-start;">PowerOnRacing</mat-radio-button>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-
-            <mat-radio-button value="PowerOnTimerHalt" style="justify-self: self-start;">PowerOnTimerHalt</mat-radio-button>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-            <mat-icon>power_off</mat-icon>
-            <mat-icon>timer_off</mat-icon>
-            <div>Last throttle value locked</div>
-            <mat-icon>timer_off</mat-icon>
-            <div>Last throttle value locked</div>
-            <mat-icon>timer_off</mat-icon>
-
-            <mat-radio-button value="NoPowerRebootPic18" style="justify-self: self-start;">NoPowerRebootPic18</mat-radio-button>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
-            <mat-icon>power_on</mat-icon>
-            <mat-icon>timer_on</mat-icon>
+        <mat-radio-group [(ngModel)]="dto.command" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()">
+            <table style="border-spacing: 0; margin-top: 2em;">
+                <tr>
+                    <td class="command-column-odd  command-column-first mat-caption">Command</td>
+                    <th class="command-column-even                      mat-caption" colspan="2">ARC One</th>
+                    <th class="command-column-odd                       mat-caption" colspan="2">ARC Air</th>
+                    <th class="command-column-even                      mat-caption" colspan="2">ARC Pro Analog</th>
+                    <th class="command-column-odd                       mat-caption" colspan="2">ARC Pro Digital</th>       
+                </tr>
+                <tr>
+                    <td class="command-column-odd"></td>
+                    <td class="command-column-even command-column-first  mat-caption">Power</td>
+                    <td class="command-column-even command-column-second mat-caption">Timer</td>
+                    <td class="command-column-odd  command-column-first  mat-caption">Power</td>
+                    <td class="command-column-odd  command-column-second mat-caption">Timer</td>
+                    <td class="command-column-even command-column-first  mat-caption">Power</td>
+                    <td class="command-column-even command-column-second mat-caption">Timer</td>
+                    <td class="command-column-odd  command-column-first  mat-caption">Power</td>
+                    <td class="command-column-odd  command-column-second mat-caption">Timer</td>
+                </tr>
+                <tr>
+                    <td class="command-column-odd  command-column-first" ><mat-radio-button value="NoPowerTimerStopped">NoPowerTimerStopped</mat-radio-button></td>
+                    <td class="command-column-even command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_off</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                    <td class="command-column-even command-column-first" >Last throttle value locked</td>
+                    <td class="command-column-even command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                    <td class="command-column-odd  command-column-first" >Last throttle value locked</td>
+                    <td class="command-column-odd  command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                </tr>
+                <tr>
+                    <td class="command-column-odd  command-column-first" ><mat-radio-button value="NoPowerTimerTicking">NoPowerTimerTicking</mat-radio-button></td>
+                    <td class="command-column-even command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                    <td class="command-column-even command-column-first"><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><div fxLayout="row" fxLayoutAlign="center center"><mat-icon>timer_off</mat-icon>Reset</div></td>
+                </tr>
+                <tr>
+                    <td class="command-column-odd  command-column-first" ><mat-radio-button value="PowerOnRaceTrigger" style="justify-self: self-start;">PowerOnRaceTrigger</mat-radio-button></td>
+                    <td class="command-column-even command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_off</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_off</mat-icon></td>
+                    <td class="command-column-even command-column-first"><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_off</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_off</mat-icon></td>
+                </tr>
+                <tr>
+                    <td class="command-column-odd  command-column-first" ><mat-radio-button value="PowerOnRacing">PowerOnRacing</mat-radio-button></td>
+                    <td class="command-column-even command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_on</mat-icon></td>
+                    <td class="command-column-even command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_on</mat-icon></td>
+                </tr>
+                <tr>
+                    <td class="command-column-odd  command-column-first"><mat-radio-button value="PowerOnTimerHalt">PowerOnTimerHalt</mat-radio-button></td>
+                    <td class="command-column-even command-column-first"><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_off</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_off</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_off</mat-icon></td>
+                    <td class="command-column-even command-column-first" >Last throttle value locked</td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_off</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" >Last throttle value locked</td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_off</mat-icon></td>
+                </tr>
+                <tr>
+                    <td class="command-column-odd  command-column-first"><mat-radio-button value="NoPowerRebootPic18">NoPowerRebootPic18</mat-radio-button></td>
+                    <td class="command-column-even command-column-first"><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_on</mat-icon></td>
+                    <td class="command-column-even command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-even command-column-second"><mat-icon>timer_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-first" ><mat-icon>power_on</mat-icon></td>
+                    <td class="command-column-odd  command-column-second"><mat-icon>timer_on</mat-icon></td>
+                </tr>
+            </table>    
         </mat-radio-group>
 
         <button mat-raised-button color="primary" style="margin-top: 2em;" [disabled]="!dirty" (click)="write()">

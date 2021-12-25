@@ -105,6 +105,10 @@ builder.Services.AddSingleton<ScalextricArcBleProtocolExplorer.Services.CpuInfo.
     new ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService(serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.CpuInfo.CpuInfoService>>())
 );
 
+builder.Services.AddSingleton<ScalextricArcBleProtocolExplorer.Services.OsRelease.IOsReleaseService>(serviceProvider =>
+    new ScalextricArcBleProtocolExplorer.Services.OsRelease.OsReleaseService(serviceProvider.GetRequiredService<ILogger<ScalextricArcBleProtocolExplorer.Services.OsRelease.OsReleaseService>>())
+);
+
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.MemoryLogger.MemoryLoggerService>();
 builder.Services.AddHostedService<ScalextricArcBleProtocolExplorer.Services.BluezMonitor.BluezMonitorService>();
 
@@ -122,9 +126,9 @@ builder.Services.AddSignalR()
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddCors();
-}
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+}
 
 
 var app = builder.Build();
@@ -135,10 +139,10 @@ if (app.Environment.IsDevelopment())
             builder.WithOrigins("http://localhost:4200")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
-                   .AllowCredentials());    
-}
+                   .AllowCredentials());
     app.UseSwagger();
     app.UseSwaggerUI();
+}
 
 app.Use(async (context, next) =>
 {

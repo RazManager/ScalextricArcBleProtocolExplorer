@@ -59,6 +59,24 @@ mat-spinner.mat-progress-spinner {
     top: -18px;
 }
 
+.command-column-odd {
+    background-color: mat.get-color-from-palette($primary-palette, 50);
+}
+
+
+.command-column-even {
+    background: mat.get-color-from-palette($primary-palette, 100);
+}
+
+.command-column-first {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.command-column-second {
+    padding-right: 10px;
+}
+
 .throttle-value-bar {
     fill: mat.get-color-from-palette($primary-palette, 500);
 }
