@@ -10,7 +10,6 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using static bluez.DBus.Adapter1Extensions;
 using static bluez.DBus.Device1Extensions;
-using static ScalextricArcBleProtocolExplorer.Services.ScalextricArc.ConnectionState;
 
 
 namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
@@ -681,6 +680,17 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                                                 false
                                             );
                                         }
+
+                                        if (properties.UUID == trackCharacteristicUuid)
+                                        {
+                                            await _scalextricArcState.TrackState.SetAsync
+                                            (
+                                                value[0],
+                                                value[1],
+                                                value[2],
+                                                (uint)(value[3] + value[4] * 256 + value[5] * 65536 + value[6] * 16777216)
+                                            );
+                                        }
                                     }
                                 }
                             }
@@ -934,7 +944,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                 if (item.Key == "Value")
                 {
                     var value = (byte[])item.Value;
-                    _scalextricArcState.TrackState!.Set
+                    _scalextricArcState.TrackState!.SetAsync
                     (
                         value[0],
                         value[1],

@@ -86,7 +86,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             _channel = channel;
         }
 
-        public async Task SetAsync
+        public Task SetAsync
         (
             byte carId,
             bool write
@@ -96,10 +96,12 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 
             if (write)
             {
-                await _channel.Writer.WriteAsync(this);
+                _channel.Writer.WriteAsync(this);
             }
 
-            await _hubContext.Clients.All.ChangedState(this);
+            _hubContext.Clients.All.ChangedState(this);
+
+            return Task.CompletedTask;
         }
     }
 
@@ -431,12 +433,14 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             return _hubContext.Clients.All.ChangedState(MapDto());
         }
 
-        public async Task SetConnectAsync(bool connect)
+        public Task SetConnectAsync(bool connect)
         {
             Connect = connect;
             File.WriteAllText(_configurationFilename, JsonSerializer.Serialize(new ConnectDto {  Connect = connect }, _jsonSerializerOptions));
-            await _channel.Writer.WriteAsync(new ConnectDto { Connect = connect });
-            await _hubContext.Clients.All.ChangedState(MapDto());           
+            _channel.Writer.WriteAsync(new ConnectDto { Connect = connect });
+            _hubContext.Clients.All.ChangedState(MapDto());
+
+            return Task.CompletedTask;
         }
 
         public async Task SetModelNumberAsync(string modelNumber)
@@ -474,9 +478,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
                 })
             };
         }
-
-
-
     }
 
 
@@ -840,7 +841,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             }
         }
 
-        public async Task SetAsync
+        public Task SetAsync
         (
             byte packetSequence,
             byte picVersion,
@@ -918,8 +919,10 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             TimeStampRefreshRatePrevious = TimeStampRefreshRateLast;
             TimeStampRefreshRateLast = DateTimeOffset.UtcNow;
 
-            await _practiceSessionState.SetCtrlVersionAsync(ctrlVersion1, ctrlVersion2, ctrlVersion3, ctrlVersion4, ctrlVersion5, ctrlVersion6, isDigital);
-            await _hubContext.Clients.All.ChangedState(this);
+            _practiceSessionState.SetCtrlVersionAsync(ctrlVersion1, ctrlVersion2, ctrlVersion3, ctrlVersion4, ctrlVersion5, ctrlVersion6, isDigital);
+            _hubContext.Clients.All.ChangedState(this);
+
+            return Task.CompletedTask;
         }
     }
 
@@ -952,11 +955,13 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             _channel = channel;
         }
 
-        public async Task SetAsync(IEnumerable<ThrottleProfileValueDto> values)
+        public Task SetAsync(IEnumerable<ThrottleProfileValueDto> values)
         {
             Values = values;
-            await _channel.Writer.WriteAsync(this);
-            await _hubContext.Clients.All.ChangedState(this);
+            _channel.Writer.WriteAsync(this);
+            _hubContext.Clients.All.ChangedState(this);
+
+            return Task.CompletedTask;
         }
     }
 
@@ -975,7 +980,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         public byte? Track2 { get; set; }
         public uint? Timestamp { get; set; }
 
-        public void Set
+        public Task SetAsync
         (
             byte packetSequence,
             byte track1,
@@ -989,6 +994,8 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             Timestamp = timestamp;
 
             _hubContext.Clients.All.ChangedState(this);
+
+            return Task.CompletedTask;
         }
     }
 }

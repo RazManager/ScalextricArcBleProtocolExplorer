@@ -114,7 +114,7 @@ export class AppComponent implements OnInit {
         }
 
         if (this.connection.modelNumber === "Scalextric ARC ONE") {
-            return true;
+            return false;
         }
         else {
             switch (this.command.command) {
@@ -141,7 +141,7 @@ export class AppComponent implements OnInit {
         }
 
         if (this.connection.modelNumber === "Scalextric ARC ONE") {
-            return false;
+            return true;
         }
         else {
             switch (this.command.command) {
