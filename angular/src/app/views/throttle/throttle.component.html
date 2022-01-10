@@ -1,0 +1,111 @@
+<mat-card class="section-container">
+    <mat-card-content>
+        <div gdColumns="max-content max-content max-content max-content max-content max-content max-content"
+             style="column-gap: 1em; justify-items: center;">
+            <div class="mat-caption">Packet sequence</div>
+            <div class="mat-caption" style="text-align: center;">Timestamp<br>(1/100s)</div>
+            <div class="mat-caption" style="text-align: center;">Timestamp interval<br>(1/100s)</div>
+            <div class="mat-caption" style="text-align: center;">Measured refresh rate<br>(ms)</div>
+            <div class="mat-caption" style="text-align: right;">Mode</div>
+            <div class="mat-caption">Pic version</div>
+            <div class="mat-caption">Base version</div>
+
+            <div>{{dto.packetSequence}}</div>
+            <div>{{dto.timestamp}}</div>  
+            <div>{{dto.timestampInterval}}</div>
+            <div>{{dto.refreshRate}}</div>
+            <span *ngIf="dto.isDigital === true">Digital</span><span *ngIf="dto.isDigital === false">Analog</span>
+            <div>{{dto.picVersion}}</div>
+            <div>{{dto.baseVersion}}</div>
+        </div>
+
+        <div gdColumns="max-content 1em 1fr max-content max-content max-content max-content"
+             gdGap="1em"
+             style="justify-items: center; margin-top: 2em;">                     
+            <div class="mat-caption" style="justify-self: center;">ID</div>
+            <div class="mat-caption" style="justify-self: start; grid-column-start: 2; grid-column-end: 4;">Value</div>
+            <div class="mat-caption">Brake button</div>
+            <div class="mat-caption">Lane change button</div>
+            <div class="mat-caption" style="text-align: center;">Lange change button<br>double-tapped</div>
+            <div class="mat-caption" style="justify-self: start;">Controller version</div>
+
+            <div>1</div>
+            <div>{{dto.value1}}</div>
+            <div style="width: 100%;">
+                <svg height="1em" width="100%">
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(1)" class="throttle-value-bar"></rect>
+                </svg>    
+            </div>
+            <div><mat-checkbox [checked]="dto.brakeButton1" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButton1" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped1" disabled></mat-checkbox></div>
+            <div>{{dto.ctrlVersion1}}</div>
+
+            <div>2</div>
+            <div>{{dto.value2}}</div>
+            <div style="width: 100%;">
+                <svg height="1em" width="100%">
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(2)" class="throttle-value-bar"></rect>
+                </svg>    
+            </div>
+            <div><mat-checkbox [checked]="dto.brakeButton2" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButton2" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped2" disabled></mat-checkbox></div>
+            <div>{{dto.ctrlVersion2}}</div>
+
+            <div>3</div>
+            <div>{{dto.value3}}</div>
+            <div style="width: 100%;">
+                <svg height="1em" width="100%">
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(3)" class="throttle-value-bar"></rect>
+                </svg>    
+            </div>
+            <div><mat-checkbox [checked]="dto.brakeButton3" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButton3" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped3" disabled></mat-checkbox></div>
+            <div>{{dto.ctrlVersion3}}</div>
+
+            <div>4</div>
+            <div>{{dto.value4}}</div>
+            <div style="width: 100%;">
+                <svg height="1em" width="100%">
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(4)" class="throttle-value-bar"></rect>
+                </svg>    
+            </div>
+            <div><mat-checkbox [checked]="dto.brakeButton4" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButton4" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped4" disabled></mat-checkbox></div>
+            <div>{{dto.ctrlVersion4}}</div>
+
+            <div>5</div>
+            <div>{{dto.value5}}</div>
+            <div style="width: 100%;">
+                <svg height="1em" width="100%">
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(5)" class="throttle-value-bar"></rect>
+                </svg>    
+            </div>
+            <div><mat-checkbox [checked]="dto.brakeButton5" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButton5" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped5" disabled></mat-checkbox></div>
+            <div>{{dto.ctrlVersion5}}</div>
+
+            <div>6</div>
+            <div>{{dto.value6}}</div>
+            <div style="width: 100%;">
+                <svg height="1em" width="100%">
+                    <rect y="4" height="100%" width="100%" class="throttle-value-bar-background"></rect>
+                    <rect y="4" height="100%" [attr.width]="valueWidth(6)" class="throttle-value-bar"></rect>
+                </svg>    
+            </div>
+            <div><mat-checkbox [checked]="dto.brakeButton6" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButton6" disabled></mat-checkbox></div>
+            <div><mat-checkbox [checked]="dto.laneChangeButtonDoubleTapped6" disabled></mat-checkbox></div>
+            <div>{{dto.ctrlVersion6}}</div>  
+        </div>
+    </mat-card-content>
+</mat-card>

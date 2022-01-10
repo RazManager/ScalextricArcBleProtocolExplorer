@@ -1,0 +1,102 @@
+<mat-sidenav-container>
+    <mat-sidenav
+        [mode]="sidenavMode"
+        [(opened)]="sidenavOpened">
+        <div>
+            <mat-toolbar color="accent">
+                <mat-toolbar-row>
+                    <a href="/" class="sidenav-toolbar-logo">Scalextric ARC BLE Explorer</a>
+                </mat-toolbar-row>
+            </mat-toolbar>
+   
+            <mat-nav-list>
+                <mat-list-item (click)="navigate(['/connection'])">
+                    Connection
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/gatt-characteristic'])">
+                    GATT characteristics
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/command'])">
+                    Command
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/slot'])">
+                    Slot
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/throttle'])">
+                    Throttle
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/throttle-profile'])">
+                    Throttle profiles
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/track'])">
+                    Track
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/car-id'])">
+                    Car ID
+                </mat-list-item>
+                <mat-list-item
+                        [disabled]="!connection || connection.bluetoothConnectionState !== 'Initialized'"
+                        (click)="navigate(['/practice-session'])">
+                    Practice session
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/system'])">
+                    System information
+                </mat-list-item>
+                <mat-list-item (click)="navigate(['/log'])">
+                    System log
+                </mat-list-item>
+            </mat-nav-list>
+        </div>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <mat-spinner *ngIf="busy"></mat-spinner>
+        <div class="view-container" gdColumns="1fr" gdRows="max-content 1fr">
+            <mat-toolbar class="mat-elevation-z4" color="primary">
+                <mat-toolbar-row gdColumns="1fr max-content max-content max-content max-content" gdGap="1em">
+                    <div>
+                        <button *ngIf="menuShow" mat-icon-button type="button" (click)="menuToggle()">
+                            <mat-icon>menu</mat-icon>
+                        </button>
+                        {{toolbarService.header}}   
+                    </div>
+                    <div>
+                        {{!!connection && connection.modelNumber}}
+                    </div>
+                    <div>
+                        <mat-icon *ngIf="powerOff">power_off</mat-icon>
+                        <mat-icon *ngIf="powerOn">power</mat-icon>   
+                    </div>
+                    <div>
+                        <mat-icon *ngIf="timerOff">timer_off</mat-icon>
+                        <mat-icon *ngIf="timerOn">timer</mat-icon>    
+                    </div>
+                    <div>
+                        <mat-icon *ngIf="!!connection && connection.bluetoothConnectionState === 'Disabled'">bluetooth_disabled</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.bluetoothConnectionState === 'Enabled'">bluetooth</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.bluetoothConnectionState === 'Discovering'">bluetooth_searching</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.bluetoothConnectionState === 'Connected'">bluetooth_connected</mat-icon>
+                        <mat-icon *ngIf="!!connection && connection.bluetoothConnectionState === 'Initialized'">bluetooth_drive</mat-icon>    
+                    </div>
+                </mat-toolbar-row>   
+            </mat-toolbar>
+            
+            <div class="overflow">
+                <router-outlet></router-outlet>
+            </div>      
+        </div>      
+    </mat-sidenav-content>
+</mat-sidenav-container>

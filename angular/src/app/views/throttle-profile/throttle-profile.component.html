@@ -1,0 +1,18 @@
+<mat-tab-group backgroundColor="primary" >
+    <mat-tab *ngFor="let throttleprofile of dto" label="ID {{throttleprofile.carId}}">
+        <mat-card class="section-container">
+            <mat-card-content>
+                <div gdColumns="max-content max-content 1fr">
+                    <ng-container *ngFor="let value of throttleprofile.values; let i=index;">
+                        <div class="mat-caption" style="justify-self: center; margin-right: 1em;">{{i}}</div>
+                        <div class="mat-caption" style="justify-self: center;">{{value.value}}</div>
+                        <mat-slider thumbLabel min="0" max="255" [(ngModel)]="value.value" [ngModelOptions]="{standalone: true}" style="height: 1em; top: -1em;"></mat-slider>
+                    </ng-container>
+                </div>
+                <button mat-raised-button color="primary" style="margin-top: 2em;" (click)="write(throttleprofile.carId)">
+                    WRITE
+                </button>
+            </mat-card-content>
+        </mat-card>
+    </mat-tab>
+</mat-tab-group>

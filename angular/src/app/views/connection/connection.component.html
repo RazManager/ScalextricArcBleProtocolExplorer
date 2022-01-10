@@ -1,0 +1,37 @@
+<mat-card class="section-container">
+    <mat-card-content>
+        <mat-slide-toggle [(ngModel)]="dto.connect" [ngModelOptions]="{standalone: true}" (change)="change()" style="margin-bottom: 2em;">Connect</mat-slide-toggle>
+
+        <div *ngIf="dto.bluetoothConnectionState === 'Disabled'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
+            <mat-icon>bluetooth_disabled</mat-icon>
+            <span>Bluetooth disabled or not used</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Enabled'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
+            <mat-icon>bluetooth</mat-icon>
+            <span>Bluetooth enabled</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Discovering'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
+            <mat-icon>bluetooth_searching</mat-icon>
+            <span>Searching for a Scalextric ARC powerbase...</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Connected'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
+            <mat-icon>bluetooth_connected</mat-icon>
+            <span>Connected to a Scalextric ARC powerbase, retrieving information...</span>
+        </div>
+        <div *ngIf="dto.bluetoothConnectionState === 'Initialized'" gdColumns="max-content max-content" gdGap="1em" style="align-items: center;">
+            <mat-icon>bluetooth_drive</mat-icon>
+            <span>Connection to a Scalextric ARC powerbase is fully initialized</span>
+        </div>
+
+        <div style="margin-top: 2em;">
+            <div class="mat-caption">Bluetooth device properties</div>
+            <div gdColumns="max-content 1fr" style="column-gap: 1em;">
+                <div *ngIf="dto.bluetoothProperties.length === 0">(Device not connected)</div>
+                <ng-container *ngFor="let bluetoothProperty of dto.bluetoothProperties">
+                    <div>{{bluetoothProperty.key}}</div>
+                    <div>{{bluetoothProperty.value}}</div>
+                </ng-container>                
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>

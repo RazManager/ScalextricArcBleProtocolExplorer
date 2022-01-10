@@ -1,0 +1,16 @@
+<mat-card class="section-container">
+    <mat-card-content>
+        <div gdColumns="max-content max-content max-content max-content"
+             style="column-gap: 1em; justify-items: center;">
+            <div class="mat-caption">Packet sequence</div>
+            <div class="mat-caption">Track 1</div>
+            <div class="mat-caption">Track 2</div>
+            <div class="mat-caption" style="text-align: center;">Timestamp<br>(1/100s)</div>
+
+            <div>{{dto.packetSequence}}</div>
+            <div>{{dto.track1}}</div>
+            <div>{{dto.track2}}</div>
+            <div>{{dto.timestamp}}</div>  
+        </div>
+    </mat-card-content>
+</mat-card>
