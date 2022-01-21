@@ -1,6 +1,6 @@
 <mat-card class="section-container">
     <mat-card-content>
-        <div *ngIf="practiceSessionCarIds.length === 0">No controllers are connected.</div>
+        <div *ngIf="practiceSessionCarIds.length === 0">No controllers are connected and no ghost cars used.</div>
         <div gdColumns="repeat({{practiceSessionCarIds.length}}, max-content)" style="column-gap: 2em; justify-items: center;">
             <ng-container *ngFor="let practiceSessionCarId of practiceSessionCarIds">
                 <div style="margin-bottom: 1em; font-size: xx-large;">{{practiceSessionCarId.carId}}</div>

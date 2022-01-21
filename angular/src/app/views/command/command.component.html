@@ -4,14 +4,16 @@
                 gdGap="1em" style="align-items: center;" >                     
             <div class="mat-caption">ID</div>
             <div class="mat-caption" style="grid-column-start: 2; grid-column-end: 4;">Power multiplier</div>
+            <div class="mat-caption">"Bit 6"</div>
             <div class="mat-caption">Ghost</div>
-            <div class="mat-caption" style="grid-column-start: 5; grid-column-end: 7;">Rumble</div>
-            <div class="mat-caption" style="grid-column-start: 7; grid-column-end: 9;">Brake</div>
+            <div class="mat-caption" style="grid-column-start: 6; grid-column-end: 8;">Rumble</div>
+            <div class="mat-caption" style="grid-column-start: 8; grid-column-end: 10;">Brake</div>
             <div class="mat-caption">KERS</div>
 
             <div class="mat-caption" style="justify-self: center;">1</div>
             <div>{{dto.powerMultiplier1}}</div>
             <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier1" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.powerBitSix1" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost1" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div>{{dto.rumble1}}</div>
             <div><mat-slider thumbLabel min="0" max="255" [(ngModel)]="dto.rumble1" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
@@ -22,6 +24,7 @@
             <div class="mat-caption" style="justify-self: center;">2</div>
             <div>{{dto.powerMultiplier2}}</div>
             <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier2" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.powerBitSix2" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost2" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div>{{dto.rumble2}}</div>
             <div><mat-slider thumbLabel min="0" max="255" [(ngModel)]="dto.rumble2" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
@@ -32,6 +35,7 @@
             <div class="mat-caption" style="justify-self: center;">3</div>
             <div>{{dto.powerMultiplier3}}</div>
             <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier3" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.powerBitSix3" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost3" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div>{{dto.rumble3}}</div>
             <div><mat-slider thumbLabel min="0" max="255" [(ngModel)]="dto.rumble3" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
@@ -42,6 +46,7 @@
             <div class="mat-caption" style="justify-self: center;">4</div>
             <div>{{dto.powerMultiplier4}}</div>
             <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier4" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.powerBitSix4" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost4" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div>{{dto.rumble4}}</div>
             <div><mat-slider thumbLabel min="0" max="255" [(ngModel)]="dto.rumble4" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
@@ -52,6 +57,7 @@
             <div class="mat-caption" style="justify-self: center;">5</div>
             <div>{{dto.powerMultiplier5}}</div>
             <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier5" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.powerBitSix5" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost5" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div>{{dto.rumble5}}</div>
             <div><mat-slider thumbLabel min="0" max="255" [(ngModel)]="dto.rumble5" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
@@ -62,6 +68,7 @@
             <div class="mat-caption" style="justify-self: center;">6</div>
             <div>{{dto.powerMultiplier6}}</div>
             <div><mat-slider thumbLabel min="0" max="63" [(ngModel)]="dto.powerMultiplier6" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>
+            <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.powerBitSix6" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div style="justify-self: center;"><mat-checkbox [(ngModel)]="dto.ghost6" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()"></mat-checkbox></div>
             <div>{{dto.rumble6}}</div>
             <div><mat-slider thumbLabel min="0" max="255" [(ngModel)]="dto.rumble6" [ngModelOptions]="{standalone: true}" (change)="dirtyChanged()" class="command-slider" style="height: 1em;"></mat-slider></div>

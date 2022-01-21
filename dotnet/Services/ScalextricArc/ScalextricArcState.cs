@@ -126,6 +126,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         public byte PowerMultiplier1 { get; set; }
 
         [Required]
+        public bool PowerBitSix1 { get; set; }
+
+        [Required]
         public bool Ghost1 { get; set; }
 
         [Required]
@@ -139,6 +142,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 
         [Required]
         public byte PowerMultiplier2 { get; set; }
+
+        [Required]
+        public bool PowerBitSix2 { get; set; }
 
         [Required]
         public bool Ghost2 { get; set; }
@@ -156,6 +162,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         public byte PowerMultiplier3 { get; set; }
 
         [Required]
+        public bool PowerBitSix3 { get; set; }
+
+        [Required]
         public bool Ghost3 { get; set; }
 
         [Required]
@@ -169,6 +178,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 
         [Required]
         public byte PowerMultiplier4 { get; set; }
+
+        [Required]
+        public bool PowerBitSix4 { get; set; }
 
         [Required]
         public bool Ghost4 { get; set; }
@@ -186,6 +198,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         public byte PowerMultiplier5 { get; set; }
 
         [Required]
+        public bool PowerBitSix5 { get; set; }
+
+        [Required]
         public bool Ghost5 { get; set; }
 
         [Required]
@@ -199,6 +214,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
 
         [Required]
         public byte PowerMultiplier6 { get; set; }
+
+        [Required]
+        public bool PowerBitSix6 { get; set; }
 
         [Required]
         public bool Ghost6 { get; set; }
@@ -233,31 +251,37 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         (
             CommandType command,
             byte powerMultiplier1,
+            bool powerBitSix1,
             bool ghost1,
             byte rumble1,
             byte brake1,
             bool kers1,
             byte powerMultiplier2,
+            bool powerBitSix2,
             bool ghost2,
             byte rumble2,
             byte brake2,
             bool kers2,
             byte powerMultiplier3,
+            bool powerBitSix3,
             bool ghost3,
             byte rumble3,
             byte brake3,
             bool kers3,
             byte powerMultiplier4,
+            bool powerBitSix4,
             bool ghost4,
             byte rumble4,
             byte brake4,
             bool kers4,
             byte powerMultiplier5,
+            bool powerBitSix5,
             bool ghost5,
             byte rumble5,
             byte brake5,
             bool kers5,
             byte powerMultiplier6,
+            bool powerBitSix6,
             bool ghost6,
             byte rumble6,
             byte brake6,
@@ -267,31 +291,37 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
         {
             Command = command;
             PowerMultiplier1 = powerMultiplier1;
+            PowerBitSix1 = powerBitSix1;
             Ghost1 = ghost1;
             Rumble1 = rumble1;
             Brake1 = brake1;
             Kers1 = kers1;
             PowerMultiplier2 = powerMultiplier2;
+            PowerBitSix2 = powerBitSix2;
             Ghost2 = ghost2;
             Rumble2 = rumble2;
             Brake2 = brake2;
             Kers2 = kers2;
             PowerMultiplier3 = powerMultiplier3;
+            PowerBitSix3 = powerBitSix3;
             Ghost3 = ghost3;
             Rumble3 = rumble3;
             Brake3 = brake3;
             Kers3 = kers3;
             PowerMultiplier4 = powerMultiplier4;
+            PowerBitSix4 = powerBitSix4;
             Ghost4 = ghost4;
             Rumble4 = rumble4;
             Brake4 = brake4;
             Kers4 = kers4;
             PowerMultiplier5 = powerMultiplier5;
+            PowerBitSix5 = powerBitSix5;
             Ghost5 = ghost5;
             Rumble5 = rumble5;
             Brake5 = brake5;
             Kers5 = kers5;
             PowerMultiplier6 = powerMultiplier6;
+            PowerBitSix6 = powerBitSix6;
             Ghost6 = ghost6;
             Rumble6 = rumble6;
             Brake6 = brake6;
@@ -321,7 +351,9 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
                     break;
                 default:
                     break;
-            }            
+            }
+
+            await _practiceSessionState.SetGhostAsync(ghost1, ghost2, ghost3, ghost4, ghost5, ghost6);
         }
     }
 
@@ -465,7 +497,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
             return new PracticeSessionCarIdDto
             {
                 CarId = practiceSessionCarId.CarId,
-                ControllerOn = practiceSessionCarId.ControllerOn,
+                ControllerOrGhostOn = practiceSessionCarId.ControllerOrGhostOn,
                 Laps = practiceSessionCarId.Laps,
                 FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? (practiceSessionCarId.FastestLapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
                 FastestSpeedTrap = practiceSessionCarId.FastestSpeedTrap,

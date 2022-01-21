@@ -4,7 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CommonBaseComponent } from 'src/lib/common/common-base.component';
 
-import { PracticeSessionCarIdDto, PracticeSessionLapDto } from './practice-session.dto';
+import { PracticeSessionCarIdDto } from './practice-session.dto';
 import { PracticeSessionObserversService } from './practice-session-observers.service';
 import { CommonToolbarService } from 'src/lib/components/common-toolbar/common-toolbar.service';
 
@@ -47,6 +47,6 @@ export class PracticeSessionComponent
 
 
     public get practiceSessionCarIds(): PracticeSessionCarIdDto[] {
-        return this.dto.filter(x => x.controllerOn);
+        return this.dto.filter(x => x.controllerOrGhostOn);
     }
 }

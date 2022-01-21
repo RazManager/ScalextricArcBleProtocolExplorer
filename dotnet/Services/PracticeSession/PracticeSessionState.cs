@@ -12,9 +12,10 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
 {
     public class PracticeSessionCarId
     {
-        [Required]
         public byte CarId { get; init; }
         public bool ControllerOn { get; set; } = false;
+        public bool GhostOn { get; set; } = false;
+        public bool ControllerOrGhostOn { get; set; } = false;
         public int? Laps { get; set; }
         public double? FastestLapTime { get; set; }
         public uint? FastestSpeedTrap { get; set; }
@@ -35,17 +36,21 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
     {
         [Required]
         public byte CarId { get; init; }
-        public bool ControllerOn { get; set; } = false;
+        [Required]
+        public bool ControllerOrGhostOn { get; set; } = false;
         public int? Laps { get; set; }
         public string? FastestLapTime { get; set; }
         public uint? FastestSpeedTrap { get; set; }
+        [Required]
         public bool AnalogPitstop { get; set; } = false;
+        [Required]
         public IEnumerable<PracticeSessionLapDto> LatestLaps { get; set; } = new List<PracticeSessionLapDto>();
     }
 
 
     public class PracticeSessionLapDto
     {
+        [Required]
         public int Lap { get; set; }
         public string? LapTime { get; set; }
         public uint? SpeedTrap { get; set; }
@@ -84,7 +89,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             return new PracticeSessionCarIdDto
             {
                 CarId = practiceSessionCarId.CarId,
-                ControllerOn = practiceSessionCarId.ControllerOn,
+                ControllerOrGhostOn = practiceSessionCarId.ControllerOrGhostOn,
                 Laps = practiceSessionCarId.Laps,
                 FastestLapTime = practiceSessionCarId.FastestLapTime.HasValue ? (practiceSessionCarId.FastestLapTime.Value / 100.0).ToString("F2", CultureInfo.InvariantCulture) : null,
                 FastestSpeedTrap = practiceSessionCarId.FastestSpeedTrap,
@@ -187,7 +192,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             byte ctrlVersion4,
             byte ctrlVersion5,
             byte ctrlVersion6,
-            bool? isDigital
+            bool isDigital
         )
         {
             _ = SetCtrlVersionCarIdAsync(1, ctrlVersion1, isDigital);
@@ -199,26 +204,59 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             return Task.CompletedTask;
         }
 
-        private Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion, bool? isDigital)
+        private Task SetCtrlVersionCarIdAsync(byte carId, byte ctrlVersion, bool isDigital)
+        {
+            var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
+            if (practiceSessionCarId is not null)
+            {
+                practiceSessionCarId.ControllerOn = ctrlVersion < 255 && (carId <= 2 || isDigital);
+                SetControllerOrGhostOnCarId(carId);
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task SetGhostAsync
+        (
+            bool ghost1,
+            bool ghost2,
+            bool ghost3,
+            bool ghost4,
+            bool ghost5,
+            bool ghost6
+        )
+        {
+            _ = SetGhostCarIdAsync(1, ghost1);
+            _ = SetGhostCarIdAsync(2, ghost2);
+            _ = SetGhostCarIdAsync(3, ghost3);
+            _ = SetGhostCarIdAsync(4, ghost4);
+            _ = SetGhostCarIdAsync(5, ghost5);
+            _ = SetGhostCarIdAsync(6, ghost6);
+            return Task.CompletedTask;
+        }
+
+        private Task SetGhostCarIdAsync(byte carId, bool ghost)
+        {
+            var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
+            if (practiceSessionCarId is not null)
+            {
+                practiceSessionCarId.GhostOn = ghost;
+                SetControllerOrGhostOnCarId(carId);
+            }
+            return Task.CompletedTask;
+        }
+
+        private void SetControllerOrGhostOnCarId(byte carId)
         {
             try
             {
                 var practiceSessionCarId = CarIds.SingleOrDefault(x => x.CarId == carId);
                 if (practiceSessionCarId is not null)
                 {
-                    bool controllerOn;
-                    if (!isDigital.HasValue)
-                    {
-                        controllerOn = false;
-                    }
-                    else
-                    {
-                        controllerOn = ctrlVersion < 255 && (carId <= 2 || isDigital.Value);
-                    }
+                    var controllerOrGhostOn = practiceSessionCarId.ControllerOn || practiceSessionCarId.GhostOn;
 
-                    if (practiceSessionCarId.ControllerOn != controllerOn)
+                    if (practiceSessionCarId.ControllerOrGhostOn != controllerOrGhostOn)
                     {
-                        practiceSessionCarId.ControllerOn = controllerOn;
+                        practiceSessionCarId.ControllerOrGhostOn = controllerOrGhostOn;
                         _hubContext.Clients.All.ChangedState(MapPracticeSessionCarId(practiceSessionCarId));
                     }
                 }
@@ -227,7 +265,6 @@ namespace ScalextricArcBleProtocolExplorer.Services.PracticeSession
             {
                 _logger.LogError(exception, exception.Message);
             }
-            return Task.CompletedTask;
         }
     }
 }
