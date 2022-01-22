@@ -58,7 +58,7 @@ namespace ScalextricArcBleProtocolExplorer.Services.ScalextricArc
                 var values = new List<ThrottleProfileValueDto>();
                 for (int v = 0; v < 64; v++)
                 {
-                    values.Add(new ThrottleProfileValueDto { Value = (byte)(255 * v / 63) });
+                    values.Add(new ThrottleProfileValueDto { Value = (byte)(256 * (v + 1) / 64 - 1) });
                 }
                 ThrottleProfileStates[i] = new ThrottleProfileState(throttleProfileHubContext, throttleProfileStateChannel) { CarId = (byte)(i + 1), Values = values };
             }
