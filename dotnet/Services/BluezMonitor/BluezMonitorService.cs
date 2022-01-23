@@ -648,31 +648,37 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                                             (
                                                 (CommandType)value[0],
                                                 (byte)(value[1] & 0b111111),
+                                                (value[1] & 0b1000000) > 0,
                                                 (value[1] & 0b10000000) > 0,
                                                 value[7],
                                                 value[13],
                                                 (value[19] & 0b1) > 0,
                                                 (byte)(value[2] & 0b111111),
+                                                (value[2] & 0b1000000) > 0,
                                                 (value[2] & 0b10000000) > 0,
                                                 value[8],
                                                 value[14],
                                                 (value[19] & 0b10) > 0,
                                                 (byte)(value[3] & 0b111111),
+                                                (value[3] & 0b1000000) > 0,
                                                 (value[3] & 0b10000000) > 0,
                                                 value[9],
                                                 value[15],
                                                 (value[19] & 0b100) > 0,
                                                 (byte)(value[4] & 0b111111),
+                                                (value[4] & 0b1000000) > 0,
                                                 (value[4] & 0b10000000) > 0,
                                                 value[10],
                                                 value[16],
                                                 (value[19] & 0b1000) > 0,
                                                 (byte)(value[5] & 0b111111),
+                                                (value[5] & 0b1000000) > 0,
                                                 (value[5] & 0b10000000) > 0,
                                                 value[11],
                                                 value[17],
                                                 (value[19] & 0b10000) > 0,
                                                 (byte)(value[6] & 0b111111),
+                                                (value[6] & 0b1000000) > 0,
                                                 (value[6] & 0b10000000) > 0,
                                                 value[12],
                                                 value[18],
@@ -1027,12 +1033,12 @@ namespace ScalextricArcBleProtocolExplorer.Services.BluezMonitor
                 {
                     var value = new byte[20];
                     value[0] = (byte)commandState.Command;
-                    value[1] = (byte)(commandState.PowerMultiplier1 + (commandState.Ghost1 ? 128 : 0));
-                    value[2] = (byte)(commandState.PowerMultiplier2 + (commandState.Ghost2 ? 128 : 0));
-                    value[3] = (byte)(commandState.PowerMultiplier3 + (commandState.Ghost3 ? 128 : 0));
-                    value[4] = (byte)(commandState.PowerMultiplier4 + (commandState.Ghost4 ? 128 : 0));
-                    value[5] = (byte)(commandState.PowerMultiplier5 + (commandState.Ghost5 ? 128 : 0));
-                    value[6] = (byte)(commandState.PowerMultiplier6 + (commandState.Ghost6 ? 128 : 0));
+                    value[1] = (byte)(commandState.PowerMultiplier1 + (commandState.PowerBitSix1 ? 64 : 0) + (commandState.Ghost1 ? 128 : 0));
+                    value[2] = (byte)(commandState.PowerMultiplier2 + (commandState.PowerBitSix2 ? 64 : 0) + (commandState.Ghost2 ? 128 : 0));
+                    value[3] = (byte)(commandState.PowerMultiplier3 + (commandState.PowerBitSix3 ? 64 : 0) + (commandState.Ghost3 ? 128 : 0));
+                    value[4] = (byte)(commandState.PowerMultiplier4 + (commandState.PowerBitSix4 ? 64 : 0) + (commandState.Ghost4 ? 128 : 0));
+                    value[5] = (byte)(commandState.PowerMultiplier5 + (commandState.PowerBitSix5 ? 64 : 0) + (commandState.Ghost5 ? 128 : 0));
+                    value[6] = (byte)(commandState.PowerMultiplier6 + (commandState.PowerBitSix6 ? 64 : 0) + (commandState.Ghost6 ? 128 : 0));
                     value[7] = commandState.Rumble1;
                     value[8] = commandState.Rumble2;
                     value[9] = commandState.Rumble3;
